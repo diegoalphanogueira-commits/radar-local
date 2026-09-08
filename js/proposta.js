@@ -1,14 +1,56 @@
 /* =========================================================
-   RADAR LOCAL — PROPOSTA.JS
+   RADAR LOCAL — PROPOSTA.JS V3
 ========================================================= */
 
 
 /* =========================================================
-   DADOS DA ANÁLISE
+   CONFIGURAÇÕES COMERCIAIS
 ========================================================= */
 
-const proposalDataRaw =
-  localStorage.getItem("radarProposal");
+const BASE_PRICE = 1290;
+
+
+/*
+  Taxas de referência para link de pagamento.
+
+  A lógica abaixo considera que queremos preservar
+  R$ 1.290 líquidos.
+
+  Fórmula:
+
+  valor cobrado =
+  valor líquido / (1 - taxa)
+
+  Exemplo:
+  R$ 1.290 / (1 - 0.0967)
+
+  Depois dividimos pelo número de parcelas.
+
+  IMPORTANTE:
+  Antes de usar comercialmente, atualize esta tabela
+  caso a operadora altere as taxas.
+*/
+
+const INSTALLMENT_FEES = {
+
+  2: 0.0609,
+  3: 0.0701,
+  4: 0.0791,
+  5: 0.0880,
+  6: 0.0967
+
+};
+
+
+/* =========================================================
+   CARREGAR DADOS DA ANÁLISE
+========================================================= */
+
+const storedProposal =
+  localStorage.getItem(
+    "radarProposal"
+  );
+
 
 let proposalData = null;
 
@@ -16,12 +58,14 @@ let proposalData = null;
 try {
 
   proposalData =
-    JSON.parse(proposalDataRaw);
+    JSON.parse(
+      storedProposal
+    );
 
 } catch (error) {
 
   console.error(
-    "Erro ao carregar dados da proposta:",
+    "Erro ao carregar proposta:",
     error
   );
 
@@ -29,13 +73,14 @@ try {
 
 
 /* =========================================================
-   ELEMENTOS
+   ELEMENTOS PRINCIPAIS
 ========================================================= */
 
 const printButton =
   document.getElementById(
     "printButton"
   );
+
 
 const backButton =
   document.getElementById(
@@ -44,15 +89,62 @@ const backButton =
 
 
 /* =========================================================
-   FUNÇÕES UTILITÁRIAS
+   UTILITÁRIOS
 ========================================================= */
 
-function formatNumber(number) {
+function safeNumber(value) {
+
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : 0;
+
+}
+
+
+function safeText(
+  value,
+  fallback = "—"
+) {
+
+  if (
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ""
+  ) {
+
+    return fallback;
+
+  }
+
+  return String(value);
+
+}
+
+
+function formatNumber(value) {
 
   return new Intl.NumberFormat(
     "pt-BR"
   ).format(
-    Number(number) || 0
+    safeNumber(value)
+  );
+
+}
+
+
+function formatCurrency(value) {
+
+  return new Intl.NumberFormat(
+    "pt-BR",
+    {
+      style: "currency",
+      currency: "BRL"
+    }
+  ).format(
+    safeNumber(value)
   );
 
 }
@@ -79,31 +171,97 @@ function slugify(text) {
 }
 
 
-function safeText(
+function clamp(
   value,
-  fallback = "—"
+  min,
+  max
 ) {
 
-  if (
-    value === null ||
-    value === undefined ||
-    value === ""
-  ) {
-
-    return fallback;
-
-  }
-
-  return value;
+  return Math.min(
+    Math.max(
+      value,
+      min
+    ),
+    max
+  );
 
 }
 
 
 /* =========================================================
-   TEMPLATES DO PREVIEW DO SITE
+   NÍVEIS
+========================================================= */
+
+function getPresenceLabel(score) {
+
+  score =
+    safeNumber(score);
+
+
+  if (score < 35) {
+
+    return "Baixa";
+
+  }
+
+
+  if (score < 55) {
+
+    return "Intermediária";
+
+  }
+
+
+  if (score < 75) {
+
+    return "Boa";
+
+  }
+
+
+  return "Alta";
+
+}
+
+
+function getDemandLabel(monthly) {
+
+  monthly =
+    safeNumber(monthly);
+
+
+  if (monthly < 60) {
+
+    return "Moderada";
+
+  }
+
+
+  if (monthly < 110) {
+
+    return "Relevante";
+
+  }
+
+
+  if (monthly < 170) {
+
+    return "Alta";
+
+  }
+
+
+  return "Muito alta";
+
+}
+
+
+/* =========================================================
+   TEMPLATE VISUAL POR SEGMENTO
 ========================================================= */
 
 const WEBSITE_TEMPLATES = {
+
 
   estetica: {
 
@@ -114,13 +272,16 @@ const WEBSITE_TEMPLATES = {
       "Realce sua beleza com atendimento profissional e personalizado.",
 
     description:
-      "Conheça nossos tratamentos e encontre o cuidado ideal para você.",
+      "Tratamentos pensados para valorizar sua beleza, autoestima e bem-estar.",
 
-    visual:
-      "linear-gradient(145deg, #f9eefa, #eef5ff)",
+    background:
+      "linear-gradient(145deg, #faedf8, #eef4ff)",
 
     accent:
-      "#b45acb"
+      "#b552c7",
+
+    icon:
+      "✦"
 
   },
 
@@ -131,16 +292,19 @@ const WEBSITE_TEMPLATES = {
       "Saúde e cuidado dos pés",
 
     headline:
-      "Cuide dos seus pés com atendimento especializado.",
+      "Cuidado especializado para seus pés, conforto e bem-estar.",
 
     description:
-      "Tratamentos profissionais para conforto, prevenção e bem-estar.",
+      "Atendimento profissional para prevenção, tratamento e saúde dos pés.",
 
-    visual:
-      "linear-gradient(145deg, #eef9f5, #eff7ff)",
+    background:
+      "linear-gradient(145deg, #edf9f3, #eef7ff)",
 
     accent:
-      "#3f9b79"
+      "#3a9a74",
+
+    icon:
+      "◎"
 
   },
 
@@ -154,13 +318,16 @@ const WEBSITE_TEMPLATES = {
       "Seu sorriso merece cuidado, segurança e confiança.",
 
     description:
-      "Atendimento odontológico completo para cuidar da sua saúde e estética.",
+      "Atendimento odontológico completo para cuidar da saúde e estética do seu sorriso.",
 
-    visual:
-      "linear-gradient(145deg, #eaf7ff, #f6fbff)",
+    background:
+      "linear-gradient(145deg, #eaf7ff, #f5fbff)",
 
     accent:
-      "#2d8fd5"
+      "#288fd3",
+
+    icon:
+      "✦"
 
   },
 
@@ -168,19 +335,22 @@ const WEBSITE_TEMPLATES = {
   beleza: {
 
     category:
-      "Beleza e cuidados",
+      "Beleza e autoestima",
 
     headline:
-      "Beleza, cuidado e autoestima em cada atendimento.",
+      "Cuidado, beleza e autoestima em cada atendimento.",
 
     description:
-      "Conheça nossos serviços e encontre o atendimento ideal para você.",
+      "Serviços profissionais pensados para valorizar você em cada detalhe.",
 
-    visual:
-      "linear-gradient(145deg, #fff0f5, #f8f2ff)",
+    background:
+      "linear-gradient(145deg, #fff0f5, #f6efff)",
 
     accent:
-      "#d05f91"
+      "#ce5d91",
+
+    icon:
+      "✦"
 
   },
 
@@ -196,11 +366,14 @@ const WEBSITE_TEMPLATES = {
     description:
       "Assistência especializada para celulares, notebooks e equipamentos.",
 
-    visual:
-      "linear-gradient(145deg, #edf3ff, #f3f8ff)",
+    background:
+      "linear-gradient(145deg, #eaf1ff, #f4f8ff)",
 
     accent:
-      "#276fd3"
+      "#286fd2",
+
+    icon:
+      "⚙"
 
   },
 
@@ -211,16 +384,19 @@ const WEBSITE_TEMPLATES = {
       "Limpeza e higienização",
 
     headline:
-      "Seu sofá limpo, renovado e pronto para receber sua família.",
+      "Renove seus estofados com limpeza profissional.",
 
     description:
-      "Higienização profissional de estofados com atendimento na sua região.",
+      "Higienização especializada para deixar seu ambiente mais limpo, seguro e confortável.",
 
-    visual:
-      "linear-gradient(145deg, #eafbf7, #edf7ff)",
+    background:
+      "linear-gradient(145deg, #eafbf7, #edf6ff)",
 
     accent:
-      "#249d85"
+      "#249a83",
+
+    icon:
+      "✦"
 
   },
 
@@ -231,16 +407,19 @@ const WEBSITE_TEMPLATES = {
       "Vidros sob medida",
 
     headline:
-      "Soluções em vidro que valorizam cada detalhe do seu ambiente.",
+      "Soluções em vidro que valorizam seu ambiente.",
 
     description:
-      "Projetos sob medida para residências, comércios e empresas.",
+      "Projetos personalizados para residências, comércios e empresas.",
 
-    visual:
+    background:
       "linear-gradient(145deg, #eef8fb, #f4faff)",
 
     accent:
-      "#4285a4"
+      "#4389a5",
+
+    icon:
+      "◇"
 
   },
 
@@ -254,13 +433,16 @@ const WEBSITE_TEMPLATES = {
       "Acabamentos que transformam seu projeto.",
 
     description:
-      "Bancadas, pias e projetos sob medida com acabamento profissional.",
+      "Bancadas, pias e projetos personalizados com acabamento profissional.",
 
-    visual:
-      "linear-gradient(145deg, #f3f1ee, #fafafa)",
+    background:
+      "linear-gradient(145deg, #f2f0ed, #fafafa)",
 
     accent:
-      "#7c746a"
+      "#756e67",
+
+    icon:
+      "◆"
 
   },
 
@@ -271,16 +453,19 @@ const WEBSITE_TEMPLATES = {
       "Climatização",
 
     headline:
-      "Conforto e climatização para sua casa ou empresa.",
+      "Mais conforto para sua casa ou empresa.",
 
     description:
-      "Instalação, manutenção e limpeza de ar-condicionado com atendimento especializado.",
+      "Instalação, manutenção e higienização de ar-condicionado com atendimento especializado.",
 
-    visual:
-      "linear-gradient(145deg, #e9f5ff, #f5fbff)",
+    background:
+      "linear-gradient(145deg, #e8f5ff, #f5fbff)",
 
     accent:
-      "#3287cf"
+      "#3287cf",
+
+    icon:
+      "❄"
 
   },
 
@@ -291,16 +476,19 @@ const WEBSITE_TEMPLATES = {
       "Controle de pragas",
 
     headline:
-      "Proteja seu ambiente com um controle de pragas profissional.",
+      "Proteção profissional para sua casa ou empresa.",
 
     description:
-      "Soluções para residências e empresas com atendimento rápido e especializado.",
+      "Controle de pragas com atendimento especializado e soluções para diferentes ambientes.",
 
-    visual:
-      "linear-gradient(145deg, #eff8ea, #f7fbf3)",
+    background:
+      "linear-gradient(145deg, #eef8e9, #f7fbf3)",
 
     accent:
-      "#5b923c"
+      "#5c913d",
+
+    icon:
+      "✓"
 
   },
 
@@ -311,16 +499,19 @@ const WEBSITE_TEMPLATES = {
       "Energia solar",
 
     headline:
-      "Transforme a luz do sol em economia para sua casa ou empresa.",
+      "Transforme energia solar em economia para sua casa ou empresa.",
 
     description:
-      "Projetos de energia solar pensados para reduzir custos e gerar eficiência.",
+      "Projetos fotovoltaicos desenvolvidos para eficiência, economia e segurança.",
 
-    visual:
-      "linear-gradient(145deg, #fff8df, #edf7ff)",
+    background:
+      "linear-gradient(145deg, #fff7dc, #edf7ff)",
 
     accent:
-      "#e4a500"
+      "#dfa300",
+
+    icon:
+      "☀"
 
   },
 
@@ -334,13 +525,16 @@ const WEBSITE_TEMPLATES = {
       "Seu carro em boas mãos, do diagnóstico à manutenção.",
 
     description:
-      "Serviços automotivos com atendimento profissional e transparente.",
+      "Serviços automotivos com atendimento profissional, clareza e confiança.",
 
-    visual:
-      "linear-gradient(145deg, #eef1f5, #f8fafc)",
+    background:
+      "linear-gradient(145deg, #edf0f4, #f8fafc)",
 
     accent:
-      "#4d6377"
+      "#506479",
+
+    icon:
+      "⚙"
 
   },
 
@@ -354,13 +548,16 @@ const WEBSITE_TEMPLATES = {
       "Uma presença profissional para quem procura seus serviços.",
 
     description:
-      "Apresente sua empresa, seus serviços e facilite o contato com novos clientes.",
+      "Apresente sua empresa, seus diferenciais e facilite o contato com novos clientes.",
 
-    visual:
+    background:
       "linear-gradient(145deg, #eaf2ff, #f6faff)",
 
     accent:
-      "#1a73e8"
+      "#1a73e8",
+
+    icon:
+      "↗"
 
   }
 
@@ -368,7 +565,7 @@ const WEBSITE_TEMPLATES = {
 
 
 /* =========================================================
-   PREPARAR TEMPLATE DO SITE
+   PEGAR TEMPLATE
 ========================================================= */
 
 function getWebsiteTemplate(
@@ -386,195 +583,383 @@ function getWebsiteTemplate(
 
 
 /* =========================================================
-   PREENCHER CAPA
+   CAPA
 ========================================================= */
 
-function renderHero(data) {
+function renderCover(data) {
 
-  document.getElementById(
-    "companyNameHero"
-  ).textContent =
+  const company =
     safeText(
       data.company,
-      "sua empresa"
+      "Sua empresa"
     );
 
 
-  document.getElementById(
-    "segmentHero"
-  ).textContent =
+  const segment =
     safeText(
       data.segmentLabel
     );
 
 
-  document.getElementById(
-    "regionHero"
-  ).textContent =
+  const region =
     safeText(
       data.region
     );
 
 
+  const radius =
+    safeText(
+      data.radius,
+      "3"
+    );
+
+
+  const weekly =
+    safeNumber(
+      data.weekly
+    );
+
+
+  const monthly =
+    safeNumber(
+      data.monthly
+    );
+
+
+  const presence =
+    safeNumber(
+      data.presence
+    );
+
+
+  const uncaptured =
+    safeNumber(
+      data.uncaptured
+    );
+
+
+  const overall =
+    safeNumber(
+      data.overall
+    );
+
+
+  document.getElementById(
+    "companyNameHero"
+  ).textContent =
+    company;
+
+
+  document.getElementById(
+    "companyMeta"
+  ).textContent =
+    company;
+
+
+  document.getElementById(
+    "segmentHero"
+  ).textContent =
+    segment;
+
+
+  document.getElementById(
+    "regionHero"
+  ).textContent =
+    region;
+
+
   document.getElementById(
     "radiusHero"
   ).textContent =
-    `${safeText(
-      data.radius,
-      "3"
-    )} km`;
+    `${radius} km`;
 
 
   document.getElementById(
     "heroScore"
   ).textContent =
     formatNumber(
-      data.overall
+      overall
     );
 
-
-  /*
-    Gauge dinâmico
-  */
-
-  const heroRadarRing =
-    document.querySelector(
-      ".hero-radar-ring"
-    );
-
-
-  if (heroRadarRing) {
-
-    const score =
-      Math.min(
-        Math.max(
-          Number(
-            data.overall
-          ) || 0,
-          0
-        ),
-        100
-      );
-
-
-    const degrees =
-      Math.round(
-        score / 100 * 360
-      );
-
-
-    heroRadarRing.style.background =
-      `
-        conic-gradient(
-          #1a73e8 0deg ${degrees}deg,
-          #edf1f6 ${degrees}deg 360deg
-        )
-      `;
-
-  }
-
-}
-
-
-/* =========================================================
-   OPORTUNIDADE
-========================================================= */
-
-function renderOpportunity(data) {
 
   document.getElementById(
-    "weeklyDemand"
+    "coverWeekly"
   ).textContent =
     formatNumber(
-      data.weekly
+      weekly
     );
 
 
   document.getElementById(
-    "monthlyDemand"
+    "coverMonthly"
   ).textContent =
     formatNumber(
-      data.monthly
+      monthly
     );
 
 
   document.getElementById(
-    "presenceScore"
+    "coverPresence"
   ).textContent =
     formatNumber(
-      data.presence
+      presence
     );
 
 
   document.getElementById(
-    "uncapturedDemand"
+    "coverUncaptured"
   ).textContent =
     `${formatNumber(
-      data.uncaptured
+      uncaptured
     )}%`;
 
 
-  const intro =
+  document.getElementById(
+    "coverSummary"
+  ).textContent =
+    `O cenário analisado em ${region} indica uma procura estimada de ${formatNumber(
+      weekly
+    )} buscas por semana relacionadas aos serviços avaliados. O objetivo deste plano é fortalecer a presença da ${company} para aproveitar melhor essa demanda.`;
+
+
+  const coverInsight =
     document.getElementById(
-      "opportunityIntro"
+      "coverInsight"
     );
-
-
-  intro.textContent =
-    `Na análise de ${safeText(
-      data.company,
-      "sua empresa"
-    )}, identificamos uma estimativa de ${formatNumber(
-      data.weekly
-    )} buscas por semana e ${formatNumber(
-      data.monthly
-    )} buscas por mês relacionadas aos serviços avaliados na região de ${safeText(
-      data.region,
-      "atuação"
-    )}.`;
-
-
-  const statement =
-    document.getElementById(
-      "opportunityStatement"
-    );
-
-
-  const uncaptured =
-    Number(
-      data.uncaptured
-    ) || 0;
 
 
   if (
     uncaptured >= 70
   ) {
 
-    statement.textContent =
-      "Existe uma oportunidade expressiva de melhorar a capacidade da empresa de aparecer e captar essa procura local.";
+    coverInsight.textContent =
+      "O Radar identificou uma diferença expressiva entre a procura estimada e a presença atual da empresa. Existe um espaço importante para evolução.";
 
   } else if (
     uncaptured >= 50
   ) {
 
-    statement.textContent =
-      "A demanda já existe. A oportunidade está em fortalecer a presença da empresa para capturar uma parcela maior dessa procura.";
+    coverInsight.textContent =
+      "Existe demanda relevante na região e uma parcela importante dessa oportunidade ainda pode ser melhor capturada pela empresa.";
 
   } else {
 
-    statement.textContent =
-      "A empresa já possui sinais de presença, mas ainda existe espaço para ampliar visibilidade, autoridade e geração de contatos.";
+    coverInsight.textContent =
+      "A empresa já apresenta sinais positivos de presença, mas ainda existem oportunidades para ampliar relevância, autoridade e confiança.";
 
   }
+
+
+  /*
+    Score circular
+  */
+
+  const ring =
+    document.getElementById(
+      "heroScoreRing"
+    );
+
+
+  const degrees =
+    Math.round(
+      clamp(
+        overall,
+        0,
+        100
+      ) /
+      100 *
+      360
+    );
+
+
+  ring.style.background =
+    `
+      conic-gradient(
+        #1a73e8 0deg ${degrees}deg,
+        #edf1f6 ${degrees}deg 360deg
+      )
+    `;
 
 }
 
 
 /* =========================================================
-   PALAVRAS-CHAVE
+   PÁGINA DE OPORTUNIDADE
 ========================================================= */
 
-function renderKeywords(data) {
+function renderOpportunity(
+  data
+) {
+
+  const company =
+    safeText(
+      data.company,
+      "a empresa"
+    );
+
+
+  const region =
+    safeText(
+      data.region,
+      "região analisada"
+    );
+
+
+  const weekly =
+    safeNumber(
+      data.weekly
+    );
+
+
+  const monthly =
+    safeNumber(
+      data.monthly
+    );
+
+
+  const presence =
+    safeNumber(
+      data.presence
+    );
+
+
+  const uncaptured =
+    safeNumber(
+      data.uncaptured
+    );
+
+
+  document.getElementById(
+    "opportunityIntro"
+  ).textContent =
+    `Na análise da ${company}, identificamos aproximadamente ${formatNumber(
+      weekly
+    )} buscas semanais e ${formatNumber(
+      monthly
+    )} buscas mensais relacionadas aos serviços considerados na região de ${region}.`;
+
+
+  const demandLevel =
+    safeText(
+      data.demandLevel,
+      getDemandLabel(
+        monthly
+      )
+    );
+
+
+  document.getElementById(
+    "demandLevelText"
+  ).textContent =
+    demandLevel;
+
+
+  document.getElementById(
+    "presenceLevelText"
+  ).textContent =
+    getPresenceLabel(
+      presence
+    );
+
+
+  /*
+    A barra de demanda trabalha como
+    índice visual de 0 a 100.
+  */
+
+  let demandPercentage =
+    50;
+
+
+  if (monthly >= 170) {
+
+    demandPercentage =
+      95;
+
+  } else if (monthly >= 110) {
+
+    demandPercentage =
+      84;
+
+  } else if (monthly >= 60) {
+
+    demandPercentage =
+      68;
+
+  }
+
+
+  document.getElementById(
+    "demandChartBar"
+  ).style.width =
+    `${demandPercentage}%`;
+
+
+  document.getElementById(
+    "presenceChartBar"
+  ).style.width =
+    `${clamp(
+      presence,
+      0,
+      100
+    )}%`;
+
+
+  document.getElementById(
+    "gapNumber"
+  ).textContent =
+    `${formatNumber(
+      uncaptured
+    )}%`;
+
+
+  const gapText =
+    document.getElementById(
+      "gapText"
+    );
+
+
+  if (
+    uncaptured >= 70
+  ) {
+
+    gapText.textContent =
+      "Uma parcela elevada da oportunidade analisada está fora da capacidade atual de captura da empresa.";
+
+  } else if (
+    uncaptured >= 50
+  ) {
+
+    gapText.textContent =
+      "Existe uma diferença relevante entre a procura estimada e a presença atual da empresa.";
+
+  } else {
+
+    gapText.textContent =
+      "A empresa já possui alguma capacidade de captura, mas ainda existem oportunidades claras para evolução.";
+
+  }
+
+
+  const conclusion =
+    document.getElementById(
+      "demandConclusion"
+    );
+
+
+  conclusion.textContent =
+    `A procura já acontece. O objetivo agora é aumentar a capacidade da ${company} de aparecer, gerar confiança e transformar parte maior dessa procura em oportunidades de contato.`;
+
+}
+
+
+/* =========================================================
+   KEYWORDS
+========================================================= */
+
+function renderKeywords(
+  data
+) {
 
   const container =
     document.getElementById(
@@ -597,21 +982,19 @@ function renderKeywords(data) {
       : [];
 
 
-  if (
-    !keywords.length
-  ) {
+  if (!keywords.length) {
 
-    const empty =
+    const item =
       document.createElement(
         "div"
       );
 
 
-    empty.className =
+    item.className =
       "proposal-keyword";
 
 
-    empty.innerHTML =
+    item.innerHTML =
       `
         <span>
           Serviços relacionados
@@ -624,7 +1007,7 @@ function renderKeywords(data) {
 
 
     container.appendChild(
-      empty
+      item
     );
 
 
@@ -676,13 +1059,45 @@ function renderKeywords(data) {
    DIAGNÓSTICO
 ========================================================= */
 
-function renderDiagnosis(data) {
+function renderDiagnosis(
+  data
+) {
+
+  const google =
+    clamp(
+      safeNumber(
+        data.googleScore
+      ),
+      0,
+      100
+    );
+
+
+  const authority =
+    clamp(
+      safeNumber(
+        data.authorityScore
+      ),
+      0,
+      100
+    );
+
+
+  const reviews =
+    clamp(
+      safeNumber(
+        data.reviewsScore
+      ),
+      0,
+      100
+    );
+
 
   document.getElementById(
     "googleScore"
   ).textContent =
     formatNumber(
-      data.googleScore
+      google
     );
 
 
@@ -690,7 +1105,7 @@ function renderDiagnosis(data) {
     "authorityScore"
   ).textContent =
     formatNumber(
-      data.authorityScore
+      authority
     );
 
 
@@ -698,8 +1113,26 @@ function renderDiagnosis(data) {
     "reviewsScore"
   ).textContent =
     formatNumber(
-      data.reviewsScore
+      reviews
     );
+
+
+  document.getElementById(
+    "googleScoreBar"
+  ).style.width =
+    `${google}%`;
+
+
+  document.getElementById(
+    "authorityScoreBar"
+  ).style.width =
+    `${authority}%`;
+
+
+  document.getElementById(
+    "reviewsScoreBar"
+  ).style.width =
+    `${reviews}%`;
 
 }
 
@@ -718,6 +1151,13 @@ function renderWebsitePreview(
     );
 
 
+  const company =
+    safeText(
+      data.company,
+      "Sua empresa"
+    );
+
+
   document.getElementById(
     "previewCategory"
   ).textContent =
@@ -727,10 +1167,7 @@ function renderWebsitePreview(
   document.getElementById(
     "previewCompany"
   ).textContent =
-    safeText(
-      data.company,
-      "Sua empresa"
-    );
+    company;
 
 
   document.getElementById(
@@ -740,8 +1177,7 @@ function renderWebsitePreview(
 
 
   /*
-    Se houver serviços,
-    usa os primeiros no texto.
+    Serviços escolhidos
   */
 
   const services =
@@ -768,7 +1204,7 @@ function renderWebsitePreview(
   ) {
 
     description =
-      `Atendimento especializado em ${services[0].toLowerCase()} e soluções relacionadas na região.`;
+      `Atendimento especializado em ${services[0].toLowerCase()} e serviços relacionados na região.`;
 
   }
 
@@ -780,7 +1216,47 @@ function renderWebsitePreview(
 
 
   /*
-    Visual do mockup
+    Serviços no rodapé do mockup
+  */
+
+  const defaultServices = [
+
+    "Serviço principal",
+    "Atendimento especializado",
+    "Solução personalizada"
+
+  ];
+
+
+  document.getElementById(
+    "mockService1"
+  ).textContent =
+    safeText(
+      services[0],
+      defaultServices[0]
+    );
+
+
+  document.getElementById(
+    "mockService2"
+  ).textContent =
+    safeText(
+      services[1],
+      defaultServices[1]
+    );
+
+
+  document.getElementById(
+    "mockService3"
+  ).textContent =
+    safeText(
+      services[2],
+      defaultServices[2]
+    );
+
+
+  /*
+    Visual
   */
 
   const previewVisual =
@@ -790,73 +1266,204 @@ function renderWebsitePreview(
 
 
   previewVisual.style.background =
-    template.visual;
+    template.background;
 
 
-  const previewIcon =
-    previewVisual.querySelector(
-      ".preview-icon"
+  const icon =
+    document.getElementById(
+      "previewVisualIcon"
     );
 
 
-  if (previewIcon) {
+  icon.textContent =
+    template.icon;
 
-    previewIcon.style.color =
-      template.accent;
 
-  }
+  icon.style.color =
+    template.accent;
+
+
+  const primaryButton =
+    document.getElementById(
+      "previewPrimaryButton"
+    );
+
+
+  primaryButton.style.background =
+    template.accent;
 
 
   /*
-    Botão primário
+    URL
   */
 
-  const previewPrimary =
-    document.querySelector(
-      ".preview-primary"
-    );
+  const domain =
+    slugify(
+      company
+    ) ||
+    "suaempresa";
 
 
-  if (previewPrimary) {
-
-    previewPrimary.style.background =
-      template.accent;
-
-  }
-
-
-  /*
-    URL fictícia
-  */
-
-  const browserAddress =
-    document.querySelector(
-      ".browser-address"
-    );
-
-
-  if (browserAddress) {
-
-    const slug =
-      slugify(
-        data.company
-      ) ||
-      "suaempresa";
-
-
-    browserAddress.textContent =
-      `www.${slug}.com.br`;
-
-  }
+  document.getElementById(
+    "browserAddress"
+  ).textContent =
+    `www.${domain}.com.br`;
 
 }
 
 
 /* =========================================================
-   TÍTULO DA PÁGINA
+   PARCELAMENTO
 ========================================================= */
 
-function updatePageTitle(data) {
+function calculateInstallment(
+  installments,
+  fee
+) {
+
+  /*
+    Valor que precisa ser cobrado
+    para preservar R$ 1.290
+    depois da taxa.
+  */
+
+  const totalCharged =
+    BASE_PRICE /
+    (
+      1 - fee
+    );
+
+
+  const installmentValue =
+    totalCharged /
+    installments;
+
+
+  return {
+
+    totalCharged,
+    installmentValue
+
+  };
+
+}
+
+
+/* =========================================================
+   RENDER PARCELAS
+========================================================= */
+
+function renderInstallments() {
+
+  const container =
+    document.getElementById(
+      "installmentOptions"
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  Object.entries(
+    INSTALLMENT_FEES
+  ).forEach(
+    (
+      [
+        installments,
+        fee
+      ]
+    ) => {
+
+      const number =
+        Number(
+          installments
+        );
+
+
+      const values =
+        calculateInstallment(
+          number,
+          fee
+        );
+
+
+      const option =
+        document.createElement(
+          "div"
+        );
+
+
+      option.className =
+        "installment-option";
+
+
+      /*
+        Destacamos 6x
+        como maior facilidade.
+      */
+
+      if (
+        number === 6
+      ) {
+
+        option.classList.add(
+          "highlight"
+        );
+
+      }
+
+
+      option.innerHTML =
+        `
+          <span>
+            ${number}x
+          </span>
+
+          <strong>
+            ${formatCurrency(
+              values.installmentValue
+            )}
+          </strong>
+        `;
+
+
+      container.appendChild(
+        option
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   FECHAMENTO
+========================================================= */
+
+function renderClosing(
+  data
+) {
+
+  document.getElementById(
+    "closingCompany"
+  ).textContent =
+    safeText(
+      data.company,
+      "sua empresa"
+    );
+
+}
+
+
+/* =========================================================
+   TÍTULO
+========================================================= */
+
+function updateDocumentTitle(
+  data
+) {
 
   const company =
     safeText(
@@ -866,20 +1473,18 @@ function updatePageTitle(data) {
 
 
   document.title =
-    `Plano de Captura Local — ${company}`;
+    `Proposta - ${company} - Plano de Captura Local`;
 
 }
 
 
 /* =========================================================
-   RENDER PRINCIPAL
+   RENDERIZAÇÃO COMPLETA
 ========================================================= */
 
 function renderProposal() {
 
-  if (
-    !proposalData
-  ) {
+  if (!proposalData) {
 
     alert(
       "Nenhuma análise foi encontrada. Faça uma análise no Radar Local antes de gerar a proposta."
@@ -895,12 +1500,12 @@ function renderProposal() {
   }
 
 
-  updatePageTitle(
+  updateDocumentTitle(
     proposalData
   );
 
 
-  renderHero(
+  renderCover(
     proposalData
   );
 
@@ -921,6 +1526,14 @@ function renderProposal() {
 
 
   renderWebsitePreview(
+    proposalData
+  );
+
+
+  renderInstallments();
+
+
+  renderClosing(
     proposalData
   );
 
@@ -948,11 +1561,6 @@ printButton.addEventListener(
 backButton.addEventListener(
   "click",
   () => {
-
-    /*
-      Volta para o Radar sem apagar
-      os dados da análise.
-    */
 
     window.location.href =
       "index.html";
