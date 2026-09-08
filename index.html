@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Radar Local — Diagnóstico de Demanda</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="dot dot-blue"></span>
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+
+        <div>
+          <strong>Radar Local</strong>
+          <span>Diagnóstico de demanda e presença</span>
+        </div>
+      </div>
+
+      <div class="topbar-badge">Protótipo V1</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Análise de oportunidade local</span>
+          <h1>Veja onde existe procura e quanto sua empresa está conseguindo capturar.</h1>
+          <p>
+            Simule a demanda por serviços em uma região, analise o nível de presença
+            digital e identifique oportunidades de crescimento.
+          </p>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="signal-card signal-card-a">
+            <span>Demanda</span>
+            <strong>Alta</strong>
+          </div>
+
+          <div class="signal-card signal-card-b">
+            <span>Presença</span>
+            <strong>32/100</strong>
+          </div>
+
+          <div class="signal-ring">
+            <div class="signal-ring-inner">↗</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel search-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="section-kicker">Nova análise</span>
+            <h2>Qual negócio você quer analisar?</h2>
+          </div>
+          <span class="status-chip">
+            <span class="status-dot"></span>
+            Sistema pronto
+          </span>
+        </div>
+
+        <form id="analysisForm" class="analysis-form">
+          <div class="field field-wide">
+            <label for="company">Empresa</label>
+            <input
+              id="company"
+              name="company"
+              type="text"
+              placeholder="Ex.: Estética Moura"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="segment">Segmento</label>
+            <select id="segment" name="segment" required>
+              <option value="">Selecione</option>
+              <option value="estetica">Estética</option>
+              <option value="podologia">Podologia</option>
+              <option value="odontologia">Odontologia</option>
+              <option value="energia-solar">Energia Solar</option>
+              <option value="beleza">Salão / Beleza</option>
+              <option value="assistencia">Assistência Técnica</option>
+              <option value="vidracaria">Vidraçaria</option>
+              <option value="limpeza">Limpeza de Estofados</option>
+              <option value="advocacia">Advocacia</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="region">Região</label>
+            <input
+              id="region"
+              name="region"
+              type="text"
+              placeholder="Ex.: São João, Guarulhos"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="radius">Raio de análise</label>
+            <select id="radius" name="radius">
+              <option value="1">1 km</option>
+              <option value="3" selected>3 km</option>
+              <option value="5">5 km</option>
+              <option value="8">8 km</option>
+              <option value="10">10 km</option>
+            </select>
+          </div>
+
+          <button type="submit" class="primary-button">
+            <span class="button-icon">⌁</span>
+            Analisar região
+          </button>
+        </form>
+
+        <p class="form-note">
+          Esta versão utiliza estimativas simuladas para validação da experiência comercial.
+        </p>
+      </section>
+
+      <section id="loadingSection" class="panel loading-panel hidden" aria-live="polite">
+        <div class="loader-orbit">
+          <div class="orbit orbit-a"></div>
+          <div class="orbit orbit-b"></div>
+          <div class="orbit-dot"></div>
+        </div>
+
+        <div class="loading-content">
+          <span class="section-kicker">Processando análise</span>
+          <h2 id="loadingTitle">Mapeando a região...</h2>
+          <p id="loadingText">Estamos preparando a leitura inicial do cenário.</p>
+
+          <div class="progress-track">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+
+          <div class="loading-steps">
+            <div class="loading-step" data-step="0">
+              <span class="step-indicator"></span>
+              Localização
+            </div>
+            <div class="loading-step" data-step="1">
+              <span class="step-indicator"></span>
+              Intenções de busca
+            </div>
+            <div class="loading-step" data-step="2">
+              <span class="step-indicator"></span>
+              Concorrência
+            </div>
+            <div class="loading-step" data-step="3">
+              <span class="step-indicator"></span>
+              Presença digital
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="resultsSection" class="results hidden">
+        <div class="results-heading">
+          <div>
+            <span class="section-kicker">Diagnóstico concluído</span>
+            <h2 id="resultsTitle">Resultado da análise</h2>
+            <p id="resultsSubtitle"></p>
+          </div>
+
+          <button id="newAnalysisBtn" class="secondary-button" type="button">
+            Nova análise
+          </button>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card metric-card-featured">
+            <div class="metric-label">
+              <span>Demanda estimada</span>
+              <span class="info-pill">simulação</span>
+            </div>
+            <strong id="weeklyDemand" class="metric-value">0</strong>
+            <span class="metric-caption">buscas estimadas por semana</span>
+            <div class="metric-trend positive">↗ procura relevante na região</div>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-label">Estimativa mensal</div>
+            <strong id="monthlyDemand" class="metric-value">0</strong>
+            <span class="metric-caption">buscas relacionadas</span>
+            <div class="mini-bars" aria-hidden="true">
+              <span style="height:32%"></span>
+              <span style="height:44%"></span>
+              <span style="height:38%"></span>
+              <span style="height:58%"></span>
+              <span style="height:70%"></span>
+              <span style="height:86%"></span>
+            </div>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-label">Presença local</div>
+            <div class="score-inline">
+              <strong id="presenceScore" class="metric-value">0</strong>
+              <span>/100</span>
+            </div>
+            <span id="presenceLabel" class="metric-caption">Baixa presença</span>
+            <div class="thermometer">
+              <div id="presenceThermometer" class="thermometer-fill"></div>
+            </div>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-label">Demanda não capturada</div>
+            <strong id="uncapturedDemand" class="metric-value">0%</strong>
+            <span class="metric-caption">oportunidade estimada</span>
+            <div id="captureStatus" class="metric-trend warning">atenção necessária</div>
+          </article>
+        </div>
+
+        <div class="analysis-grid">
+          <article class="panel score-card">
+            <div class="panel-heading compact">
+              <div>
+                <span class="section-kicker">Score geral</span>
+                <h3>Índice de presença local</h3>
+              </div>
+            </div>
+
+            <div class="score-layout">
+              <div class="score-gauge" id="scoreGauge">
+                <div class="score-gauge-inner">
+                  <strong id="mainScore">0</strong>
+                  <span>/100</span>
+                </div>
+              </div>
+
+              <div class="score-summary">
+                <div class="score-status" id="scoreStatus">Presença baixa</div>
+                <p id="scoreMessage">
+                  A empresa possui espaço relevante para melhorar sua visibilidade local.
+                </p>
+
+                <div class="score-scale">
+                  <span>Baixa</span>
+                  <span>Média</span>
+                  <span>Alta</span>
+                </div>
+                <div class="score-scale-bar">
+                  <span class="scale-red"></span>
+                  <span class="scale-yellow"></span>
+                  <span class="scale-green"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel opportunity-card">
+            <div class="panel-heading compact">
+              <div>
+                <span class="section-kicker">Leitura rápida</span>
+                <h3>Potencial da região</h3>
+              </div>
+            </div>
+
+            <div class="opportunity-list">
+              <div class="opportunity-row">
+                <div>
+                  <span>Demanda</span>
+                  <strong id="demandLevel">Alta</strong>
+                </div>
+                <div class="level-meter">
+                  <span id="demandMeter" class="level-meter-fill"></span>
+                </div>
+              </div>
+
+              <div class="opportunity-row">
+                <div>
+                  <span>Concorrência</span>
+                  <strong id="competitionLevel">Média</strong>
+                </div>
+                <div class="level-meter">
+                  <span id="competitionMeter" class="level-meter-fill"></span>
+                </div>
+              </div>
+
+              <div class="opportunity-row">
+                <div>
+                  <span>Visibilidade atual</span>
+                  <strong id="visibilityLevel">Baixa</strong>
+                </div>
+                <div class="level-meter">
+                  <span id="visibilityMeter" class="level-meter-fill"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="opportunity-highlight">
+              <span>Leitura do sistema</span>
+              <strong id="systemReading">
+                Existe demanda, mas a empresa captura pouco dessa oportunidade.
+              </strong>
+            </div>
+          </article>
+        </div>
+
+        <article class="panel keywords-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">Intenções identificadas</span>
+              <h3>O que as pessoas estariam procurando na região</h3>
+            </div>
+            <span id="keywordsCount" class="soft-badge">0 termos</span>
+          </div>
+
+          <div id="keywordsList" class="keywords-list"></div>
+        </article>
+
+        <article class="panel diagnosis-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">Diagnóstico</span>
+              <h3>Onde a empresa perde força hoje</h3>
+            </div>
+          </div>
+
+          <div class="diagnosis-grid">
+            <div class="diagnosis-item">
+              <div class="diagnosis-icon google-icon">G</div>
+              <div>
+                <span class="diagnosis-tag">Mecanismo 01</span>
+                <h4>Relevância no Google</h4>
+                <p>
+                  Estrutura, serviços e informações precisam ajudar o buscador a
+                  entender melhor para quais pesquisas o negócio é relevante.
+                </p>
+              </div>
+              <div class="diagnosis-score">
+                <strong id="googleScore">0</strong>
+                <span>/100</span>
+              </div>
+            </div>
+
+            <div class="diagnosis-item">
+              <div class="diagnosis-icon web-icon">◎</div>
+              <div>
+                <span class="diagnosis-tag">Mecanismo 02</span>
+                <h4>Autoridade digital</h4>
+                <p>
+                  Um site bem estruturado organiza serviços, localização, contexto e
+                  informações que aumentam a confiança do cliente e a presença digital.
+                </p>
+              </div>
+              <div class="diagnosis-score">
+                <strong id="authorityScore">0</strong>
+                <span>/100</span>
+              </div>
+            </div>
+
+            <div class="diagnosis-item">
+              <div class="diagnosis-icon review-icon">★</div>
+              <div>
+                <span class="diagnosis-tag">Mecanismo 03</span>
+                <h4>Confiança e avaliações</h4>
+                <p>
+                  A frequência e a consistência de novas avaliações ajudam o negócio a
+                  construir percepção de confiança para novos clientes.
+                </p>
+              </div>
+              <div class="diagnosis-score">
+                <strong id="reviewsScore">0</strong>
+                <span>/100</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="solution-banner">
+          <div>
+            <span class="section-kicker">Próximo passo</span>
+            <h3>Plano de Captura Local</h3>
+            <p>
+              Estruture os três mecanismos para transformar presença digital em mais
+              oportunidades de contato na região.
+            </p>
+          </div>
+
+          <div class="solution-items">
+            <span>Google estruturado</span>
+            <span>Site profissional</span>
+            <span>Sistema de avaliações</span>
+          </div>
+        </article>
+
+        <p class="legal-note">
+          Protótipo de demonstração. Os volumes, scores e cenários exibidos nesta versão
+          são estimativas simuladas para validação comercial e não representam dados de
+          pesquisa medidos em tempo real.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
