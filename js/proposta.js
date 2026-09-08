@@ -461,7 +461,234 @@ const WEBSITE_TEMPLATES = {
 
 };
 
+/* =========================================================
+   IMAGENS DA PROPOSTA POR SEGMENTO
+========================================================= */
 
+const PROPOSAL_VISUAL_FOLDERS = {
+
+  estetica:
+    "estetica",
+
+  podologia:
+    "podologia",
+
+  odontologia:
+    "odontologia",
+
+  beleza:
+    "beleza",
+
+  assistencia:
+    "assistencia",
+
+  limpeza:
+    "limpeza",
+
+  vidracaria:
+    "vidracaria",
+
+  marmoraria:
+    "marmoraria",
+
+  "ar-condicionado":
+    "ar-condicionado",
+
+  dedetizacao:
+    "dedetizacao",
+
+  "energia-solar":
+    "energia-solar",
+
+  oficina:
+    "oficina",
+
+  outro:
+    "outro"
+
+};
+
+
+
+/* =========================================================
+   CAMINHOS DAS IMAGENS
+========================================================= */
+
+function getProposalVisualPaths(
+  data
+) {
+
+  const folder =
+    PROPOSAL_VISUAL_FOLDERS[
+      data.segmentKey
+    ] ||
+    "outro";
+
+
+  return {
+
+    google:
+      `assets/proposta/${folder}/google.webp`,
+
+    site:
+      `assets/proposta/${folder}/site.webp`,
+
+    reviews:
+      `assets/proposta/${folder}/avaliacoes.webp`
+
+  };
+
+}
+
+
+
+/* =========================================================
+   CARREGAR IMAGEM OU MANTER PLACEHOLDER
+========================================================= */
+
+function loadProposalVisual(
+  imageId,
+  placeholderId,
+  src
+) {
+
+  const image =
+    document.getElementById(
+      imageId
+    );
+
+
+  const placeholder =
+    document.getElementById(
+      placeholderId
+    );
+
+
+  if (
+    !image ||
+    !placeholder
+  ) {
+
+    return;
+
+  }
+
+
+  /*
+    Começa sempre mostrando
+    o placeholder.
+  */
+
+  image.hidden =
+    true;
+
+
+  placeholder.style.display =
+    "flex";
+
+
+  /*
+    Se a imagem existir,
+    mostramos a imagem.
+  */
+
+  image.onload =
+    () => {
+
+      image.hidden =
+        false;
+
+
+      placeholder.style.display =
+        "none";
+
+    };
+
+
+  /*
+    Se a imagem ainda
+    não existir, mantém
+    o placeholder normalmente.
+  */
+
+  image.onerror =
+    () => {
+
+      image.hidden =
+        true;
+
+
+      placeholder.style.display =
+        "flex";
+
+    };
+
+
+  image.src =
+    src;
+
+}
+
+
+
+/* =========================================================
+   VISUAIS DO RELATÓRIO
+========================================================= */
+
+function renderProposalVisuals(
+  data
+) {
+
+  const paths =
+    getProposalVisualPaths(
+      data
+    );
+
+
+  /*
+    CARD GOOGLE
+  */
+
+  loadProposalVisual(
+    "googleSolutionImage",
+    "googleSolutionPlaceholder",
+    paths.google
+  );
+
+
+  /*
+    CARD SITE
+  */
+
+  loadProposalVisual(
+    "siteSolutionImage",
+    "siteSolutionPlaceholder",
+    paths.site
+  );
+
+
+  /*
+    CARD AVALIAÇÕES
+  */
+
+  loadProposalVisual(
+    "reviewsSolutionImage",
+    "reviewsSolutionPlaceholder",
+    paths.reviews
+  );
+
+
+  /*
+    PREVIEW GRANDE DO SITE
+  */
+
+  loadProposalVisual(
+    "previewSiteImage",
+    "previewSitePlaceholder",
+    paths.site
+  );
+
+}
 
 /* =========================================================
    TEMPLATE DO SEGMENTO
