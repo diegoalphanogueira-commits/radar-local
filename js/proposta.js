@@ -1353,18 +1353,251 @@ function renderProposal() {
 
 
 /* =========================================================
-   SALVAR EM PDF
+   GERAR PDF VISUAL
 ========================================================= */
 
-if (printButton) {
+async function generateVisualPdf() {
 
-  printButton.addEventListener(
-    "click",
-    () => {
+  /*
+    Verifica se as bibliotecas
+    foram carregadas.
+  */
 
-      window.print();
+  if (
+    typeof html2canvas === "undefined" ||
+    !window.jspdf
+  ) {
+
+    throw new Error(
+      "As bibliotecas de PDF não foram carregadas."
+    );
+
+  }
+
+
+  /*
+    Espera as fontes terminarem
+    de carregar antes da captura.
+  */
+
+  if (document.fonts?.ready) {
+
+    await document.fonts.ready;
+
+  }
+
+
+  const pages =
+    Array.from(
+      document.querySelectorAll(
+        ".pdf-page"
+      )
+    );
+
+
+  if (!pages.length) {
+
+    throw new Error(
+      "Nenhuma página da proposta foi encontrada."
+    );
+
+  }
+
+
+  const {
+    jsPDF
+  } = window.jspdf;
+
+
+  let pdf = null;
+
+
+  /*
+    Cada bloco .pdf-page
+    vira uma página do PDF.
+  */
+
+  for (
+    let index = 0;
+    index < pages.length;
+    index++
+  ) {
+
+    const page =
+      pages[index];
+
+
+    /*
+      Captura exatamente
+      o visual renderizado.
+    */
+
+    const canvas =
+      await html2canvas(
+        page,
+        {
+
+          scale: 2,
+
+          useCORS: true,
+
+          allowTaint: false,
+
+          backgroundColor:
+            "#ffffff",
+
+          logging: false,
+
+          imageTimeout:
+            15000,
+
+          scrollX: 0,
+
+          scrollY:
+            -window.scrollY
+
+        }
+      );
+
+
+    /*
+      Mantém exatamente
+      a proporção visual
+      da seção original.
+    */
+
+    const pdfWidth =
+      210;
+
+
+    const pdfHeight =
+      pdfWidth *
+      (
+        canvas.height /
+        canvas.width
+      );
+
+
+    /*
+      JPEG em alta qualidade
+      para equilibrar nitidez
+      e tamanho do arquivo.
+    */
+
+    const imageData =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.96
+      );
+
+
+    /*
+      Primeira página
+    */
+
+    if (!pdf) {
+
+      pdf =
+        new jsPDF(
+          {
+
+            orientation:
+              "portrait",
+
+            unit:
+              "mm",
+
+            format: [
+              pdfWidth,
+              pdfHeight
+            ],
+
+            compress:
+              true
+
+          }
+        );
 
     }
+
+
+    /*
+      Demais páginas
+    */
+
+    else {
+
+      pdf.addPage(
+        [
+          pdfWidth,
+          pdfHeight
+        ],
+        "portrait"
+      );
+
+    }
+
+
+    /*
+      Imagem ocupa
+      exatamente a página.
+    */
+
+    pdf.addImage(
+      imageData,
+      "JPEG",
+      0,
+      0,
+      pdfWidth,
+      pdfHeight,
+      undefined,
+      "FAST"
+    );
+
+
+    /*
+      Libera memória.
+      Importante principalmente
+      no iPhone.
+    */
+
+    canvas.width =
+      1;
+
+    canvas.height =
+      1;
+
+  }
+
+
+  return pdf;
+
+}
+
+
+
+/* =========================================================
+   NOME DO ARQUIVO
+========================================================= */
+
+function getPdfFileName() {
+
+  const company =
+    safeText(
+      proposalData?.company,
+      "empresa"
+    );
+
+
+  const companySlug =
+    slugify(
+      company
+    ) ||
+    "empresa";
+
+
+  return (
+    `Plano-de-Captura-Local-${companySlug}.pdf`
   );
 
 }
@@ -1372,17 +1605,220 @@ if (printButton) {
 
 
 /* =========================================================
-   VOLTAR
+   COMPARTILHAR / ABRIR PDF
 ========================================================= */
 
-if (backButton) {
+async function deliverPdf(
+  pdf
+) {
 
-  backButton.addEventListener(
+  const fileName =
+    getPdfFileName();
+
+
+  const pdfBlob =
+    pdf.output(
+      "blob"
+    );
+
+
+  /*
+    Primeiro tentamos usar
+    o compartilhamento nativo.
+
+    No iPhone isso pode abrir
+    diretamente a tela com
+    WhatsApp, Arquivos,
+    AirDrop etc.
+  */
+
+  try {
+
+    if (
+      typeof File !==
+        "undefined" &&
+      navigator.share
+    ) {
+
+      const file =
+        new File(
+          [
+            pdfBlob
+          ],
+          fileName,
+          {
+            type:
+              "application/pdf"
+          }
+        );
+
+
+      const canShareFiles =
+        !navigator.canShare ||
+        navigator.canShare(
+          {
+            files: [
+              file
+            ]
+          }
+        );
+
+
+      if (canShareFiles) {
+
+        await navigator.share(
+          {
+
+            title:
+              "Plano de Captura Local",
+
+            text:
+              `Plano personalizado para ${safeText(
+                proposalData?.company,
+                "a empresa"
+              )}.`,
+
+            files: [
+              file
+            ]
+
+          }
+        );
+
+
+        return;
+
+      }
+
+    }
+
+  } catch (error) {
+
+    /*
+      Se o usuário apenas
+      fechar o compartilhamento,
+      não fazemos nada.
+    */
+
+    if (
+      error?.name ===
+      "AbortError"
+    ) {
+
+      return;
+
+    }
+
+
+    console.warn(
+      "Compartilhamento direto não disponível:",
+      error
+    );
+
+  }
+
+
+  /*
+    Fallback:
+    abre o PDF gerado
+    no próprio navegador.
+
+    Depois é só tocar
+    no botão compartilhar
+    do iPhone.
+  */
+
+  const pdfUrl =
+    URL.createObjectURL(
+      pdfBlob
+    );
+
+
+  window.location.href =
+    pdfUrl;
+
+}
+
+
+
+/* =========================================================
+   BOTÃO SALVAR EM PDF
+========================================================= */
+
+if (printButton) {
+
+  printButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
-      window.location.href =
-        "index.html";
+      const originalText =
+        printButton.textContent;
+
+
+      try {
+
+        /*
+          Evita múltiplos cliques.
+        */
+
+        printButton.disabled =
+          true;
+
+
+        printButton.textContent =
+          "Gerando PDF...";
+
+
+        /*
+          Pequeno intervalo
+          para o botão atualizar
+          visualmente antes
+          do processamento.
+        */
+
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              120
+            )
+        );
+
+
+        const pdf =
+          await generateVisualPdf();
+
+
+        printButton.textContent =
+          "PDF pronto";
+
+
+        await deliverPdf(
+          pdf
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Erro ao gerar PDF:",
+          error
+        );
+
+
+        alert(
+          "Não foi possível gerar o PDF. Atualize a página e tente novamente."
+        );
+
+      } finally {
+
+        printButton.disabled =
+          false;
+
+
+        printButton.textContent =
+          originalText;
+
+      }
 
     }
   );
