@@ -1,1598 +1,937 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
-<head>
-
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="theme-color"
-    content="#ffffff"
-  >
-
+ <head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="#ffffff" name="theme-color">
   <title>
-    Plano de Captura Local
+   Plano de Captura Local
   </title>
-
-  <link
-    rel="stylesheet"
-    href="css/proposta.css"
-  >
-
-</head>
-
-
-<body>
-
-
+  <link href="css/proposta.css" rel="stylesheet">
+ </head>
+ <body>
   <!-- =========================================
        BARRA SUPERIOR
   ========================================== -->
-
   <header class="proposal-toolbar no-print">
-
-    <div class="proposal-brand">
-
-      <div class="brand-mark">
-
-        <span class="brand-dot blue"></span>
-        <span class="brand-dot red"></span>
-        <span class="brand-dot yellow"></span>
-        <span class="brand-dot green"></span>
-
-      </div>
-
-
-      <div>
-
-        <strong>
-          Radar Local
-        </strong>
-
-        <span>
-          Relatório estratégico
-        </span>
-
-      </div>
-
+   <div class="proposal-brand">
+    <div class="brand-mark">
+     <span class="brand-dot blue">
+     </span>
+     <span class="brand-dot red">
+     </span>
+     <span class="brand-dot yellow">
+     </span>
+     <span class="brand-dot green">
+     </span>
     </div>
-
-
-    <div class="toolbar-actions">
-
-      <button
-        id="backButton"
-        class="secondary-button"
-        type="button"
-      >
-        ← Voltar
-      </button>
-
-
-      <button
-        id="printButton"
-        class="primary-button"
-        type="button"
-      >
-        Salvar em PDF
-      </button>
-
+    <div>
+     <strong>
+      Radar Local
+     </strong>
+     <span>
+      Relat&oacute;rio estrat&eacute;gico
+     </span>
     </div>
-
+   </div>
+   <div class="toolbar-actions">
+    <button class="secondary-button" id="backButton" type="button">
+     &larr; Voltar
+    </button>
+    <button class="primary-button" id="printButton" type="button">
+     Salvar em PDF
+    </button>
+   </div>
   </header>
-
-
-
   <!-- =========================================
        DOCUMENTO
   ========================================== -->
-
   <main class="proposal-document">
-
-
-    <!-- =========================================
+   <!-- =========================================
          PÁGINA 01 — CAPA + RESUMO
     ========================================== -->
-
-    <section class="pdf-page cover-page">
-
-
-      <div class="page-topline">
-
-  <span class="page-label">
-    Relatório de Oportunidade Digital
-  </span>
-
-</div>
-
-
-      <div class="cover-title">
-
-        <h1>
-
-          <span id="companyNameHero">
-            Sua empresa
-          </span>
-
-          passou pelo
-          <strong>
-            Radar Local.
-          </strong>
-
-        </h1>
-
-
-        <p id="coverDescription">
-
-          Identificamos o cenário de procura local
-          e o quanto sua presença digital está
+   <section class="pdf-page cover-page">
+    <div class="page-topline">
+     <span class="page-label">
+      Relat&oacute;rio de Oportunidade Digital
+     </span>
+    </div>
+    <div class="cover-title">
+     <h1>
+      <span id="companyNameHero">
+       Sua empresa
+      </span>
+      passou pelo
+      <strong>
+       Radar Local.
+      </strong>
+     </h1>
+     <p id="coverDescription">
+      Identificamos o cen&aacute;rio de procura local
+          e o quanto sua presen&ccedil;a digital est&aacute;
           preparada para aproveitar essa demanda.
-
-        </p>
-
-      </div>
-
-
-
-      <div class="executive-message">
-
-        <div class="executive-icon">
-          i
-        </div>
-
-        <div>
-
-          <span>
-            O que este relatório mostra
-          </span>
-
-          <strong>
-            Existe demanda acontecendo.
+     </p>
+    </div>
+    <div class="executive-message">
+     <div class="executive-icon">
+      i
+     </div>
+     <div>
+      <span>
+       O que este relat&oacute;rio mostra
+      </span>
+      <strong>
+       Existe demanda acontecendo.
             Agora precisamos avaliar quanto dela
-            sua empresa está preparada para capturar.
-          </strong>
-
-        </div>
-
+            sua empresa est&aacute; preparada para capturar.
+      </strong>
+     </div>
+    </div>
+    <div class="company-grid">
+     <div class="company-card">
+      <span>
+       Empresa
+      </span>
+      <strong id="companyNameCard">
+       Sua empresa
+      </strong>
+     </div>
+     <div class="company-card">
+      <span>
+       Segmento
+      </span>
+      <strong id="segmentHero">
+       Segmento
+      </strong>
+     </div>
+     <div class="company-card">
+      <span>
+       Regi&atilde;o
+      </span>
+      <strong id="regionHero">
+       Regi&atilde;o
+      </strong>
+     </div>
+     <div class="company-card">
+      <span>
+       Raio analisado
+      </span>
+      <strong id="radiusHero">
+       3 km
+      </strong>
+     </div>
+    </div>
+    <div class="main-metrics">
+     <article class="metric-card metric-blue">
+      <span class="metric-icon">
+       &nearrow;
+      </span>
+      <div>
+       <span>
+        Procura semanal
+       </span>
+       <strong id="weeklyDemand">
+        0
+       </strong>
+       <small>
+        buscas estimadas
+       </small>
       </div>
-
-
-
-      <div class="company-grid">
-
-        <div class="company-card">
-
-          <span>
-            Empresa
-          </span>
-
-          <strong id="companyNameCard">
-            Sua empresa
-          </strong>
-
-        </div>
-
-
-        <div class="company-card">
-
-          <span>
-            Segmento
-          </span>
-
-          <strong id="segmentHero">
-            Segmento
-          </strong>
-
-        </div>
-
-
-        <div class="company-card">
-
-          <span>
-            Região
-          </span>
-
-          <strong id="regionHero">
-            Região
-          </strong>
-
-        </div>
-
-
-        <div class="company-card">
-
-          <span>
-            Raio analisado
-          </span>
-
-          <strong id="radiusHero">
-            3 km
-          </strong>
-
-        </div>
-
+     </article>
+     <article class="metric-card">
+      <span class="metric-icon">
+       &apid;
+      </span>
+      <div>
+       <span>
+        Procura mensal
+       </span>
+       <strong id="monthlyDemand">
+        0
+       </strong>
+       <small>
+        buscas estimadas
+       </small>
       </div>
-
-
-
-      <div class="main-metrics">
-
-        <article class="metric-card metric-blue">
-
-          <span class="metric-icon">
-            ↗
-          </span>
-
-          <div>
-
-            <span>
-              Procura semanal
-            </span>
-
-            <strong id="weeklyDemand">
-              0
-            </strong>
-
-            <small>
-              buscas estimadas
-            </small>
-
-          </div>
-
-        </article>
-
-
-        <article class="metric-card">
-
-          <span class="metric-icon">
-            ≋
-          </span>
-
-          <div>
-
-            <span>
-              Procura mensal
-            </span>
-
-            <strong id="monthlyDemand">
-              0
-            </strong>
-
-            <small>
-              buscas estimadas
-            </small>
-
-          </div>
-
-        </article>
-
-
-        <article class="metric-card metric-green">
-
-          <span class="metric-icon">
-            ◎
-          </span>
-
-          <div>
-
-            <span>
-              Presença atual
-            </span>
-
-            <strong>
-              <span id="presenceScore">
-                0
-              </span>/100
-            </strong>
-
-            <small>
-              índice estimado
-            </small>
-
-          </div>
-
-        </article>
-
-
-        <article class="metric-card metric-yellow">
-
-          <span class="metric-icon">
-            !
-          </span>
-
-          <div>
-
-            <span>
-              Oportunidade
-            </span>
-
-            <strong id="uncapturedDemand">
-              0%
-            </strong>
-
-            <small>
-              ainda não capturada
-            </small>
-
-          </div>
-
-        </article>
-
-      </div>
-
-
-
-      <div class="quick-reading">
-
-        <span>
-          Leitura do Radar
+     </article>
+     <article class="metric-card metric-green">
+      <span class="metric-icon">
+       ◎
+      </span>
+      <div>
+       <span>
+        Presen&ccedil;a atual
+       </span>
+       <strong>
+        <span id="presenceScore">
+         0
         </span>
-
-        <strong id="opportunityStatement">
-
-          Existe procura acontecendo
-          e espaço para fortalecer a capacidade
+        /100
+       </strong>
+       <small>
+        &iacute;ndice estimado
+       </small>
+      </div>
+     </article>
+     <article class="metric-card metric-yellow">
+      <span class="metric-icon">
+       !
+      </span>
+      <div>
+       <span>
+        Oportunidade
+       </span>
+       <strong id="uncapturedDemand">
+        0%
+       </strong>
+       <small>
+        ainda n&atilde;o capturada
+       </small>
+      </div>
+     </article>
+    </div>
+    <div class="quick-reading">
+     <span>
+      Leitura do Radar
+     </span>
+     <strong id="opportunityStatement">
+      Existe procura acontecendo
+          e espa&ccedil;o para fortalecer a capacidade
           de captura da empresa.
-
-        </strong>
-
-      </div>
-
-
-      <footer class="page-footer">
-
-        <span>
-          Radar Local
-        </span>
-
-        <span>
-          01
-        </span>
-
-      </footer>
-
-    </section>
-
-
-
-    <!-- =========================================
+     </strong>
+    </div>
+    <footer class="page-footer">
+     <span>
+      Radar Local
+     </span>
+     <span>
+      01
+     </span>
+    </footer>
+   </section>
+   <!-- =========================================
          PÁGINA 02 — OPORTUNIDADE
     ========================================== -->
-
-    <section class="pdf-page opportunity-page">
-
-
-      <div class="section-head">
-
-        <div>
-
-          <span class="section-eyebrow">
-            O cenário encontrado
-          </span>
-
-          <h2>
-            Existe procura pelos serviços
+   <section class="pdf-page opportunity-page">
+    <div class="section-head">
+     <div>
+      <span class="section-eyebrow">
+       O cen&aacute;rio encontrado
+      </span>
+      <h2>
+       Existe procura pelos servi&ccedil;os
             que sua empresa oferece.
-          </h2>
-
-        </div>
-
-        <span class="section-number">
-          02
-        </span>
-
+      </h2>
+     </div>
+     <span class="section-number">
+      02
+     </span>
+    </div>
+    <p class="section-intro" id="opportunityIntro">
+     Existe demanda local relacionada
+        aos servi&ccedil;os analisados.
+    </p>
+    <div class="comparison-card">
+     <span class="small-label">
+      Cen&aacute;rio analisado
+     </span>
+     <h3>
+      Demanda x presen&ccedil;a atual
+     </h3>
+     <div class="comparison-row">
+      <div class="comparison-label">
+       <span>
+        Procura local
+       </span>
+       <strong id="demandLevelLabel">
+        Moderada
+       </strong>
       </div>
-
-
-      <p
-        id="opportunityIntro"
-        class="section-intro"
-      >
-        Existe demanda local relacionada
-        aos serviços analisados.
-      </p>
-
-
-
-      <div class="comparison-card">
-
-        <span class="small-label">
-          Cenário analisado
-        </span>
-
-        <h3>
-          Demanda x presença atual
-        </h3>
-
-
-        <div class="comparison-row">
-
-          <div class="comparison-label">
-
-            <span>
-              Procura local
-            </span>
-
-            <strong id="demandLevelLabel">
-              Moderada
-            </strong>
-
-          </div>
-
-
-          <div class="comparison-track">
-
-            <div
-              id="demandBar"
-              class="comparison-fill demand-fill"
-            ></div>
-
-          </div>
-
-        </div>
-
-
-
-        <div class="comparison-row">
-
-          <div class="comparison-label">
-
-            <span>
-              Presença da empresa
-            </span>
-
-            <strong id="presenceLevelLabel">
-              Intermediária
-            </strong>
-
-          </div>
-
-
-          <div class="comparison-track">
-
-            <div
-              id="presenceBar"
-              class="comparison-fill presence-fill"
-            ></div>
-
-          </div>
-
-        </div>
-
-
-
-        <div class="opportunity-highlight">
-
-          <span>
-            Oportunidade estimada
-          </span>
-
-          <strong id="opportunityHighlight">
-            0%
-          </strong>
-
-          <p>
-            Parte da procura pode estar sendo
+      <div class="comparison-track">
+       <div class="comparison-fill demand-fill" id="demandBar">
+       </div>
+      </div>
+     </div>
+     <div class="comparison-row">
+      <div class="comparison-label">
+       <span>
+        Presen&ccedil;a da empresa
+       </span>
+       <strong id="presenceLevelLabel">
+        Intermedi&aacute;ria
+       </strong>
+      </div>
+      <div class="comparison-track">
+       <div class="comparison-fill presence-fill" id="presenceBar">
+       </div>
+      </div>
+     </div>
+     <div class="opportunity-highlight">
+      <span>
+       Oportunidade estimada
+      </span>
+      <strong id="opportunityHighlight">
+       0%
+      </strong>
+      <p>
+       Parte da procura pode estar sendo
             capturada por empresas mais preparadas
             digitalmente.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="keywords-block">
-
-        <span class="small-label blue-label">
-          O que as pessoas procuram
-        </span>
-
-        <h3>
-          Principais intenções consideradas
-          nesta análise.
-        </h3>
-
-
-        <div
-          id="proposalKeywords"
-          class="proposal-keywords"
-        >
-        </div>
-
-      </div>
-
-
-
-      <div class="simple-reading">
-
-        <span class="simple-reading-icon">
-          ↗
-        </span>
-
-        <div>
-
-          <span>
-            Em português simples
-          </span>
-
-          <strong>
-            As pessoas já procuram esse tipo
-            de serviço. O objetivo é fazer
+      </p>
+     </div>
+    </div>
+    <div class="keywords-block">
+     <span class="small-label blue-label">
+      O que as pessoas procuram
+     </span>
+     <h3>
+      Principais inten&ccedil;&otilde;es consideradas
+          nesta an&aacute;lise.
+     </h3>
+     <div class="proposal-keywords" id="proposalKeywords">
+     </div>
+    </div>
+    <div class="simple-reading">
+     <span class="simple-reading-icon">
+      &nearrow;
+     </span>
+     <div>
+      <span>
+       Em portugu&ecirc;s simples
+      </span>
+      <strong>
+       As pessoas j&aacute; procuram esse tipo
+            de servi&ccedil;o. O objetivo &eacute; fazer
             sua empresa aparecer melhor,
-            transmitir confiança e facilitar
+            transmitir confian&ccedil;a e facilitar
             o contato.
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      <footer class="page-footer">
-
-        <span>
-          Oportunidade identificada
-        </span>
-
-        <span>
-          02
-        </span>
-
-      </footer>
-
-    </section>
-
-
-
-    <!-- =========================================
+      </strong>
+     </div>
+    </div>
+    <footer class="page-footer">
+     <span>
+      Oportunidade identificada
+     </span>
+     <span>
+      02
+     </span>
+    </footer>
+   </section>
+   <!-- =========================================
          PÁGINA 03 — DIAGNÓSTICO
     ========================================== -->
-
-    <section class="pdf-page diagnosis-page">
-
-
-      <div class="section-head">
-
-        <div>
-
-          <span class="section-eyebrow">
-            Diagnóstico
-          </span>
-
-          <h2>
-            Três pontos limitam
-            a força da presença digital.
-          </h2>
-
-        </div>
-
-        <span class="section-number">
-          03
+   <section class="pdf-page diagnosis-page">
+    <div class="section-head">
+     <div>
+      <span class="section-eyebrow">
+       Diagn&oacute;stico
+      </span>
+      <h2>
+       Tr&ecirc;s pontos limitam
+            a for&ccedil;a da presen&ccedil;a digital.
+      </h2>
+     </div>
+     <span class="section-number">
+      03
+     </span>
+    </div>
+    <div class="diagnosis-grid">
+     <article class="diagnosis-card">
+      <div class="diagnosis-card-head">
+       <span class="diagnosis-icon google-icon">
+        G
+       </span>
+       <div>
+        <span>
+         Mecanismo 01
         </span>
-
+        <h3>
+         Presen&ccedil;a no Google
+        </h3>
+       </div>
       </div>
-
-
-
-      <div class="diagnosis-grid">
-
-
-        <article class="diagnosis-card">
-
-          <div class="diagnosis-card-head">
-
-            <span class="diagnosis-icon google-icon">
-              G
-            </span>
-
-            <div>
-
-              <span>
-                Mecanismo 01
-              </span>
-
-              <h3>
-                Presença no Google
-              </h3>
-
-            </div>
-
-          </div>
-
-
-          <div class="diagnosis-score">
-
-            <strong id="googleScore">
-              0
-            </strong>
-
-            <span>
-              /100
-            </span>
-
-          </div>
-
-
-          <p>
-            O perfil precisa apresentar
-            com clareza serviços,
-            localização e informações
+      <div class="diagnosis-score">
+       <strong id="googleScore">
+        0
+       </strong>
+       <span>
+        /100
+       </span>
+      </div>
+      <p>
+       O perfil precisa apresentar
+            com clareza servi&ccedil;os,
+            localiza&ccedil;&atilde;o e informa&ccedil;&otilde;es
             da empresa.
-          </p>
-
-        </article>
-
-
-
-        <article class="diagnosis-card">
-
-          <div class="diagnosis-card-head">
-
-            <span class="diagnosis-icon authority-icon">
-              ◎
-            </span>
-
-            <div>
-
-              <span>
-                Mecanismo 02
-              </span>
-
-              <h3>
-                Autoridade digital
-              </h3>
-
-            </div>
-
-          </div>
-
-
-          <div class="diagnosis-score">
-
-            <strong id="authorityScore">
-              0
-            </strong>
-
-            <span>
-              /100
-            </span>
-
-          </div>
-
-
-          <p>
-            Uma presença própria ajuda
+      </p>
+     </article>
+     <article class="diagnosis-card">
+      <div class="diagnosis-card-head">
+       <span class="diagnosis-icon authority-icon">
+        ◎
+       </span>
+       <div>
+        <span>
+         Mecanismo 02
+        </span>
+        <h3>
+         Autoridade digital
+        </h3>
+       </div>
+      </div>
+      <div class="diagnosis-score">
+       <strong id="authorityScore">
+        0
+       </strong>
+       <span>
+        /100
+       </span>
+      </div>
+      <p>
+       Uma presen&ccedil;a pr&oacute;pria ajuda
             o cliente a entender a empresa
             e confiar antes de entrar em contato.
-          </p>
-
-        </article>
-
-
-
-        <article class="diagnosis-card">
-
-          <div class="diagnosis-card-head">
-
-            <span class="diagnosis-icon reviews-icon">
-              ★
-            </span>
-
-            <div>
-
-              <span>
-                Mecanismo 03
-              </span>
-
-              <h3>
-                Confiança e avaliações
-              </h3>
-
-            </div>
-
-          </div>
-
-
-          <div class="diagnosis-score">
-
-            <strong id="reviewsScore">
-              0
-            </strong>
-
-            <span>
-              /100
-            </span>
-
-          </div>
-
-
-          <p>
-            Mais avaliações reais aumentam
-            confiança e ajudam novos clientes
-            na decisão.
-          </p>
-
-        </article>
-
+      </p>
+     </article>
+     <article class="diagnosis-card">
+      <div class="diagnosis-card-head">
+       <span class="diagnosis-icon reviews-icon">
+        &starf;
+       </span>
+       <div>
+        <span>
+         Mecanismo 03
+        </span>
+        <h3>
+         Confian&ccedil;a e avalia&ccedil;&otilde;es
+        </h3>
+       </div>
       </div>
-
-
-
-      <div class="diagnosis-conclusion">
-
-        <span>
-          O ponto principal
-        </span>
-
-        <strong>
-          Não é criar demanda do zero.
-          É estruturar a empresa para aproveitar
-          melhor a demanda que já existe.
-        </strong>
-
+      <div class="diagnosis-score">
+       <strong id="reviewsScore">
+        0
+       </strong>
+       <span>
+        /100
+       </span>
       </div>
-
-
-      <footer class="page-footer">
-
-        <span>
-          Diagnóstico
-        </span>
-
-        <span>
-          03
-        </span>
-
-      </footer>
-
-    </section>
-
-
-
-    <!-- =========================================
+      <p>
+       Mais avalia&ccedil;&otilde;es reais aumentam
+            confian&ccedil;a e ajudam novos clientes
+            na decis&atilde;o.
+      </p>
+     </article>
+    </div>
+    <div class="diagnosis-conclusion">
+     <span>
+      O ponto principal
+     </span>
+     <strong>
+      N&atilde;o &eacute; criar demanda do zero.
+          &Eacute; estruturar a empresa para aproveitar
+          melhor a demanda que j&aacute; existe.
+     </strong>
+    </div>
+    <footer class="page-footer">
+     <span>
+      Diagn&oacute;stico
+     </span>
+     <span>
+      03
+     </span>
+    </footer>
+   </section>
+   <!-- =========================================
          PÁGINA 04 — PLANO
     ========================================== -->
-
-    <section class="pdf-page plan-page">
-
-
-      <div class="section-head">
-
-        <div>
-
-          <span class="section-eyebrow">
-            Plano recomendado
-          </span>
-
-          <h2>
-            Plano de Captura Local
-          </h2>
-
-        </div>
-
-        <span class="section-number">
-          04
-        </span>
-
-      </div>
-
-
-      <p class="section-intro">
-        Três mecanismos trabalhando juntos
-        para fortalecer presença,
-        autoridade e confiança.
-      </p>
-
-
-
-      <div class="plan-grid">
-
-
-       <article class="plan-card">
-
-  <div
-    id="googleSolutionVisual"
-    class="solution-visual"
-  >
-
-    <img
-      id="googleSolutionImage"
-      class="solution-visual-image"
-      src=""
-      alt="Exemplo de presença profissional no Google"
-      hidden
-    >
-
-    <div
-      id="googleSolutionPlaceholder"
-      class="solution-visual-placeholder"
-    >
-
-      <span>
-        G
+   <section class="pdf-page plan-page">
+    <div class="section-head">
+     <div>
+      <span class="section-eyebrow">
+       Plano recomendado
       </span>
-
-      <strong>
-        Presença no Google
-      </strong>
-
-      <small>
-        Visual da solução
-      </small>
-
+      <h2>
+       Plano de Captura Local
+      </h2>
+     </div>
+     <span class="section-number">
+      04
+     </span>
     </div>
-
-  </div>
-
-
-  <span class="plan-number">
-    01
-  </span>
-
-  <span class="plan-tag">
-    Relevância
-  </span>
-
-  <h3>
-    Presença no Google
-  </h3>
-
-  <p>
-    Organização e otimização
+    <p class="section-intro">
+     Tr&ecirc;s mecanismos trabalhando juntos
+        para fortalecer presen&ccedil;a,
+        autoridade e confian&ccedil;a.
+    </p>
+    <div class="plan-grid">
+     <article class="plan-card">
+      <span class="plan-number">
+       01
+      </span>
+      <span class="plan-tag">
+       Relev&acirc;ncia
+      </span>
+      <h3>
+       Presen&ccedil;a no Google
+      </h3>
+      <p>
+       Organiza&ccedil;&atilde;o e otimiza&ccedil;&atilde;o
     do Perfil da Empresa.
-  </p>
-
-  <ul>
-
-    <li>
-      Categorias e serviços
-    </li>
-
-    <li>
-      Informações estratégicas
-    </li>
-
-    <li>
-      Presença local organizada
-    </li>
-
-  </ul>
-
-</article>
-
-
-        <article class="plan-card featured-plan">
-
-  <div
-    id="siteSolutionVisual"
-    class="solution-visual"
-  >
-
-    <img
-      id="siteSolutionImage"
-      class="solution-visual-image"
-      src=""
-      alt="Exemplo de site estratégico profissional"
-      hidden
-    >
-
-    <div
-      id="siteSolutionPlaceholder"
-      class="solution-visual-placeholder"
-    >
-
-      <span>
-        ↗
+      </p>
+      <div class="solution-visual" id="googleSolutionVisual">
+       <img alt="Exemplo de presen&ccedil;a profissional no Google" class="solution-visual-image" hidden id="googleSolutionImage" src>
+       <div class="solution-visual-placeholder" id="googleSolutionPlaceholder">
+        <span>
+         G
+        </span>
+        <strong>
+         Presen&ccedil;a no Google
+        </strong>
+        <small>
+         Visual da solu&ccedil;&atilde;o
+        </small>
+       </div>
+      </div>
+      <ul>
+       <li>
+        Categorias e servi&ccedil;os
+       </li>
+       <li>
+        Informa&ccedil;&otilde;es estrat&eacute;gicas
+       </li>
+       <li>
+        Presen&ccedil;a local organizada
+       </li>
+      </ul>
+     </article>
+     <article class="plan-card featured-plan">
+      <span class="plan-number">
+       02
       </span>
-
-      <strong>
-        Site Estratégico
-      </strong>
-
-      <small>
-        Visual da solução
-      </small>
-
-    </div>
-
-  </div>
-
-
-  <span class="plan-number">
-    02
-  </span>
-
-  <span class="plan-tag">
-    Autoridade
-  </span>
-
-  <h3>
-    Site Estratégico Local
-  </h3>
-
-  <p>
-    Uma presença profissional
-    própria para apresentar
+      <span class="plan-tag">
+       Autoridade
+      </span>
+      <h3>
+       Site Estrat&eacute;gico Local
+      </h3>
+      <p>
+       Uma presen&ccedil;a profissional
+    pr&oacute;pria para apresentar
     sua empresa.
-  </p>
-
-  <ul>
-
-    <li>
-      Site responsivo
-    </li>
-
-    <li>
-      Serviços e diferenciais
-    </li>
-
-    <li>
-      Contato e localização
-    </li>
-
-  </ul>
-
-</article>
-
-
-
-        <article class="plan-card">
-
-  <div
-    id="reviewsSolutionVisual"
-    class="solution-visual"
-  >
-
-    <img
-      id="reviewsSolutionImage"
-      class="solution-visual-image"
-      src=""
-      alt="Exemplo de sistema contínuo de avaliações"
-      hidden
-    >
-
-    <div
-      id="reviewsSolutionPlaceholder"
-      class="solution-visual-placeholder"
-    >
-
-      <span>
-        ★
+      </p>
+      <div class="solution-visual" id="siteSolutionVisual">
+       <img alt="Exemplo de site estrat&eacute;gico profissional" class="solution-visual-image" hidden id="siteSolutionImage" src>
+       <div class="solution-visual-placeholder" id="siteSolutionPlaceholder">
+        <span>
+         &nearrow;
+        </span>
+        <strong>
+         Site Estrat&eacute;gico
+        </strong>
+        <small>
+         Visual da solu&ccedil;&atilde;o
+        </small>
+       </div>
+      </div>
+      <ul>
+       <li>
+        Site responsivo
+       </li>
+       <li>
+        Servi&ccedil;os e diferenciais
+       </li>
+       <li>
+        Contato e localiza&ccedil;&atilde;o
+       </li>
+      </ul>
+     </article>
+     <article class="plan-card">
+      <span class="plan-number">
+       03
       </span>
-
-      <strong>
-        Avaliações
-      </strong>
-
-      <small>
-        Visual da solução
-      </small>
-
+      <span class="plan-tag">
+       Confian&ccedil;a
+      </span>
+      <h3>
+       Sistema de Avalia&ccedil;&otilde;es
+      </h3>
+      <p>
+       Processo simples para gerar
+    novas avalia&ccedil;&otilde;es reais.
+      </p>
+      <div class="solution-visual" id="reviewsSolutionVisual">
+       <img alt="Exemplo de sistema cont&iacute;nuo de avalia&ccedil;&otilde;es" class="solution-visual-image" hidden id="reviewsSolutionImage" src>
+       <div class="solution-visual-placeholder" id="reviewsSolutionPlaceholder">
+        <span>
+         &starf;
+        </span>
+        <strong>
+         Avalia&ccedil;&otilde;es
+        </strong>
+        <small>
+         Visual da solu&ccedil;&atilde;o
+        </small>
+       </div>
+      </div>
+      <ul>
+       <li>
+        Link direto
+       </li>
+       <li>
+        QR Code
+       </li>
+       <li>
+        Processo de solicita&ccedil;&atilde;o
+       </li>
+      </ul>
+     </article>
     </div>
-
-  </div>
-
-
-  <span class="plan-number">
-    03
-  </span>
-
-  <span class="plan-tag">
-    Confiança
-  </span>
-
-  <h3>
-    Sistema de Avaliações
-  </h3>
-
-  <p>
-    Processo simples para gerar
-    novas avaliações reais.
-  </p>
-
-  <ul>
-
-    <li>
-      Link direto
-    </li>
-
-    <li>
-      QR Code
-    </li>
-
-    <li>
-      Processo de solicitação
-    </li>
-
-  </ul>
-
-</article>
-
-      </div>
-
-
-
-      <div class="before-after">
-
-        <div class="before-side">
-
-          <span>
-            Hoje
-          </span>
-
-          <strong>
-            Presença fragmentada
-          </strong>
-
-          <p>
-            Google, site e avaliações
-            sem trabalhar como uma estrutura única.
-          </p>
-
-        </div>
-
-
-        <div class="before-arrow">
-          →
-        </div>
-
-
-        <div class="after-side">
-
-          <span>
-            Com o plano
-          </span>
-
-          <strong>
-            Estrutura conectada
-          </strong>
-
-          <p>
-            Google + Site + Avaliações
-            fortalecendo a mesma presença local.
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <footer class="page-footer">
-
-        <span>
-          Plano recomendado
-        </span>
-
-        <span>
-          04
-        </span>
-
-      </footer>
-
-    </section>
-
-
-
-    <!-- =========================================
+    <div class="before-after">
+     <div class="before-side">
+      <span>
+       Hoje
+      </span>
+      <strong>
+       Presen&ccedil;a fragmentada
+      </strong>
+      <p>
+       Google, site e avalia&ccedil;&otilde;es
+            sem trabalhar como uma estrutura &uacute;nica.
+      </p>
+     </div>
+     <div class="before-arrow">
+      &rarr;
+     </div>
+     <div class="after-side">
+      <span>
+       Com o plano
+      </span>
+      <strong>
+       Estrutura conectada
+      </strong>
+      <p>
+       Google + Site + Avalia&ccedil;&otilde;es
+            fortalecendo a mesma presen&ccedil;a local.
+      </p>
+     </div>
+    </div>
+    <footer class="page-footer">
+     <span>
+      Plano recomendado
+     </span>
+     <span>
+      04
+     </span>
+    </footer>
+   </section>
+   <!-- =========================================
          PÁGINA 05 — PREVIEW
     ========================================== -->
-
-    <section class="pdf-page preview-page">
-
-
-      <div class="section-head">
-
-        <div>
-
-          <span class="section-eyebrow">
-            Referência visual
-          </span>
-
-          <h2>
-            Sua empresa com uma presença
+   <section class="pdf-page preview-page">
+    <div class="section-head">
+     <div>
+      <span class="section-eyebrow">
+       Refer&ecirc;ncia visual
+      </span>
+      <h2>
+       Sua empresa com uma presen&ccedil;a
             mais profissional.
-          </h2>
-
-        </div>
-
-        <span class="section-number">
-          05
-        </span>
-
-      </div>
-
-
-      <p class="section-intro">
-        Uma referência de como o site
-        pode apresentar seu negócio
+      </h2>
+     </div>
+     <span class="section-number">
+      05
+     </span>
+    </div>
+    <p class="section-intro">
+     Uma refer&ecirc;ncia de como o site
+        pode apresentar seu neg&oacute;cio
         ao potencial cliente.
-      </p>
-
-
-
-      <div class="website-preview">
-
-
-        <div class="browser-bar">
-
-          <div class="browser-dots">
-
-            <span></span>
-            <span></span>
-            <span></span>
-
-          </div>
-
-          <div class="browser-address">
-            suaempresa.com.br
-          </div>
-
-        </div>
-
-
-
-        <div class="website-preview-content">
-
-
-          <div class="preview-copy">
-
-            <span id="previewCategory">
-              Atendimento especializado
-            </span>
-
-            <h3 id="previewCompany">
-              Sua empresa
-            </h3>
-
-
-            <h4 id="previewHeadline">
-              Uma presença profissional
-              para quem procura seus serviços.
-            </h4>
-
-
-            <p id="previewDescription">
-              Apresente seus serviços,
+    </p>
+    <div class="website-preview">
+     <div class="browser-bar">
+      <div class="browser-dots">
+       <span>
+       </span>
+       <span>
+       </span>
+       <span>
+       </span>
+      </div>
+      <div class="browser-address">
+       suaempresa.com.br
+      </div>
+     </div>
+     <div class="website-preview-content">
+      <div class="preview-copy">
+       <span id="previewCategory">
+        Atendimento especializado
+       </span>
+       <h3 id="previewCompany">
+        Sua empresa
+       </h3>
+       <h4 id="previewHeadline">
+        Uma presen&ccedil;a profissional
+              para quem procura seus servi&ccedil;os.
+       </h4>
+       <p id="previewDescription">
+        Apresente seus servi&ccedil;os,
               diferenciais e facilite
               o contato com novos clientes.
-            </p>
-
-
-            <div class="preview-actions">
-
-              <span class="preview-primary">
-                Falar no WhatsApp
-              </span>
-
-              <span class="preview-secondary">
-                Ver serviços
-              </span>
-
-            </div>
-
-
-            <div class="preview-trust">
-
-              <span>
-                ★★★★★
-              </span>
-
-              Atendimento local e especializado
-
-            </div>
-
-          </div>
-
-
-
-          <div
-  id="previewVisual"
-  class="preview-visual"
->
-
-  <img
-    id="previewSiteImage"
-    class="preview-site-image"
-    src=""
-    alt="Referência visual do site da empresa"
-    hidden
-  >
-
-
-  <div
-    id="previewSitePlaceholder"
-    class="preview-site-placeholder"
-  >
-
-    <div class="preview-shape one"></div>
-
-    <div class="preview-shape two"></div>
-
-    <div class="preview-icon">
-      ↗
-    </div>
-
-    <span>
-      Referência visual do site
-    </span>
-
-  </div>
-
-</div>
-
-        </div>
-
-
-
-        <div class="preview-services">
-
-          <article>
-
-            <span>
-              Serviço
-            </span>
-
-            <strong id="previewServiceOne">
-              Atendimento profissional
-            </strong>
-
-          </article>
-
-
-          <article>
-
-            <span>
-              Localização
-            </span>
-
-            <strong id="previewRegion">
-              Sua região
-            </strong>
-
-          </article>
-
-
-          <article>
-
-            <span>
-              Contato
-            </span>
-
-            <strong>
-              WhatsApp direto
-            </strong>
-
-          </article>
-
-        </div>
-
-
-
-        <p class="preview-note">
-          Referência visual.
-          O projeto final será adaptado
-          à identidade, imagens e serviços da empresa.
-        </p>
-
+       </p>
+       <div class="preview-actions">
+        <span class="preview-primary">
+         Falar no WhatsApp
+        </span>
+        <span class="preview-secondary">
+         Ver servi&ccedil;os
+        </span>
+       </div>
+       <div class="preview-trust">
+        <span>
+         &starf;&starf;&starf;&starf;&starf;
+        </span>
+        Atendimento local e especializado
+       </div>
       </div>
-
-
-      <footer class="page-footer">
-
+      <div class="preview-visual" id="previewVisual">
+       <img alt="Refer&ecirc;ncia visual do site da empresa" class="preview-site-image" hidden id="previewSiteImage" src>
+       <div class="preview-site-placeholder" id="previewSitePlaceholder">
+        <div class="preview-shape one">
+        </div>
+        <div class="preview-shape two">
+        </div>
+        <div class="preview-icon">
+         &nearrow;
+        </div>
         <span>
-          Referência visual
+         Refer&ecirc;ncia visual do site
         </span>
-
-        <span>
-          05
-        </span>
-
-      </footer>
-
-    </section>
-
-
-
-    <!-- =========================================
+       </div>
+      </div>
+     </div>
+     <div class="preview-services">
+      <article>
+       <span>
+        Servi&ccedil;o
+       </span>
+       <strong id="previewServiceOne">
+        Atendimento profissional
+       </strong>
+      </article>
+      <article>
+       <span>
+        Localiza&ccedil;&atilde;o
+       </span>
+       <strong id="previewRegion">
+        Sua regi&atilde;o
+       </strong>
+      </article>
+      <article>
+       <span>
+        Contato
+       </span>
+       <strong>
+        WhatsApp direto
+       </strong>
+      </article>
+     </div>
+     <p class="preview-note">
+      Refer&ecirc;ncia visual.
+          O projeto final ser&aacute; adaptado
+          &agrave; identidade, imagens e servi&ccedil;os da empresa.
+     </p>
+    </div>
+    <footer class="page-footer">
+     <span>
+      Refer&ecirc;ncia visual
+     </span>
+     <span>
+      05
+     </span>
+    </footer>
+   </section>
+   <!-- =========================================
          PÁGINA 06 — ENTREGA + INVESTIMENTO
     ========================================== -->
-
-    <section class="pdf-page investment-page">
-
-
-      <div class="section-head">
-
-        <div>
-
-          <span class="section-eyebrow">
-            Implantação
-          </span>
-
-          <h2>
-            Você não precisa montar nada.
-          </h2>
-
-        </div>
-
-        <span class="section-number">
-          06
-        </span>
-
-      </div>
-
-
-      <p class="section-intro">
-        A estrutura é preparada,
+   <section class="pdf-page investment-page">
+    <div class="section-head">
+     <div>
+      <span class="section-eyebrow">
+       Implanta&ccedil;&atilde;o
+      </span>
+      <h2>
+       Voc&ecirc; n&atilde;o precisa montar nada.
+      </h2>
+     </div>
+     <span class="section-number">
+      06
+     </span>
+    </div>
+    <p class="section-intro">
+     A estrutura &eacute; preparada,
         configurada e entregue pronta.
-      </p>
-
-
-
-      <div class="implementation-flow">
-
-        <article>
-
-          <span>
-            01
-          </span>
-
-          <strong>
-            Diagnóstico
-          </strong>
-
-          <small>
-            levantamento
-          </small>
-
-        </article>
-
-
-        <article>
-
-          <span>
-            02
-          </span>
-
-          <strong>
-            Estruturação
-          </strong>
-
-          <small>
-            construção
-          </small>
-
-        </article>
-
-
-        <article>
-
-          <span>
-            03
-          </span>
-
-          <strong>
-            Publicação
-          </strong>
-
-          <small>
-            ativação
-          </small>
-
-        </article>
-
-
-        <article>
-
-          <span>
-            04
-          </span>
-
-          <strong>
-            Entrega
-          </strong>
-
-          <small>
-            operação pronta
-          </small>
-
-        </article>
-
-      </div>
-
-
-
-      <div class="deadline-card">
-
-        <span>
-          Prazo de implantação
-        </span>
-
-        <strong>
-          Até 7 dias úteis
-        </strong>
-
-      </div>
-
-
-
-      <div class="investment-wrapper">
-
-
-        <div class="investment-heading">
-
-          <span>
-            Investimento
-          </span>
-
-          <h2>
-            Implantação completa
+    </p>
+    <div class="implementation-flow">
+     <article>
+      <span>
+       01
+      </span>
+      <strong>
+       Diagn&oacute;stico
+      </strong>
+      <small>
+       levantamento
+      </small>
+     </article>
+     <article>
+      <span>
+       02
+      </span>
+      <strong>
+       Estrutura&ccedil;&atilde;o
+      </strong>
+      <small>
+       constru&ccedil;&atilde;o
+      </small>
+     </article>
+     <article>
+      <span>
+       03
+      </span>
+      <strong>
+       Publica&ccedil;&atilde;o
+      </strong>
+      <small>
+       ativa&ccedil;&atilde;o
+      </small>
+     </article>
+     <article>
+      <span>
+       04
+      </span>
+      <strong>
+       Entrega
+      </strong>
+      <small>
+       opera&ccedil;&atilde;o pronta
+      </small>
+     </article>
+    </div>
+    <div class="deadline-card">
+     <span>
+      Prazo de implanta&ccedil;&atilde;o
+     </span>
+     <strong>
+      At&eacute; 7 dias &uacute;teis
+     </strong>
+    </div>
+    <div class="investment-wrapper">
+     <div class="investment-heading">
+      <span>
+       Investimento
+      </span>
+      <h2>
+       Implanta&ccedil;&atilde;o completa
             do Plano de Captura Local
-          </h2>
-
-          <p>
-            Google estruturado,
+      </h2>
+      <p>
+       Google estruturado,
             site profissional
-            e sistema contínuo de avaliações.
-          </p>
-
-        </div>
-
-
-
-        <div class="investment-card">
-
-          <span>
-            Investimento total
-          </span>
-
-          <strong>
-            R$ 1.290
-          </strong>
-
-          <p>
-            à vista ou em até
-            <b>
-              6x via link de pagamento
-            </b>
-          </p>
-
-
-          <div class="investment-divider"></div>
-
-
-          <div class="investment-includes">
-
-            <span>
-              ✓ Implantação completa
-            </span>
-
-            <span>
-              ✓ Até 7 dias úteis
-            </span>
-
-            <span>
-              ✓ Estrutura entregue pronta
-            </span>
-
-          </div>
-
-        </div>
-
+            e sistema cont&iacute;nuo de avalia&ccedil;&otilde;es.
+      </p>
+     </div>
+     <div class="investment-card">
+      <span>
+       Investimento total
+      </span>
+      <strong>
+       R$ 1.290
+      </strong>
+      <p>
+       &agrave; vista ou em at&eacute;
+       <b>
+        6x via link de pagamento
+       </b>
+      </p>
+      <div class="investment-divider">
       </div>
-
-
-
-      <div class="closing-message">
-
-        <span>
-          Próximo passo
-        </span>
-
-        <h3>
-          A demanda já está acontecendo.
-        </h3>
-
-        <p>
-          O plano prepara sua empresa
+      <div class="investment-includes">
+       <span>
+        &checkmark; Implanta&ccedil;&atilde;o completa
+       </span>
+       <span>
+        &checkmark; At&eacute; 7 dias &uacute;teis
+       </span>
+       <span>
+        &checkmark; Estrutura entregue pronta
+       </span>
+      </div>
+     </div>
+    </div>
+    <div class="closing-message">
+     <span>
+      Pr&oacute;ximo passo
+     </span>
+     <h3>
+      A demanda j&aacute; est&aacute; acontecendo.
+     </h3>
+     <p>
+      O plano prepara sua empresa
           para transformar essa procura
           em mais visibilidade,
-          confiança e oportunidades.
-        </p>
-
-       <a
-  id="whatsappReportBtn"
-  class="report-whatsapp-button"
-  href="#"
-  target="_blank"
-  rel="noopener"
->
-  <span>
-    Falar sobre esta análise
-  </span>
-
-  <span class="whatsapp-arrow">
-    →
-  </span>
-</a>
-
-        <div class="closing-brand">
-
-          <div class="brand-mark">
-
-            <span class="brand-dot blue"></span>
-            <span class="brand-dot red"></span>
-            <span class="brand-dot yellow"></span>
-            <span class="brand-dot green"></span>
-
-          </div>
-
-
-          <div>
-
-            <strong>
-              Plano de Captura Local
-            </strong>
-
-            <span>
-              Preparado através do Radar Local
-            </span>
-
-          </div>
-
-        </div>
-
+          confian&ccedil;a e oportunidades.
+     </p>
+     <a class="report-whatsapp-button" href="#" id="whatsappReportBtn" rel="noopener" target="_blank">
+      <span>
+       Falar sobre esta an&aacute;lise
+      </span>
+      <span class="whatsapp-arrow">
+       &rarr;
+      </span>
+     </a>
+     <div class="closing-brand">
+      <div class="brand-mark">
+       <span class="brand-dot blue">
+       </span>
+       <span class="brand-dot red">
+       </span>
+       <span class="brand-dot yellow">
+       </span>
+       <span class="brand-dot green">
+       </span>
       </div>
-
-
-
-      <p class="proposal-disclaimer">
-
-        Os indicadores apresentados são
-        estimativas simuladas para análise estratégica
-        e validação comercial.
-        Não representam dados de pesquisa medidos
+      <div>
+       <strong>
+        Plano de Captura Local
+       </strong>
+       <span>
+        Preparado atrav&eacute;s do Radar Local
+       </span>
+      </div>
+     </div>
+    </div>
+    <p class="proposal-disclaimer">
+     Os indicadores apresentados s&atilde;o
+        estimativas simuladas para an&aacute;lise estrat&eacute;gica
+        e valida&ccedil;&atilde;o comercial.
+        N&atilde;o representam dados de pesquisa medidos
         em tempo real.
-
-      </p>
-
-
-      <footer class="page-footer">
-
-        <span>
-          Plano de Captura Local
-        </span>
-
-        <span>
-          06
-        </span>
-
-      </footer>
-
-    </section>
-
-
+    </p>
+    <footer class="page-footer">
+     <span>
+      Plano de Captura Local
+     </span>
+     <span>
+      06
+     </span>
+    </footer>
+   </section>
   </main>
-
-
-
- <script
-  src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
-</script>
-
-<script
-  src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
-</script>
-
-<script src="js/proposta.js"></script>
-
-
-</body>
-
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
+  </script>
+  <script src="js/proposta.js">
+  </script>
+ </body>
 </html>
