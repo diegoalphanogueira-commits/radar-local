@@ -559,7 +559,10 @@ function renderCover(data) {
       data.company,
       "Sua empresa"
     );
-
+setText(
+  "reportBusinessName",
+  company
+);
 
   const segment =
     safeText(
