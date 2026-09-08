@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
+
+  <title>
+    Plano de Captura Local
+  </title>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="css/proposta.css"
+  >
+
+</head>
+
+
+<body>
+
+  <!-- =========================
+       BARRA SUPERIOR
+  ========================== -->
+
+  <header class="proposal-toolbar no-print">
+
+    <div class="proposal-brand">
+
+      <div class="brand-mark">
+
+        <span class="brand-dot blue"></span>
+        <span class="brand-dot red"></span>
+        <span class="brand-dot yellow"></span>
+        <span class="brand-dot green"></span>
+
+      </div>
+
+      <div>
+
+        <strong>
+          Radar Local
+        </strong>
+
+        <span>
+          Plano de Captura
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="toolbar-actions">
+
+      <button
+        id="backButton"
+        class="secondary-button"
+        type="button"
+      >
+        ← Voltar
+      </button>
+
+      <button
+        id="printButton"
+        class="primary-button"
+        type="button"
+      >
+        Salvar em PDF
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================
+       PROPOSTA
+  ========================== -->
+
+  <main
+    id="proposalDocument"
+    class="proposal-document"
+  >
+
+
+    <!-- =========================
+         CAPA
+    ========================== -->
+
+    <section class="proposal-hero">
+
+      <div class="hero-content">
+
+        <span class="eyebrow">
+          Plano de Captura Local
+        </span>
+
+        <h1>
+          Plano estratégico para
+          <span id="companyNameHero">
+            sua empresa
+          </span>
+        </h1>
+
+        <p>
+          Estrutura recomendada para aumentar
+          a presença digital e aproveitar melhor
+          a demanda existente na região.
+        </p>
+
+
+        <div class="hero-meta">
+
+          <div>
+
+            <span>
+              Segmento
+            </span>
+
+            <strong id="segmentHero">
+              —
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Região
+            </span>
+
+            <strong id="regionHero">
+              —
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Área analisada
+            </span>
+
+            <strong id="radiusHero">
+              —
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="hero-radar">
+
+        <div class="hero-radar-ring">
+
+          <div class="hero-radar-inner">
+
+            <strong id="heroScore">
+              0
+            </strong>
+
+            <span>
+              /100
+            </span>
+
+          </div>
+
+        </div>
+
+        <span>
+          Índice de presença local
+        </span>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         OPORTUNIDADE
+    ========================== -->
+
+    <section class="proposal-section">
+
+      <div class="section-number">
+        01
+      </div>
+
+      <div class="section-heading">
+
+        <span class="section-kicker">
+          Oportunidade identificada
+        </span>
+
+        <h2>
+          Existe procura pelos seus serviços
+          acontecendo na região.
+        </h2>
+
+        <p id="opportunityIntro">
+          O diagnóstico identificou um cenário
+          de oportunidade local para o negócio.
+        </p>
+
+      </div>
+
+
+      <div class="opportunity-grid">
+
+        <article class="opportunity-card featured">
+
+          <span>
+            Demanda semanal
+          </span>
+
+          <strong id="weeklyDemand">
+            0
+          </strong>
+
+          <small>
+            buscas estimadas
+          </small>
+
+        </article>
+
+
+        <article class="opportunity-card">
+
+          <span>
+            Demanda mensal
+          </span>
+
+          <strong id="monthlyDemand">
+            0
+          </strong>
+
+          <small>
+            buscas estimadas
+          </small>
+
+        </article>
+
+
+        <article class="opportunity-card">
+
+          <span>
+            Presença atual
+          </span>
+
+          <strong id="presenceScore">
+            0
+          </strong>
+
+          <small>
+            pontos de 100
+          </small>
+
+        </article>
+
+
+        <article class="opportunity-card warning">
+
+          <span>
+            Oportunidade não capturada
+          </span>
+
+          <strong id="uncapturedDemand">
+            0%
+          </strong>
+
+          <small>
+            estimativa do cenário analisado
+          </small>
+
+        </article>
+
+      </div>
+
+
+      <div class="opportunity-statement">
+
+        <div class="statement-icon">
+          ↗
+        </div>
+
+        <div>
+
+          <span>
+            Leitura estratégica
+          </span>
+
+          <strong id="opportunityStatement">
+            A demanda já existe.
+            O próximo passo é aumentar
+            a capacidade da empresa de capturá-la.
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         PESQUISAS
+    ========================== -->
+
+    <section class="proposal-section">
+
+      <div class="section-number">
+        02
+      </div>
+
+      <div class="section-heading">
+
+        <span class="section-kicker">
+          Intenção de compra
+        </span>
+
+        <h2>
+          O que potenciais clientes
+          estão procurando.
+        </h2>
+
+        <p>
+          Estes são alguns dos termos considerados
+          dentro do cenário analisado.
+        </p>
+
+      </div>
+
+
+      <div
+        id="proposalKeywords"
+        class="proposal-keywords"
+      ></div>
+
+    </section>
+
+
+    <!-- =========================
+         DIAGNÓSTICO
+    ========================== -->
+
+    <section class="proposal-section">
+
+      <div class="section-number">
+        03
+      </div>
+
+      <div class="section-heading">
+
+        <span class="section-kicker">
+          Diagnóstico
+        </span>
+
+        <h2>
+          Três pontos estão limitando
+          a capacidade de captura.
+        </h2>
+
+        <p>
+          A estratégia recomendada atua diretamente
+          sobre relevância, autoridade e confiança.
+        </p>
+
+      </div>
+
+
+      <div class="diagnosis-grid">
+
+
+        <!-- GOOGLE -->
+
+        <article class="diagnosis-card">
+
+          <div class="diagnosis-header">
+
+            <div class="diagnosis-icon google">
+              G
+            </div>
+
+            <div>
+
+              <span>
+                Mecanismo 01
+              </span>
+
+              <strong>
+                Presença no Google
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="diagnosis-score">
+
+            <strong id="googleScore">
+              0
+            </strong>
+
+            <span>
+              /100
+            </span>
+
+          </div>
+
+
+          <p>
+            O Perfil da Empresa precisa estar
+            estruturado de forma clara para
+            apresentar corretamente os serviços,
+            informações e localização do negócio.
+          </p>
+
+        </article>
+
+
+        <!-- AUTORIDADE -->
+
+        <article class="diagnosis-card">
+
+          <div class="diagnosis-header">
+
+            <div class="diagnosis-icon authority">
+              ◎
+            </div>
+
+            <div>
+
+              <span>
+                Mecanismo 02
+              </span>
+
+              <strong>
+                Autoridade digital
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="diagnosis-score">
+
+            <strong id="authorityScore">
+              0
+            </strong>
+
+            <span>
+              /100
+            </span>
+
+          </div>
+
+
+          <p>
+            A empresa precisa de uma presença própria
+            que organize seus serviços, diferenciais,
+            localização e formas de contato.
+          </p>
+
+        </article>
+
+
+        <!-- AVALIAÇÕES -->
+
+        <article class="diagnosis-card">
+
+          <div class="diagnosis-header">
+
+            <div class="diagnosis-icon review">
+              ★
+            </div>
+
+            <div>
+
+              <span>
+                Mecanismo 03
+              </span>
+
+              <strong>
+                Confiança e avaliações
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="diagnosis-score">
+
+            <strong id="reviewsScore">
+              0
+            </strong>
+
+            <span>
+              /100
+            </span>
+
+          </div>
+
+
+          <p>
+            Um processo contínuo de avaliações
+            transforma clientes satisfeitos
+            em sinais de confiança para
+            novos consumidores.
+          </p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         PLANO
+    ========================== -->
+
+    <section class="proposal-section solution-section">
+
+      <div class="section-number">
+        04
+      </div>
+
+      <div class="section-heading">
+
+        <span class="section-kicker">
+          Plano recomendado
+        </span>
+
+        <h2>
+          Plano de Captura Local
+        </h2>
+
+        <p>
+          Uma implantação completa para fortalecer
+          os principais pontos da presença digital
+          da empresa.
+        </p>
+
+      </div>
+
+
+      <div class="solution-grid">
+
+
+        <!-- GOOGLE -->
+
+        <article class="solution-card">
+
+          <span class="solution-number">
+            01
+          </span>
+
+          <h3>
+            Estruturação da
+            Presença no Google
+          </h3>
+
+          <p>
+            Organização e otimização do Perfil
+            da Empresa no Google para deixar
+            claro o que o negócio oferece,
+            onde atende e como pode ser encontrado.
+          </p>
+
+
+          <ul>
+
+            <li>
+              Estruturação do perfil
+            </li>
+
+            <li>
+              Categorias e serviços
+            </li>
+
+            <li>
+              Informações estratégicas
+            </li>
+
+            <li>
+              Imagens e apresentação
+            </li>
+
+            <li>
+              Organização da presença local
+            </li>
+
+          </ul>
+
+        </article>
+
+
+        <!-- SITE -->
+
+        <article class="solution-card featured">
+
+          <span class="solution-number">
+            02
+          </span>
+
+          <h3>
+            Site Estratégico Local
+          </h3>
+
+          <p>
+            Desenvolvimento de um site profissional
+            para apresentar a empresa,
+            fortalecer autoridade e facilitar
+            a decisão do potencial cliente.
+          </p>
+
+
+          <ul>
+
+            <li>
+              Site responsivo
+            </li>
+
+            <li>
+              Apresentação dos serviços
+            </li>
+
+            <li>
+              Botões de contato
+            </li>
+
+            <li>
+              Localização
+            </li>
+
+            <li>
+              Estrutura de presença digital
+            </li>
+
+          </ul>
+
+        </article>
+
+
+        <!-- AVALIAÇÕES -->
+
+        <article class="solution-card">
+
+          <span class="solution-number">
+            03
+          </span>
+
+          <h3>
+            Sistema Contínuo
+            de Avaliações
+          </h3>
+
+          <p>
+            Implantação de um processo simples
+            para transformar clientes atendidos
+            em novas avaliações reais no Google.
+          </p>
+
+
+          <ul>
+
+            <li>
+              Link direto de avaliação
+            </li>
+
+            <li>
+              QR Code
+            </li>
+
+            <li>
+              Processo de solicitação
+            </li>
+
+            <li>
+              Material para uso no atendimento
+            </li>
+
+            <li>
+              Estratégia contínua de confiança
+            </li>
+
+          </ul>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         PREVIEW DO SITE
+    ========================== -->
+
+    <section class="proposal-section">
+
+      <div class="section-number">
+        05
+      </div>
+
+      <div class="section-heading">
+
+        <span class="section-kicker">
+          Referência visual
+        </span>
+
+        <h2>
+          Sua empresa com uma presença
+          mais profissional.
+        </h2>
+
+        <p>
+          Uma referência visual de como
+          o novo site pode apresentar
+          o negócio ao potencial cliente.
+        </p>
+
+      </div>
+
+
+      <div class="website-preview">
+
+        <div class="browser-bar">
+
+          <div class="browser-dots">
+
+            <span></span>
+            <span></span>
+            <span></span>
+
+          </div>
+
+          <div class="browser-address">
+            suaempresa.com.br
+          </div>
+
+        </div>
+
+
+        <div
+          id="websitePreview"
+          class="website-preview-content"
+        >
+
+          <div class="preview-copy">
+
+            <span id="previewCategory">
+              Atendimento especializado
+            </span>
+
+            <h3 id="previewCompany">
+              Sua empresa
+            </h3>
+
+            <h4 id="previewHeadline">
+              Atendimento profissional
+              para quem procura qualidade.
+            </h4>
+
+            <p id="previewDescription">
+              Conheça nossos serviços
+              e fale com nossa equipe.
+            </p>
+
+
+            <div class="preview-actions">
+
+              <span class="preview-primary">
+                Falar no WhatsApp
+              </span>
+
+              <span class="preview-secondary">
+                Ver serviços
+              </span>
+
+            </div>
+
+
+            <div class="preview-trust">
+
+              <span>
+                ★★★★★
+              </span>
+
+              Atendimento local
+              e especializado
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="previewVisual"
+            class="preview-visual"
+          >
+
+            <div class="preview-shape one"></div>
+            <div class="preview-shape two"></div>
+
+            <div class="preview-icon">
+              ↗
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <p class="preview-note">
+          Referência visual.
+          O projeto final será adaptado
+          à identidade, imagens e serviços
+          da empresa.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         IMPLANTAÇÃO
+    ========================== -->
+
+    <section class="proposal-section">
+
+      <div class="section-number">
+        06
+      </div>
+
+      <div class="section-heading">
+
+        <span class="section-kicker">
+          Implantação
+        </span>
+
+        <h2>
+          Você não precisa montar nada.
+        </h2>
+
+        <p>
+          A estrutura é preparada,
+          configurada e entregue pronta.
+        </p>
+
+      </div>
+
+
+      <div class="implementation-flow">
+
+        <div class="implementation-step">
+
+          <span>
+            01
+          </span>
+
+          <strong>
+            Diagnóstico
+          </strong>
+
+          <small>
+            levantamento
+          </small>
+
+        </div>
+
+
+        <div class="implementation-line"></div>
+
+
+        <div class="implementation-step">
+
+          <span>
+            02
+          </span>
+
+          <strong>
+            Estruturação
+          </strong>
+
+          <small>
+            construção
+          </small>
+
+        </div>
+
+
+        <div class="implementation-line"></div>
+
+
+        <div class="implementation-step">
+
+          <span>
+            03
+          </span>
+
+          <strong>
+            Publicação
+          </strong>
+
+          <small>
+            ativação
+          </small>
+
+        </div>
+
+
+        <div class="implementation-line"></div>
+
+
+        <div class="implementation-step">
+
+          <span>
+            04
+          </span>
+
+          <strong>
+            Entrega
+          </strong>
+
+          <small>
+            operação pronta
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="deadline-card">
+
+        <span>
+          Prazo de implantação
+        </span>
+
+        <strong>
+          Até 7 dias úteis
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         INVESTIMENTO
+    ========================== -->
+
+    <section class="investment-section">
+
+      <div class="investment-copy">
+
+        <span class="section-kicker">
+          Investimento
+        </span>
+
+        <h2>
+          Implantação completa
+          do Plano de Captura Local
+        </h2>
+
+        <p>
+          Google estruturado,
+          site profissional
+          e sistema contínuo de avaliações.
+        </p>
+
+      </div>
+
+
+      <div class="investment-card">
+
+        <span>
+          Investimento total
+        </span>
+
+        <strong>
+          R$ 1.290
+        </strong>
+
+        <p>
+          à vista ou em até
+          <b>6x via link de pagamento</b>
+        </p>
+
+        <div class="investment-divider"></div>
+
+        <div class="investment-includes">
+
+          <span>
+            ✓ Implantação completa
+          </span>
+
+          <span>
+            ✓ Até 7 dias úteis
+          </span>
+
+          <span>
+            ✓ Estrutura entregue pronta
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         FECHAMENTO
+    ========================== -->
+
+    <section class="closing-section">
+
+      <span class="section-kicker">
+        Próximo passo
+      </span>
+
+      <h2>
+        A demanda já está acontecendo.
+      </h2>
+
+      <p>
+        O objetivo deste plano é deixar sua empresa
+        mais preparada para transformar essa procura
+        em visibilidade, confiança e novas oportunidades.
+      </p>
+
+
+      <div class="closing-brand">
+
+        <div class="brand-mark">
+
+          <span class="brand-dot blue"></span>
+          <span class="brand-dot red"></span>
+          <span class="brand-dot yellow"></span>
+          <span class="brand-dot green"></span>
+
+        </div>
+
+        <div>
+
+          <strong>
+            Plano de Captura Local
+          </strong>
+
+          <span>
+            Preparado através do Radar Local
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- AVISO -->
+
+    <p class="proposal-disclaimer">
+
+      Os indicadores de demanda, presença,
+      oportunidade e score exibidos nesta versão
+      são estimativas simuladas utilizadas para
+      análise estratégica e validação comercial.
+      Não representam dados de pesquisa
+      medidos em tempo real.
+
+    </p>
+
+  </main>
+
+
+  <script src="js/proposta.js"></script>
+
+</body>
+
+</html>
