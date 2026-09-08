@@ -157,7 +157,42 @@ function slugify(text) {
 
 const RADAR_WHATSAPP_NUMBER =
   "5511970349654";
+function getReportWhatsappUrl() {
 
+  const company =
+    safeText(
+      proposalData?.company,
+      "a empresa"
+    );
+
+
+  const segment =
+    safeText(
+      proposalData?.segmentLabel,
+      "negócio local"
+    );
+
+
+  const region =
+    safeText(
+      proposalData?.region,
+      "região analisada"
+    );
+
+
+  const message =
+    `Olá! Acabei de ver o Relatório de Oportunidade Digital da ${company} pelo Radar Local. ` +
+    `Segmento: ${segment}. Região: ${region}. ` +
+    `Quero entender melhor o Plano de Captura Local para a empresa.`;
+
+
+  return (
+    `https://wa.me/${RADAR_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+      message
+    )}`
+  );
+
+}
 /* =========================================================
    CONFIGURAÇÃO DOS SEGMENTOS
 ========================================================= */
@@ -1351,6 +1386,17 @@ function renderProposal() {
   renderSimpleReading(
     proposalData
   );
+   const whatsappButton =
+  document.getElementById(
+    "whatsappReportBtn"
+  );
+
+
+if (whatsappButton) {
+
+  whatsappButton.href =
+    getReportWhatsappUrl();
+
 
 }
 
@@ -1590,7 +1636,105 @@ pdf.setProperties({
       undefined,
       "FAST"
     );
+/*
+  Link clicável do WhatsApp
+  na última página.
+*/
 
+if (
+  page.classList.contains(
+    "investment-page"
+  )
+) {
+
+  const whatsappButton =
+    page.querySelector(
+      "#whatsappReportBtn"
+    );
+
+
+  if (whatsappButton) {
+
+    const pageRect =
+      page.getBoundingClientRect();
+
+
+    const buttonRect =
+      whatsappButton.getBoundingClientRect();
+
+
+    /*
+      Posição relativa do botão
+      dentro da página capturada.
+    */
+
+    const relativeX =
+      (
+        buttonRect.left -
+        pageRect.left
+      ) /
+      pageRect.width;
+
+
+    const relativeY =
+      (
+        buttonRect.top -
+        pageRect.top
+      ) /
+      pageRect.height;
+
+
+    const relativeWidth =
+      buttonRect.width /
+      pageRect.width;
+
+
+    const relativeHeight =
+      buttonRect.height /
+      pageRect.height;
+
+
+    /*
+      Converte a posição para
+      coordenadas do PDF.
+    */
+
+    const linkX =
+      x +
+      relativeX *
+      renderWidth;
+
+
+    const linkY =
+      y +
+      relativeY *
+      renderHeight;
+
+
+    const linkWidth =
+      relativeWidth *
+      renderWidth;
+
+
+    const linkHeight =
+      relativeHeight *
+      renderHeight;
+
+
+    pdf.link(
+      linkX,
+      linkY,
+      linkWidth,
+      linkHeight,
+      {
+        url:
+          getReportWhatsappUrl()
+      }
+    );
+
+  }
+
+}
 
     /*
       Libera memória.
