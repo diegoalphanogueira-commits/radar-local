@@ -1665,6 +1665,100 @@ if (whatsappButton) {
 }
 
 /* =========================================================
+   AGUARDAR IMAGENS DO RELATÓRIO
+========================================================= */
+
+async function waitForReportImages() {
+
+  const images =
+    Array.from(
+      document.querySelectorAll(
+        ".solution-visual-image, .preview-site-image"
+      )
+    );
+
+
+  const visibleImages =
+    images.filter(
+      image =>
+        !image.hidden &&
+        image.src
+    );
+
+
+  await Promise.all(
+    visibleImages.map(
+      async image => {
+
+        /*
+          Se ainda não terminou
+          de carregar, aguardamos.
+        */
+
+        if (!image.complete) {
+
+          await new Promise(
+            resolve => {
+
+              image.addEventListener(
+                "load",
+                resolve,
+                {
+                  once: true
+                }
+              );
+
+
+              image.addEventListener(
+                "error",
+                resolve,
+                {
+                  once: true
+                }
+              );
+
+            }
+          );
+
+        }
+
+
+        /*
+          No Safari/iPhone,
+          complete não significa
+          necessariamente que a imagem
+          já está pronta para o canvas.
+
+          decode() resolve isso.
+        */
+
+        if (
+          typeof image.decode ===
+          "function"
+        ) {
+
+          try {
+
+            await image.decode();
+
+          } catch (error) {
+
+            console.warn(
+              "Imagem não pôde ser decodificada:",
+              image.src
+            );
+
+          }
+
+        }
+
+      }
+    )
+  );
+
+}
+
+/* =========================================================
    GERAR PDF VISUAL
 ========================================================= */
 
@@ -1698,6 +1792,12 @@ async function generateVisualPdf() {
 
   }
 
+/*
+  Aguarda as imagens visuais
+  antes de capturar o PDF.
+*/
+
+await waitForReportImages();
 
   const pages =
     Array.from(
