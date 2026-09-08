@@ -1717,444 +1717,125 @@ h4 {
 /* =========================================================
    PÁGINA 05 — PREVIEW DO SITE
 ========================================================= */
+/*
+     PÁGINA 05
+     SITE ESTRATÉGICO
+*/
 
-.website-preview {
-  margin-top: 32px;
+.preview-page
+.segment-site-showcase {
+  margin-top:
+    6mm !important;
+}
 
-  overflow: hidden;
 
-  border:
-    1px solid var(--border-blue);
+.preview-page
+.segment-site-image-wrap {
+  width:
+    100% !important;
 
-  border-radius: 24px;
+  height:
+    202mm !important;
 
-  background: #ffffff;
+  aspect-ratio:
+    auto !important;
+
+  border-radius:
+    5mm !important;
 
   box-shadow:
-    var(--shadow-soft);
+    none !important;
+
+  overflow:
+    hidden !important;
+
+  background:
+    #ffffff !important;
 }
 
 
-.browser-bar {
-  min-height: 52px;
+.preview-page
+.segment-site-image {
+  width:
+    100% !important;
+
+  height:
+    100% !important;
+
+  display:
+    block !important;
+
+  object-fit:
+    contain !important;
+
+  object-position:
+    center !important;
+
+  background:
+    #ffffff !important;
+}
+
+
+.preview-page
+.segment-site-image[hidden] {
+  display:
+    none !important;
+}
+
+
+.preview-page
+.segment-site-placeholder {
+  width:
+    100% !important;
+
+  height:
+    100% !important;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  background:
+    #f5f8fc !important;
+}
+
+
+.preview-page
+.segment-site-caption {
+  margin-top:
+    4mm !important;
 
   padding:
-    0 18px;
+    3.5mm 4mm !important;
 
-  display: flex;
+  break-inside:
+    avoid !important;
 
-  align-items: center;
-
-  gap: 15px;
-
-  background:
-    #f3f6fa;
-
-  border-bottom:
-    1px solid var(--border);
+  page-break-inside:
+    avoid !important;
 }
 
 
-.browser-dots {
-  display: flex;
-
-  align-items: center;
-
-  gap: 6px;
+.preview-page
+.segment-site-caption strong {
+  font-size:
+    10pt !important;
 }
 
 
-.browser-dots span {
-  width: 10px;
-  height: 10px;
+.preview-page
+.segment-site-caption span {
+  font-size:
+    9pt !important;
 
-  border-radius: 50%;
+  line-height:
+    1.35 !important;
 }
-
-
-.browser-dots span:nth-child(1) {
-  background: #ff675f;
-}
-
-
-.browser-dots span:nth-child(2) {
-  background: #fbc550;
-}
-
-
-.browser-dots span:nth-child(3) {
-  background: #4fc66b;
-}
-
-
-.browser-address {
-  flex: 1;
-
-  padding:
-    8px 13px;
-
-  border-radius: 10px;
-
-  background: #ffffff;
-
-  border:
-    1px solid var(--border);
-
-  color: var(--text-3);
-
-  font-size: 14px;
-}
-
-
-.website-preview-content {
-  padding: 34px;
-
-  display: grid;
-
-  grid-template-columns:
-    1.15fr 0.85fr;
-
-  gap: 30px;
-
-  align-items: center;
-}
-
-
-.preview-copy > span {
-  color: var(--blue);
-
-  font-size: 14px;
-
-  font-weight: 800;
-
-  text-transform: uppercase;
-
-  letter-spacing: 0.06em;
-}
-
-
-.preview-copy h3 {
-  margin:
-    8px 0 0;
-
-  font-size: 21px;
-}
-
-
-.preview-copy h4 {
-  max-width: 500px;
-
-  margin:
-    20px 0 0;
-
-  font-size: 37px;
-
-  line-height: 1.04;
-
-  letter-spacing: -0.045em;
-}
-
-
-.preview-copy p {
-  margin:
-    16px 0 0;
-
-  color: var(--text-2);
-
-  font-size: 16px;
-
-  line-height: 1.55;
-}
-
-
-.preview-actions {
-  margin-top: 22px;
-
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 10px;
-}
-
-
-.preview-primary,
-.preview-secondary {
-  min-height: 44px;
-
-  padding:
-    0 16px;
-
-  display: inline-flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  border-radius: 12px;
-
-  font-size: 14px;
-
-  font-weight: 750;
-}
-
-
-.preview-primary {
-  background: var(--blue);
-
-  color: #ffffff;
-}
-
-
-.preview-secondary {
-  background: var(--blue-soft);
-
-  color: var(--blue);
-}
-
-
-.preview-trust {
-  margin-top: 20px;
-
-  color: var(--text-2);
-
-  font-size: 14px;
-}
-
-
-.preview-trust span {
-  margin-right: 8px;
-
-  color: var(--yellow);
-}
-
-
-.preview-visual {
-  min-height: 280px;
-
-  position: relative;
-
-  overflow: hidden;
-
-  border:
-    1px solid var(--border-blue);
-
-  border-radius: 24px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #edf4ff,
-      #f8fbff
-    );
-}
-
-/* =========================================================
-   IMAGEM PRINCIPAL DO SITE
-========================================================= */
-
-.preview-site-image {
-  width: 100%;
-  height: 100%;
-
-  position: absolute;
-
-  inset: 0;
-
-  display: block;
-
-  object-fit: cover;
-
-  object-position: center;
-
-  z-index: 3;
-}
-
-
-.preview-site-placeholder {
-  width: 100%;
-  height: 100%;
-  min-height: 280px;
-
-  position: relative;
-
-  overflow: hidden;
-
-  display: flex;
-
-  align-items: flex-end;
-
-  justify-content: center;
-
-  padding: 20px;
-}
-
-
-.preview-site-placeholder > span {
-  position: relative;
-
-  z-index: 2;
-
-  padding:
-    8px 13px;
-
-  border-radius: 999px;
-
-  background:
-    rgba(255, 255, 255, 0.88);
-
-  color: var(--text-2);
-
-  font-size: 13px;
-
-  font-weight: 700;
-
-  box-shadow:
-    0 7px 18px
-    rgba(40, 64, 100, 0.08);
-}
-
-
-.preview-site-placeholder
-.preview-icon {
-  z-index: 2;
-}
-
-.preview-shape {
-  position: absolute;
-
-  border-radius: 50%;
-}
-
-
-.preview-shape.one {
-  width: 220px;
-  height: 220px;
-
-  right: -55px;
-  top: -70px;
-
-  background:
-    rgba(26, 115, 232, 0.12);
-}
-
-
-.preview-shape.two {
-  width: 180px;
-  height: 180px;
-
-  left: -55px;
-  bottom: -75px;
-
-  background:
-    rgba(52, 168, 83, 0.10);
-}
-
-
-.preview-icon {
-  width: 92px;
-  height: 92px;
-
-  position: absolute;
-
-  left: 50%;
-  top: 50%;
-
-  transform:
-    translate(-50%, -50%);
-
-  display: grid;
-
-  place-items: center;
-
-  border-radius: 26px;
-
-  background:
-    rgba(255, 255, 255, 0.9);
-
-  color: var(--blue);
-
-  font-size: 40px;
-
-  font-weight: 800;
-
-  box-shadow:
-    0 14px 34px
-    rgba(26, 115, 232, 0.12);
-}
-
-
-.preview-services {
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, 1fr);
-
-  border-top:
-    1px solid var(--border);
-}
-
-
-.preview-services article {
-  padding:
-    18px 20px;
-
-  border-right:
-    1px solid var(--border);
-}
-
-
-.preview-services article:last-child {
-  border-right: 0;
-}
-
-
-.preview-services span {
-  display: block;
-
-  color: var(--text-3);
-
-  font-size: 13px;
-
-  text-transform: uppercase;
-
-  font-weight: 800;
-
-  letter-spacing: 0.05em;
-}
-
-
-.preview-services strong {
-  display: block;
-
-  margin-top: 5px;
-
-  font-size: 15px;
-}
-
-
-.preview-note {
-  margin: 0;
-
-  padding:
-    14px 18px;
-
-  background:
-    var(--surface-soft);
-
-  border-top:
-    1px solid var(--border);
-
-  color: var(--text-3);
-
-  font-size: 13px;
-
-  line-height: 1.45;
-
-  text-align: center;
-}
-
-
 
 /* =========================================================
    PÁGINA 06 — ENTREGA + INVESTIMENTO
@@ -3600,6 +3281,163 @@ h4 {
 }
 
 /* =========================================================
+   SITE ESTRATÉGICO — PREVIEW POR SEGMENTO
+========================================================= */
+
+.segment-site-showcase {
+  width: 100%;
+
+  margin-top: 26px;
+}
+
+
+.segment-site-image-wrap {
+  width: 100%;
+
+  aspect-ratio: 4 / 5;
+
+  position: relative;
+
+  overflow: hidden;
+
+  border-radius: 24px;
+
+  border:
+    1px solid #dbe5f2;
+
+  background:
+    #f5f8fc;
+
+  box-shadow:
+    0 18px 45px
+    rgba(35, 57, 88, 0.10);
+}
+
+
+.segment-site-image {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+  object-position: center;
+
+  background: #ffffff;
+}
+
+
+.segment-site-image[hidden] {
+  display: none !important;
+}
+
+
+.segment-site-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 30px;
+
+  color: #8190a7;
+
+  font-size: 16px;
+
+  font-weight: 700;
+
+  text-align: center;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbff,
+      #edf4fc
+    );
+}
+
+
+.segment-site-caption {
+  margin-top: 18px;
+
+  padding:
+    18px 20px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+
+  border-radius: 16px;
+
+  background:
+    #f5f8fc;
+
+  border:
+    1px solid #e0e7f0;
+}
+
+
+.segment-site-caption strong {
+  color: #17191c;
+
+  font-size: 15px;
+
+  font-weight: 800;
+}
+
+
+.segment-site-caption span {
+  color: #738099;
+
+  font-size: 14px;
+
+  line-height: 1.45;
+}
+
+
+
+/* =========================================================
+   SITE ESTRATÉGICO — MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .segment-site-showcase {
+    margin-top: 22px;
+  }
+
+
+  .segment-site-image-wrap {
+    border-radius: 20px;
+  }
+
+
+  .segment-site-caption {
+    margin-top: 14px;
+
+    padding:
+      16px 17px;
+  }
+
+
+  .segment-site-caption strong {
+    font-size: 15px;
+  }
+
+
+  .segment-site-caption span {
+    font-size: 13px;
+  }
+
+}
+
+/* =========================================================
    PDF / IMPRESSÃO A4
 ========================================================= */
 
@@ -3625,6 +3463,8 @@ h4 {
     color: #17191c !important;
 
     color-scheme: light !important;
+
+     
   }
 
 
