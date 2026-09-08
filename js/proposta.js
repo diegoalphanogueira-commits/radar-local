@@ -1,131 +1,41 @@
 /* =========================================================
-   RADAR LOCAL — PROPOSTA.JS V4
-   RELATÓRIO + DECISOR + PAGAMENTO + WHATSAPP
+   RADAR LOCAL — PROPOSTA V3
 ========================================================= */
 
 
 /* =========================================================
-   CONFIGURAÇÕES COMERCIAIS
+   CARREGAR DADOS
 ========================================================= */
 
-const BASE_PRICE =
-  1290;
-
-
-/*
-  IMPORTANTE
-
-  Coloque aqui o número que deve receber
-  as mensagens da proposta.
-
-  Formato:
-  código do país + DDD + número
-
-  Exemplo:
-  5511999999999
-
-  Não use:
-  +
-  espaços
-  parênteses
-  traços
-*/
-
-const WHATSAPP_NUMBER =
-  "5511970349654";
-
-
-/*
-  Taxas de referência configuráveis.
-
-  PIX:
-  sem acréscimo.
-
-  CARTÃO:
-  o cálculo abaixo preserva aproximadamente
-  R$ 1.290 após a taxa configurada.
-
-  Se a operadora mudar as taxas,
-  altere somente estes números.
-*/
-
-const PAYMENT_FEES = {
-
-  1: 0.0420,
-
-  2: 0.0609,
-
-  3: 0.0701,
-
-  4: 0.0791,
-
-  5: 0.0880,
-
-  6: 0.0967
-
-};
-
-
-/* =========================================================
-   CARREGAR ANÁLISE
-========================================================= */
-
-const storedProposal =
+const proposalRaw =
   localStorage.getItem(
     "radarProposal"
   );
 
 
-let proposalData =
-  null;
+let proposalData = null;
 
 
 try {
 
   proposalData =
     JSON.parse(
-      storedProposal
+      proposalRaw
     );
 
 } catch (error) {
 
   console.error(
-    "Erro ao carregar os dados da proposta:",
+    "Erro ao carregar proposta:",
     error
   );
 
 }
 
 
-/* =========================================================
-   ESTADO
-========================================================= */
-
-let selectedPaymentOption = {
-
-  type:
-    "pix",
-
-  installments:
-    0,
-
-  fee:
-    0,
-
-  installmentValue:
-    BASE_PRICE,
-
-  total:
-    BASE_PRICE,
-
-  label:
-    "Pix"
-
-};
-
 
 /* =========================================================
-   ELEMENTOS PRINCIPAIS
+   BOTÕES
 ========================================================= */
 
 const printButton =
@@ -140,57 +50,36 @@ const backButton =
   );
 
 
-const paymentScroller =
-  document.getElementById(
-    "paymentScroller"
-  );
-
-
-const selectedPaymentLabel =
-  document.getElementById(
-    "selectedPaymentLabel"
-  );
-
-
-const selectedPaymentValue =
-  document.getElementById(
-    "selectedPaymentValue"
-  );
-
-
-const selectedPaymentTotal =
-  document.getElementById(
-    "selectedPaymentTotal"
-  );
-
-
-const paymentFeeNote =
-  document.getElementById(
-    "paymentFeeNote"
-  );
-
-
-const whatsappProposalButton =
-  document.getElementById(
-    "whatsappProposalButton"
-  );
-
 
 /* =========================================================
-   UTILITÁRIOS
+   FUNÇÕES BÁSICAS
 ========================================================= */
 
-function safeNumber(value) {
+function getElement(id) {
 
-  const number =
-    Number(value);
+  return document.getElementById(
+    id
+  );
+
+}
 
 
-  return Number.isFinite(
-    number
-  )
-    ? number
-    : 0;
+function setText(
+  id,
+  value
+) {
+
+  const element =
+    getElement(id);
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    value;
 
 }
 
@@ -201,9 +90,9 @@ function safeText(
 ) {
 
   if (
-    value === undefined ||
     value === null ||
-    String(value).trim() === ""
+    value === undefined ||
+    value === ""
   ) {
 
     return fallback;
@@ -211,65 +100,36 @@ function safeText(
   }
 
 
-  return String(
-    value
-  );
+  return String(value);
 
 }
 
 
-function formatNumber(value) {
+function formatNumber(
+  value
+) {
 
   return new Intl.NumberFormat(
     "pt-BR"
   ).format(
-    safeNumber(
-      value
-    )
+    Number(value) || 0
   );
 
 }
 
 
-function formatCurrency(value) {
+function clamp(
+  value,
+  min,
+  max
+) {
 
-  return new Intl.NumberFormat(
-    "pt-BR",
-    {
-
-      style:
-        "currency",
-
-      currency:
-        "BRL"
-
-    }
-  ).format(
-    safeNumber(
-      value
-    )
-  );
-
-}
-
-
-function formatPercentage(value) {
-
-  return new Intl.NumberFormat(
-    "pt-BR",
-    {
-
-      minimumFractionDigits:
-        2,
-
-      maximumFractionDigits:
-        2
-
-    }
-  ).format(
-    safeNumber(
-      value
-    ) * 100
+  return Math.min(
+    Math.max(
+      Number(value) || 0,
+      min
+    ),
+    max
   );
 
 }
@@ -277,12 +137,8 @@ function formatPercentage(value) {
 
 function slugify(text) {
 
-  return String(
-    text || ""
-  )
-    .normalize(
-      "NFD"
-    )
+  return String(text || "")
+    .normalize("NFD")
     .replace(
       /[\u0300-\u036f]/g,
       ""
@@ -300,131 +156,9 @@ function slugify(text) {
 }
 
 
-function clamp(
-  value,
-  min,
-  max
-) {
-
-  return Math.min(
-    Math.max(
-      value,
-      min
-    ),
-    max
-  );
-
-}
-
-
-/*
-  Arredondamento para cima em centavos.
-
-  Isso evita que um arredondamento faça
-  o valor cobrado ficar alguns centavos
-  abaixo do necessário.
-*/
-
-function ceilCurrency(value) {
-
-  return (
-    Math.ceil(
-      safeNumber(
-        value
-      ) * 100
-    ) /
-    100
-  );
-
-}
-
 
 /* =========================================================
-   CLASSIFICAÇÃO
-========================================================= */
-
-function getPresenceLabel(score) {
-
-  score =
-    safeNumber(
-      score
-    );
-
-
-  if (
-    score < 35
-  ) {
-
-    return "Baixa";
-
-  }
-
-
-  if (
-    score < 55
-  ) {
-
-    return "Intermediária";
-
-  }
-
-
-  if (
-    score < 75
-  ) {
-
-    return "Boa";
-
-  }
-
-
-  return "Alta";
-
-}
-
-
-function getDemandLabel(monthly) {
-
-  monthly =
-    safeNumber(
-      monthly
-    );
-
-
-  if (
-    monthly < 60
-  ) {
-
-    return "Moderada";
-
-  }
-
-
-  if (
-    monthly < 110
-  ) {
-
-    return "Relevante";
-
-  }
-
-
-  if (
-    monthly < 170
-  ) {
-
-    return "Alta";
-
-  }
-
-
-  return "Muito alta";
-
-}
-
-
-/* =========================================================
-   TEMPLATES DE SITE
+   CONFIGURAÇÃO DOS SEGMENTOS
 ========================================================= */
 
 const WEBSITE_TEMPLATES = {
@@ -439,16 +173,13 @@ const WEBSITE_TEMPLATES = {
       "Realce sua beleza com atendimento profissional e personalizado.",
 
     description:
-      "Tratamentos pensados para valorizar sua beleza, autoestima e bem-estar.",
+      "Tratamentos pensados para cuidar da sua beleza, autoestima e bem-estar.",
 
-    background:
-      "linear-gradient(145deg, #faedf8, #eef4ff)",
+    visual:
+      "linear-gradient(145deg, #f9edfc, #edf3ff)",
 
     accent:
-      "#b552c7",
-
-    icon:
-      "✦"
+      "#b44fce"
 
   },
 
@@ -456,22 +187,19 @@ const WEBSITE_TEMPLATES = {
   podologia: {
 
     category:
-      "Saúde e cuidado dos pés",
+      "Podologia e cuidado",
 
     headline:
-      "Cuidado especializado para seus pés, conforto e bem-estar.",
+      "Cuidado especializado para a saúde e o conforto dos seus pés.",
 
     description:
-      "Atendimento profissional para prevenção, tratamento e saúde dos pés.",
+      "Atendimento profissional com foco em prevenção, cuidado e bem-estar.",
 
-    background:
-      "linear-gradient(145deg, #edf9f3, #eef7ff)",
+    visual:
+      "linear-gradient(145deg, #edf9f4, #eef7ff)",
 
     accent:
-      "#3a9a74",
-
-    icon:
-      "◎"
+      "#2e9a75"
 
   },
 
@@ -482,19 +210,16 @@ const WEBSITE_TEMPLATES = {
       "Odontologia",
 
     headline:
-      "Seu sorriso merece cuidado, segurança e confiança.",
+      "Seu sorriso merece cuidado, confiança e atenção profissional.",
 
     description:
-      "Atendimento odontológico completo para cuidar da saúde e estética do seu sorriso.",
+      "Atendimento odontológico para cuidar da saúde e da estética do seu sorriso.",
 
-    background:
-      "linear-gradient(145deg, #eaf7ff, #f5fbff)",
+    visual:
+      "linear-gradient(145deg, #eaf6ff, #f7fbff)",
 
     accent:
-      "#288fd3",
-
-    icon:
-      "✦"
+      "#2389cf"
 
   },
 
@@ -502,22 +227,19 @@ const WEBSITE_TEMPLATES = {
   beleza: {
 
     category:
-      "Beleza e autoestima",
+      "Beleza e cuidados",
 
     headline:
-      "Cuidado, beleza e autoestima em cada atendimento.",
+      "Beleza, cuidado e autoestima em cada atendimento.",
 
     description:
-      "Serviços profissionais pensados para valorizar você em cada detalhe.",
+      "Serviços profissionais para quem busca cuidado, beleza e bem-estar.",
 
-    background:
-      "linear-gradient(145deg, #fff0f5, #f6efff)",
+    visual:
+      "linear-gradient(145deg, #fff0f5, #f8f2ff)",
 
     accent:
-      "#ce5d91",
-
-    icon:
-      "✦"
+      "#cf5e90"
 
   },
 
@@ -531,16 +253,13 @@ const WEBSITE_TEMPLATES = {
       "Seu equipamento funcionando novamente com rapidez e confiança.",
 
     description:
-      "Assistência especializada para celulares, notebooks e equipamentos.",
+      "Assistência especializada e atendimento profissional na sua região.",
 
-    background:
-      "linear-gradient(145deg, #eaf1ff, #f4f8ff)",
+    visual:
+      "linear-gradient(145deg, #edf3ff, #f4f8ff)",
 
     accent:
-      "#286fd2",
-
-    icon:
-      "⚙"
+      "#276fd3"
 
   },
 
@@ -551,19 +270,16 @@ const WEBSITE_TEMPLATES = {
       "Limpeza e higienização",
 
     headline:
-      "Renove seus estofados com limpeza profissional.",
+      "Seu estofado limpo, renovado e pronto para receber sua família.",
 
     description:
-      "Higienização especializada para deixar seu ambiente mais limpo, seguro e confortável.",
+      "Limpeza e higienização profissional com atendimento na sua região.",
 
-    background:
-      "linear-gradient(145deg, #eafbf7, #edf6ff)",
+    visual:
+      "linear-gradient(145deg, #e9faf5, #eef7ff)",
 
     accent:
-      "#249a83",
-
-    icon:
-      "✦"
+      "#229d83"
 
   },
 
@@ -577,16 +293,13 @@ const WEBSITE_TEMPLATES = {
       "Soluções em vidro que valorizam seu ambiente.",
 
     description:
-      "Projetos personalizados para residências, comércios e empresas.",
+      "Projetos sob medida para residências, comércios e empresas.",
 
-    background:
-      "linear-gradient(145deg, #eef8fb, #f4faff)",
+    visual:
+      "linear-gradient(145deg, #edf8fb, #f4faff)",
 
     accent:
-      "#4389a5",
-
-    icon:
-      "◇"
+      "#4186a5"
 
   },
 
@@ -597,19 +310,16 @@ const WEBSITE_TEMPLATES = {
       "Mármore e granito",
 
     headline:
-      "Acabamentos que transformam seu projeto.",
+      "Acabamentos sob medida que transformam seu projeto.",
 
     description:
-      "Bancadas, pias e projetos personalizados com acabamento profissional.",
+      "Soluções profissionais para cozinhas, banheiros e ambientes personalizados.",
 
-    background:
-      "linear-gradient(145deg, #f2f0ed, #fafafa)",
+    visual:
+      "linear-gradient(145deg, #f3f1ed, #fafafa)",
 
     accent:
-      "#756e67",
-
-    icon:
-      "◆"
+      "#776f65"
 
   },
 
@@ -623,16 +333,13 @@ const WEBSITE_TEMPLATES = {
       "Mais conforto para sua casa ou empresa.",
 
     description:
-      "Instalação, manutenção e higienização de ar-condicionado com atendimento especializado.",
+      "Instalação, manutenção e limpeza com atendimento especializado.",
 
-    background:
-      "linear-gradient(145deg, #e8f5ff, #f5fbff)",
+    visual:
+      "linear-gradient(145deg, #e8f5ff, #f6fbff)",
 
     accent:
-      "#3287cf",
-
-    icon:
-      "❄"
+      "#3188ce"
 
   },
 
@@ -646,16 +353,13 @@ const WEBSITE_TEMPLATES = {
       "Proteção profissional para sua casa ou empresa.",
 
     description:
-      "Controle de pragas com atendimento especializado e soluções para diferentes ambientes.",
+      "Controle de pragas com atendimento rápido, seguro e especializado.",
 
-    background:
-      "linear-gradient(145deg, #eef8e9, #f7fbf3)",
+    visual:
+      "linear-gradient(145deg, #eff8e9, #f8fbf4)",
 
     accent:
-      "#5c913d",
-
-    icon:
-      "✓"
+      "#5c943d"
 
   },
 
@@ -666,19 +370,16 @@ const WEBSITE_TEMPLATES = {
       "Energia solar",
 
     headline:
-      "Transforme energia solar em economia para sua casa ou empresa.",
+      "Transforme a luz do sol em economia.",
 
     description:
-      "Projetos fotovoltaicos desenvolvidos para eficiência, economia e segurança.",
+      "Soluções solares para residências e empresas que querem reduzir custos.",
 
-    background:
-      "linear-gradient(145deg, #fff7dc, #edf7ff)",
+    visual:
+      "linear-gradient(145deg, #fff7db, #edf7ff)",
 
     accent:
-      "#dfa300",
-
-    icon:
-      "☀"
+      "#dca000"
 
   },
 
@@ -689,19 +390,16 @@ const WEBSITE_TEMPLATES = {
       "Oficina mecânica",
 
     headline:
-      "Seu carro em boas mãos, do diagnóstico à manutenção.",
+      "Seu carro em boas mãos.",
 
     description:
-      "Serviços automotivos com atendimento profissional, clareza e confiança.",
+      "Diagnóstico e manutenção com atendimento profissional e transparente.",
 
-    background:
-      "linear-gradient(145deg, #edf0f4, #f8fafc)",
+    visual:
+      "linear-gradient(145deg, #edf1f5, #f8fafc)",
 
     accent:
-      "#506479",
-
-    icon:
-      "⚙"
+      "#4f6477"
 
   },
 
@@ -715,24 +413,22 @@ const WEBSITE_TEMPLATES = {
       "Uma presença profissional para quem procura seus serviços.",
 
     description:
-      "Apresente sua empresa, seus diferenciais e facilite o contato com novos clientes.",
+      "Apresente sua empresa com clareza e facilite o contato com novos clientes.",
 
-    background:
-      "linear-gradient(145deg, #eaf2ff, #f6faff)",
+    visual:
+      "linear-gradient(145deg, #eaf2ff, #f7faff)",
 
     accent:
-      "#1a73e8",
-
-    icon:
-      "↗"
+      "#1a73e8"
 
   }
 
 };
 
 
+
 /* =========================================================
-   TEMPLATE
+   TEMPLATE DO SEGMENTO
 ========================================================= */
 
 function getWebsiteTemplate(
@@ -747,6 +443,109 @@ function getWebsiteTemplate(
   );
 
 }
+
+
+
+/* =========================================================
+   NÍVEL DE DEMANDA
+========================================================= */
+
+function getDemandLevel(
+  monthly
+) {
+
+  const value =
+    Number(monthly) || 0;
+
+
+  if (value >= 120) {
+
+    return {
+      label:
+        "Alta",
+
+      width:
+        88
+    };
+
+  }
+
+
+  if (value >= 70) {
+
+    return {
+      label:
+        "Relevante",
+
+      width:
+        72
+    };
+
+  }
+
+
+  if (value >= 35) {
+
+    return {
+      label:
+        "Moderada",
+
+      width:
+        55
+    };
+
+  }
+
+
+  return {
+    label:
+      "Pontual",
+
+    width:
+      38
+  };
+
+}
+
+
+
+/* =========================================================
+   NÍVEL DE PRESENÇA
+========================================================= */
+
+function getPresenceLevel(
+  score
+) {
+
+  const value =
+    Number(score) || 0;
+
+
+  if (value >= 75) {
+
+    return "Forte";
+
+  }
+
+
+  if (value >= 55) {
+
+    return "Boa";
+
+  }
+
+
+  if (value >= 35) {
+
+    return "Intermediária";
+
+  }
+
+
+  return "Baixa";
+
+}
+
 
 
 /* =========================================================
@@ -765,14 +564,14 @@ function renderCover(data) {
   const segment =
     safeText(
       data.segmentLabel,
-      "Segmento analisado"
+      "Negócio local"
     );
 
 
   const region =
     safeText(
       data.region,
-      "Região analisada"
+      "sua região"
     );
 
 
@@ -783,202 +582,159 @@ function renderCover(data) {
     );
 
 
-  const weekly =
-    safeNumber(
+  setText(
+    "companyNameHero",
+    company
+  );
+
+
+  setText(
+    "companyNameCard",
+    company
+  );
+
+
+  setText(
+    "segmentHero",
+    segment
+  );
+
+
+  setText(
+    "regionHero",
+    region
+  );
+
+
+  setText(
+    "radiusHero",
+    `${radius} km`
+  );
+
+
+  const coverDescription =
+    getElement(
+      "coverDescription"
+    );
+
+
+  if (coverDescription) {
+
+    coverDescription.textContent =
+      `Analisamos a procura por serviços de ${segment.toLowerCase()} em ${region} e o quanto a presença digital da empresa está preparada para aproveitar essa demanda.`;
+
+  }
+
+
+  document.title =
+    `Radar Local — ${company}`;
+
+}
+
+
+
+/* =========================================================
+   MÉTRICAS PRINCIPAIS
+========================================================= */
+
+function renderMetrics(data) {
+
+  setText(
+    "weeklyDemand",
+    formatNumber(
       data.weekly
-    );
+    )
+  );
 
 
-  const monthly =
-    safeNumber(
+  setText(
+    "monthlyDemand",
+    formatNumber(
       data.monthly
-    );
+    )
+  );
 
 
-  const presence =
-    safeNumber(
+  setText(
+    "presenceScore",
+    formatNumber(
       data.presence
-    );
+    )
+  );
 
+
+  setText(
+    "uncapturedDemand",
+    `${formatNumber(
+      data.uncaptured
+    )}%`
+  );
+
+}
+
+
+
+/* =========================================================
+   LEITURA ESTRATÉGICA
+========================================================= */
+
+function renderStrategicReading(
+  data
+) {
 
   const uncaptured =
-    safeNumber(
+    Number(
       data.uncaptured
-    );
+    ) || 0;
 
 
-  const overall =
-    clamp(
-      safeNumber(
-        data.overall
-      ),
-      0,
-      100
-    );
+  let message =
+    "Existe procura acontecendo e espaço para fortalecer a presença digital da empresa.";
 
 
-  document.getElementById(
-    "companyNameHero"
-  ).textContent =
-    company;
+  if (uncaptured >= 70) {
 
-
-  document.getElementById(
-    "companyMeta"
-  ).textContent =
-    company;
-
-
-  document.getElementById(
-    "segmentHero"
-  ).textContent =
-    segment;
-
-
-  document.getElementById(
-    "regionHero"
-  ).textContent =
-    region;
-
-
-  document.getElementById(
-    "radiusHero"
-  ).textContent =
-    `${radius} km`;
-
-
-  document.getElementById(
-    "heroScore"
-  ).textContent =
-    formatNumber(
-      overall
-    );
-
-
-  document.getElementById(
-    "coverWeekly"
-  ).textContent =
-    formatNumber(
-      weekly
-    );
-
-
-  document.getElementById(
-    "coverMonthly"
-  ).textContent =
-    formatNumber(
-      monthly
-    );
-
-
-  document.getElementById(
-    "coverPresence"
-  ).textContent =
-    formatNumber(
-      presence
-    );
-
-
-  document.getElementById(
-    "coverUncaptured"
-  ).textContent =
-    `${formatNumber(
-      uncaptured
-    )}%`;
-
-
-  /*
-    Explicação da análise
-  */
-
-  document.getElementById(
-    "coverSummary"
-  ).textContent =
-    `A ${company} participou de uma análise estratégica de presença digital para entender o cenário de procura por ${segment.toLowerCase()} na região de ${region} e avaliar o quanto sua estrutura atual está preparada para aproveitar essa oportunidade.`;
-
-
-  /*
-    Bloco para decisor
-  */
-
-  document.getElementById(
-    "forwardedTitle"
-  ).textContent =
-    `Este relatório apresenta o cenário identificado para a ${company}.`;
-
-
-  document.getElementById(
-    "forwardedText"
-  ).textContent =
-    `A empresa foi analisada pelo Radar Local considerando seu segmento, serviços e região de atuação. Nas próximas páginas você verá a procura estimada existente em ${region}, os pontos que hoje podem limitar a presença digital da empresa e o plano recomendado para fortalecer sua capacidade de ser encontrada e gerar novos contatos.`;
-
-
-  /*
-    Insight
-  */
-
-  const insight =
-    document.getElementById(
-      "coverInsight"
-    );
-
-
-  if (
-    uncaptured >= 70
-  ) {
-
-    insight.textContent =
-      `Existe uma diferença expressiva entre a procura identificada e a força atual da presença digital da ${company}. O cenário indica uma oportunidade relevante de estruturação.`;
+    message =
+      "Existe uma diferença importante entre a procura existente e a capacidade atual da empresa de capturar essa oportunidade.";
 
   } else if (
     uncaptured >= 50
   ) {
 
-    insight.textContent =
-      `Existe procura relevante pelos serviços analisados, mas a presença atual da ${company} ainda pode ser fortalecida para capturar uma parcela maior dessa oportunidade.`;
+    message =
+      "Existe procura relevante pelos serviços analisados, mas a presença atual ainda pode ser fortalecida para capturar uma parcela maior dessa oportunidade.";
+
+  } else if (
+    uncaptured >= 30
+  ) {
+
+    message =
+      "A empresa já apresenta sinais de presença, mas ainda existe espaço para ampliar visibilidade e confiança.";
 
   } else {
 
-    insight.textContent =
-      `A ${company} já apresenta sinais positivos de presença, mas ainda existem oportunidades para ampliar relevância, autoridade e confiança na região.`;
+    message =
+      "A presença atual é relativamente forte, com oportunidades pontuais de melhoria e fortalecimento.";
 
   }
 
 
-  /*
-    Gauge
-  */
-
-  const ring =
-    document.getElementById(
-      "heroScoreRing"
-    );
-
-
-  const degrees =
-    Math.round(
-      overall /
-      100 *
-      360
-    );
-
-
-  ring.style.background =
-    `
-      conic-gradient(
-        #1a73e8 0deg ${degrees}deg,
-        #edf1f6 ${degrees}deg 360deg
-      )
-    `;
+  setText(
+    "opportunityStatement",
+    message
+  );
 
 }
 
 
+
 /* =========================================================
-   OPORTUNIDADE
+   PÁGINA DE OPORTUNIDADE
 ========================================================= */
 
-function renderOpportunity(data) {
+function renderOpportunity(
+  data
+) {
 
   const company =
     safeText(
@@ -990,177 +746,146 @@ function renderOpportunity(data) {
   const region =
     safeText(
       data.region,
-      "região analisada"
+      "a região analisada"
     );
 
 
-  const weekly =
-    safeNumber(
-      data.weekly
+  const intro =
+    getElement(
+      "opportunityIntro"
     );
 
 
-  const monthly =
-    safeNumber(
-      data.monthly
-    );
+  if (intro) {
 
+    intro.textContent =
+      `O Radar estimou aproximadamente ${formatNumber(
+        data.weekly
+      )} buscas por semana e ${formatNumber(
+        data.monthly
+      )} buscas por mês relacionadas aos serviços avaliados em ${region}.`;
 
-  const presence =
-    clamp(
-      safeNumber(
-        data.presence
-      ),
-      0,
-      100
-    );
-
-
-  const uncaptured =
-    clamp(
-      safeNumber(
-        data.uncaptured
-      ),
-      0,
-      100
-    );
-
-
-  document.getElementById(
-    "opportunityIntro"
-  ).textContent =
-    `O Radar estimou aproximadamente ${formatNumber(
-      weekly
-    )} buscas por semana e ${formatNumber(
-      monthly
-    )} buscas por mês relacionadas aos serviços avaliados em ${region}. Isso indica que existe procura acontecendo antes mesmo de qualquer nova campanha de divulgação.`;
+  }
 
 
   /*
     Demanda
   */
 
-  const demandLabel =
-    safeText(
-      data.demandLevel,
-      getDemandLabel(
-        monthly
-      )
+  const demand =
+    getDemandLevel(
+      data.monthly
     );
 
 
-  document.getElementById(
-    "demandLevelText"
-  ).textContent =
-    demandLabel;
+  setText(
+    "demandLevelLabel",
+    demand.label
+  );
 
 
-  document.getElementById(
-    "presenceLevelText"
-  ).textContent =
-    getPresenceLabel(
-      presence
+  const demandBar =
+    getElement(
+      "demandBar"
     );
+
+
+  if (demandBar) {
+
+    demandBar.style.width =
+      `${demand.width}%`;
+
+  }
 
 
   /*
-    Barra visual da demanda
+    Presença
   */
 
-  let demandPercentage =
-    50;
-
-
-  if (
-    monthly >= 170
-  ) {
-
-    demandPercentage =
-      95;
-
-  } else if (
-    monthly >= 110
-  ) {
-
-    demandPercentage =
-      84;
-
-  } else if (
-    monthly >= 60
-  ) {
-
-    demandPercentage =
-      68;
-
-  }
-
-
-  document.getElementById(
-    "demandChartBar"
-  ).style.width =
-    `${demandPercentage}%`;
-
-
-  document.getElementById(
-    "presenceChartBar"
-  ).style.width =
-    `${presence}%`;
-
-
-  document.getElementById(
-    "gapNumber"
-  ).textContent =
-    `${formatNumber(
-      uncaptured
-    )}%`;
-
-
-  const gapText =
-    document.getElementById(
-      "gapText"
+  const presence =
+    clamp(
+      data.presence,
+      0,
+      100
     );
 
 
-  if (
-    uncaptured >= 70
-  ) {
+  setText(
+    "presenceLevelLabel",
+    getPresenceLevel(
+      presence
+    )
+  );
 
-    gapText.textContent =
-      `O cenário sugere que uma parcela elevada da oportunidade analisada ainda não está sendo bem capturada pela presença digital atual da ${company}.`;
 
-  } else if (
-    uncaptured >= 50
-  ) {
+  const presenceBar =
+    getElement(
+      "presenceBar"
+    );
 
-    gapText.textContent =
-      `Existe uma diferença relevante entre a procura estimada na região e a capacidade atual de presença e captura da ${company}.`;
 
-  } else {
+  if (presenceBar) {
 
-    gapText.textContent =
-      `A empresa já possui algum nível de presença, mas ainda existem oportunidades para fortalecer sua participação na procura local.`;
+    presenceBar.style.width =
+      `${Math.max(
+        presence,
+        8
+      )}%`;
 
   }
 
 
-  document.getElementById(
-    "demandConclusion"
-  ).textContent =
-    `Em outras palavras: as pessoas já procuram serviços como os oferecidos pela ${company}. O trabalho recomendado é fortalecer a estrutura digital para aumentar as chances de que parte maior dessa procura encontre a empresa, entenda sua oferta e entre em contato.`;
+  /*
+    Oportunidade
+  */
+
+  setText(
+    "opportunityHighlight",
+    `${formatNumber(
+      data.uncaptured
+    )}%`
+  );
+
+
+  /*
+    Atualiza texto do destaque
+    com nome da empresa
+  */
+
+  const highlightText =
+    document.querySelector(
+      ".opportunity-highlight p"
+    );
+
+
+  if (highlightText) {
+
+    highlightText.textContent =
+      `Existe uma diferença entre a procura estimada na região e a capacidade atual de presença e captura da ${company}.`;
+
+  }
 
 }
 
 
+
 /* =========================================================
-   KEYWORDS
+   PALAVRAS-CHAVE
 ========================================================= */
 
-function renderKeywords(data) {
+function renderKeywords(
+  data
+) {
 
   const container =
-    document.getElementById(
+    getElement(
       "proposalKeywords"
     );
+
+
+  if (!container) {
+    return;
+  }
 
 
   container.innerHTML =
@@ -1173,14 +898,12 @@ function renderKeywords(data) {
     )
       ? data.keywordData.slice(
           0,
-          8
+          6
         )
       : [];
 
 
-  if (
-    !keywords.length
-  ) {
+  if (!keywords.length) {
 
     const card =
       document.createElement(
@@ -1192,16 +915,34 @@ function renderKeywords(data) {
       "proposal-keyword";
 
 
-    card.innerHTML =
-      `
-        <span>
-          Serviços relacionados
-        </span>
+    const label =
+      document.createElement(
+        "span"
+      );
 
-        <strong>
-          procura local
-        </strong>
-      `;
+
+    label.textContent =
+      "Serviços relacionados";
+
+
+    const value =
+      document.createElement(
+        "strong"
+      );
+
+
+    value.textContent =
+      "procura local";
+
+
+    card.appendChild(
+      label
+    );
+
+
+    card.appendChild(
+      value
+    );
 
 
     container.appendChild(
@@ -1227,20 +968,39 @@ function renderKeywords(data) {
         "proposal-keyword";
 
 
-      card.innerHTML =
-        `
-          <span>
-            ${safeText(
-              item.keyword
-            )}
-          </span>
+      const keyword =
+        document.createElement(
+          "span"
+        );
 
-          <strong>
-            ${formatNumber(
-              item.volume
-            )}/mês
-          </strong>
-        `;
+
+      keyword.textContent =
+        safeText(
+          item.keyword,
+          "Serviço"
+        );
+
+
+      const volume =
+        document.createElement(
+          "strong"
+        );
+
+
+      volume.textContent =
+        `${formatNumber(
+          item.volume
+        )}/mês`;
+
+
+      card.appendChild(
+        keyword
+      );
+
+
+      card.appendChild(
+        volume
+      );
 
 
       container.appendChild(
@@ -1253,91 +1013,49 @@ function renderKeywords(data) {
 }
 
 
+
 /* =========================================================
    DIAGNÓSTICO
 ========================================================= */
 
-function renderDiagnosis(data) {
+function renderDiagnosis(
+  data
+) {
 
-  const google =
-    clamp(
-      safeNumber(
-        data.googleScore
-      ),
-      0,
-      100
-    );
-
-
-  const authority =
-    clamp(
-      safeNumber(
-        data.authorityScore
-      ),
-      0,
-      100
-    );
-
-
-  const reviews =
-    clamp(
-      safeNumber(
-        data.reviewsScore
-      ),
-      0,
-      100
-    );
-
-
-  document.getElementById(
-    "googleScore"
-  ).textContent =
+  setText(
+    "googleScore",
     formatNumber(
-      google
-    );
+      data.googleScore
+    )
+  );
 
 
-  document.getElementById(
-    "authorityScore"
-  ).textContent =
+  setText(
+    "authorityScore",
     formatNumber(
-      authority
-    );
+      data.authorityScore
+    )
+  );
 
 
-  document.getElementById(
-    "reviewsScore"
-  ).textContent =
+  setText(
+    "reviewsScore",
     formatNumber(
-      reviews
-    );
-
-
-  document.getElementById(
-    "googleScoreBar"
-  ).style.width =
-    `${google}%`;
-
-
-  document.getElementById(
-    "authorityScoreBar"
-  ).style.width =
-    `${authority}%`;
-
-
-  document.getElementById(
-    "reviewsScoreBar"
-  ).style.width =
-    `${reviews}%`;
+      data.reviewsScore
+    )
+  );
 
 }
+
 
 
 /* =========================================================
    PREVIEW DO SITE
 ========================================================= */
 
-function renderWebsitePreview(data) {
+function renderWebsitePreview(
+  data
+) {
 
   const template =
     getWebsiteTemplate(
@@ -1352,6 +1070,35 @@ function renderWebsitePreview(data) {
     );
 
 
+  const region =
+    safeText(
+      data.region,
+      "Sua região"
+    );
+
+
+  setText(
+    "previewCategory",
+    template.category
+  );
+
+
+  setText(
+    "previewCompany",
+    company
+  );
+
+
+  setText(
+    "previewHeadline",
+    template.headline
+  );
+
+
+  /*
+    Serviço principal
+  */
+
   const services =
     Array.isArray(
       data.selectedServices
@@ -1360,855 +1107,160 @@ function renderWebsitePreview(data) {
       : [];
 
 
-  document.getElementById(
-    "previewCategory"
-  ).textContent =
-    template.category;
+  const firstService =
+    services.length
+      ? services[0]
+      : safeText(
+          data.segmentLabel,
+          "Atendimento profissional"
+        );
 
 
-  document.getElementById(
-    "previewCompany"
-  ).textContent =
-    company;
+  setText(
+    "previewServiceOne",
+    firstService
+  );
 
 
-  document.getElementById(
-    "previewHeadline"
-  ).textContent =
-    template.headline;
+  setText(
+    "previewRegion",
+    region
+  );
 
+
+  /*
+    Descrição
+  */
 
   let description =
     template.description;
 
 
-  if (
-    services.length >= 2
-  ) {
+  if (services.length >= 2) {
 
     description =
-      `Atendimento especializado em ${services[0].toLowerCase()}, ${services[1].toLowerCase()} e outros serviços para clientes da região.`;
+      `Especialistas em ${services[0].toLowerCase()} e ${services[1].toLowerCase()}, com atendimento na região.`;
 
   } else if (
     services.length === 1
   ) {
 
     description =
-      `Atendimento especializado em ${services[0].toLowerCase()} e soluções relacionadas para clientes da região.`;
+      `Atendimento especializado em ${services[0].toLowerCase()}, com foco em qualidade e confiança.`;
 
   }
 
 
-  document.getElementById(
-    "previewDescription"
-  ).textContent =
-    description;
-
-
-  const defaultServices = [
-
-    "Serviço principal",
-    "Atendimento especializado",
-    "Solução personalizada"
-
-  ];
-
-
-  document.getElementById(
-    "mockService1"
-  ).textContent =
-    safeText(
-      services[0],
-      defaultServices[0]
-    );
-
-
-  document.getElementById(
-    "mockService2"
-  ).textContent =
-    safeText(
-      services[1],
-      defaultServices[1]
-    );
-
-
-  document.getElementById(
-    "mockService3"
-  ).textContent =
-    safeText(
-      services[2],
-      defaultServices[2]
-    );
+  setText(
+    "previewDescription",
+    description
+  );
 
 
   /*
-    Visual
+    URL visual
+  */
+
+  const browserAddress =
+    document.querySelector(
+      ".browser-address"
+    );
+
+
+  if (browserAddress) {
+
+    const companySlug =
+      slugify(
+        company
+      ) ||
+      "suaempresa";
+
+
+    browserAddress.textContent =
+      `www.${companySlug}.com.br`;
+
+  }
+
+
+  /*
+    Visual personalizado
   */
 
   const previewVisual =
-    document.getElementById(
+    getElement(
       "previewVisual"
     );
 
 
-  previewVisual.style.background =
-    template.background;
+  if (previewVisual) {
+
+    previewVisual.style.background =
+      template.visual;
 
 
-  const visualIcon =
-    document.getElementById(
-      "previewVisualIcon"
-    );
+    const previewIcon =
+      previewVisual.querySelector(
+        ".preview-icon"
+      );
 
 
-  visualIcon.textContent =
-    template.icon;
+    if (previewIcon) {
+
+      previewIcon.style.color =
+        template.accent;
+
+    }
+
+  }
 
 
-  visualIcon.style.color =
-    template.accent;
-
+  /*
+    Botão do mockup
+  */
 
   const primaryButton =
-    document.getElementById(
-      "previewPrimaryButton"
+    document.querySelector(
+      ".preview-primary"
     );
 
 
-  primaryButton.style.background =
-    template.accent;
+  if (primaryButton) {
+
+    primaryButton.style.background =
+      template.accent;
+
+  }
 
 
   /*
-    Domínio visual
+    Categoria também recebe
+    a cor do segmento
   */
 
-  const domain =
-    slugify(
-      company
-    ) ||
-    "suaempresa";
+  const previewCategory =
+    getElement(
+      "previewCategory"
+    );
 
 
-  document.getElementById(
-    "browserAddress"
-  ).textContent =
-    `www.${domain}.com.br`;
+  if (previewCategory) {
+
+    previewCategory.style.color =
+      template.accent;
+
+  }
 
 }
 
 
+
 /* =========================================================
-   CÁLCULO DAS PARCELAS
+   PERSONALIZAR TEXTO SIMPLES
 ========================================================= */
 
-function calculateCardPayment(
-  installments,
-  fee
+function renderSimpleReading(
+  data
 ) {
-
-  /*
-    Valor total que precisa ser cobrado
-    para preservar aproximadamente
-    BASE_PRICE depois da taxa.
-  */
-
-  const rawTotal =
-    BASE_PRICE /
-    (
-      1 - fee
-    );
-
-
-  const rawInstallment =
-    rawTotal /
-    installments;
-
-
-  /*
-    Parcela arredondada para cima.
-  */
-
-  const installmentValue =
-    ceilCurrency(
-      rawInstallment
-    );
-
-
-  /*
-    Total real exibido é exatamente
-    parcela x quantidade.
-  */
-
-  const total =
-    ceilCurrency(
-      installmentValue *
-      installments
-    );
-
-
-  return {
-
-    installments,
-    fee,
-    installmentValue,
-    total
-
-  };
-
-}
-
-
-/* =========================================================
-   GERAR OPÇÕES DE PAGAMENTO
-========================================================= */
-
-function getPaymentOptions() {
-
-  const options = [
-
-    {
-
-      type:
-        "pix",
-
-      installments:
-        0,
-
-      fee:
-        0,
-
-      installmentValue:
-        BASE_PRICE,
-
-      total:
-        BASE_PRICE,
-
-      label:
-        "Pix"
-
-    }
-
-  ];
-
-
-  Object.entries(
-    PAYMENT_FEES
-  ).forEach(
-    (
-      [
-        installmentCount,
-        fee
-      ]
-    ) => {
-
-      const installments =
-        Number(
-          installmentCount
-        );
-
-
-      const calculation =
-        calculateCardPayment(
-          installments,
-          fee
-        );
-
-
-      options.push({
-
-        type:
-          "card",
-
-        installments,
-
-        fee,
-
-        installmentValue:
-          calculation.installmentValue,
-
-        total:
-          calculation.total,
-
-        label:
-          installments === 1
-            ? "1x no cartão"
-            : `${installments}x no cartão`
-
-      });
-
-    }
-  );
-
-
-  return options;
-
-}
-
-
-/* =========================================================
-   TEXTO RESUMIDO DA FORMA DE PAGAMENTO
-========================================================= */
-
-function getPaymentDisplayText(
-  payment
-) {
-
-  if (
-    payment.type === "pix"
-  ) {
-
-    return formatCurrency(
-      BASE_PRICE
-    );
-
-  }
-
-
-  if (
-    payment.installments === 1
-  ) {
-
-    return formatCurrency(
-      payment.installmentValue
-    );
-
-  }
-
-
-  return (
-    `${payment.installments}x de ` +
-    `${formatCurrency(
-      payment.installmentValue
-    )}`
-  );
-
-}
-
-
-/* =========================================================
-   CARD DE PAGAMENTO
-========================================================= */
-
-function createPaymentButton(
-  payment,
-  index
-) {
-
-  const button =
-    document.createElement(
-      "button"
-    );
-
-
-  button.type =
-    "button";
-
-
-  button.className =
-    "payment-option";
-
-
-  button.dataset.paymentIndex =
-    String(
-      index
-    );
-
-
-  button.setAttribute(
-    "aria-pressed",
-    "false"
-  );
-
-
-  /*
-    Pix
-  */
-
-  if (
-    payment.type === "pix"
-  ) {
-
-    button.innerHTML =
-      `
-        <span>
-          Melhor valor
-        </span>
-
-        <strong>
-          Pix
-        </strong>
-
-        <small>
-          ${formatCurrency(
-            BASE_PRICE
-          )}
-        </small>
-      `;
-
-  }
-
-  /*
-    1x
-  */
-
-  else if (
-    payment.installments === 1
-  ) {
-
-    button.innerHTML =
-      `
-        <span>
-          Cartão
-        </span>
-
-        <strong>
-          1x
-        </strong>
-
-        <small>
-          ${formatCurrency(
-            payment.installmentValue
-          )}
-        </small>
-      `;
-
-  }
-
-  /*
-    2x a 6x
-  */
-
-  else {
-
-    button.innerHTML =
-      `
-        <span>
-          Cartão
-        </span>
-
-        <strong>
-          ${payment.installments}x
-        </strong>
-
-        <small>
-          ${formatCurrency(
-            payment.installmentValue
-          )}
-        </small>
-      `;
-
-  }
-
-
-  button.addEventListener(
-    "click",
-    () => {
-
-      selectPayment(
-        index
-      );
-
-    }
-  );
-
-
-  return button;
-
-}
-
-
-/* =========================================================
-   RENDERIZAR PAGAMENTOS
-========================================================= */
-
-function renderPaymentOptions() {
-
-  paymentScroller.innerHTML =
-    "";
-
-
-  const options =
-    getPaymentOptions();
-
-
-  options.forEach(
-    (
-      payment,
-      index
-    ) => {
-
-      const button =
-        createPaymentButton(
-          payment,
-          index
-        );
-
-
-      paymentScroller.appendChild(
-        button
-      );
-
-    }
-  );
-
-
-  /*
-    Inicialmente Pix
-  */
-
-  selectPayment(
-    0,
-    false
-  );
-
-}
-
-
-/* =========================================================
-   SELECIONAR PAGAMENTO
-========================================================= */
-
-function selectPayment(
-  index,
-  shouldScroll = true
-) {
-
-  const options =
-    getPaymentOptions();
-
-
-  const payment =
-    options[index];
-
-
-  if (
-    !payment
-  ) {
-
-    return;
-
-  }
-
-
-  selectedPaymentOption =
-    payment;
-
-
-  /*
-    Estado visual dos botões
-  */
-
-  const buttons =
-    paymentScroller.querySelectorAll(
-      ".payment-option"
-    );
-
-
-  buttons.forEach(
-    (
-      button,
-      buttonIndex
-    ) => {
-
-      const selected =
-        buttonIndex === index;
-
-
-      button.classList.toggle(
-        "selected",
-        selected
-      );
-
-
-      button.setAttribute(
-        "aria-pressed",
-        selected
-          ? "true"
-          : "false"
-      );
-
-    }
-  );
-
-
-  /*
-    Faz o card selecionado aparecer
-    no scroller mobile.
-  */
-
-  if (
-    shouldScroll &&
-    buttons[index]
-  ) {
-
-    buttons[index].scrollIntoView({
-
-      behavior:
-        "smooth",
-
-      block:
-        "nearest",
-
-      inline:
-        "center"
-
-    });
-
-  }
-
-
-  updateSelectedPayment();
-
-
-  updateWhatsappLink();
-
-}
-
-
-/* =========================================================
-   ATUALIZAR RESUMO DO PAGAMENTO
-========================================================= */
-
-function updateSelectedPayment() {
-
-  const payment =
-    selectedPaymentOption;
-
-
-  /*
-    Pix
-  */
-
-  if (
-    payment.type === "pix"
-  ) {
-
-    selectedPaymentLabel.textContent =
-      "Pix";
-
-
-    selectedPaymentValue.textContent =
-      formatCurrency(
-        BASE_PRICE
-      );
-
-
-    selectedPaymentTotal.textContent =
-      formatCurrency(
-        BASE_PRICE
-      );
-
-
-    paymentFeeNote.textContent =
-      "Pix sem acréscimo.";
-
-
-    return;
-
-  }
-
-
-  /*
-    1x cartão
-  */
-
-  if (
-    payment.installments === 1
-  ) {
-
-    selectedPaymentLabel.textContent =
-      "1x no cartão";
-
-
-    selectedPaymentValue.textContent =
-      formatCurrency(
-        payment.installmentValue
-      );
-
-
-    selectedPaymentTotal.textContent =
-      formatCurrency(
-        payment.total
-      );
-
-
-    paymentFeeNote.textContent =
-      `Valor já corrigido considerando taxa estimada de ${formatPercentage(
-        payment.fee
-      )}% da operadora.`;
-
-
-    return;
-
-  }
-
-
-  /*
-    Parcelado
-  */
-
-  selectedPaymentLabel.textContent =
-    `${payment.installments}x no cartão`;
-
-
-  selectedPaymentValue.textContent =
-    `${payment.installments}x de ${formatCurrency(
-      payment.installmentValue
-    )}`;
-
-
-  selectedPaymentTotal.textContent =
-    formatCurrency(
-      payment.total
-    );
-
-
-  paymentFeeNote.textContent =
-    `Valor total já corrigido considerando taxa estimada de ${formatPercentage(
-      payment.fee
-    )}% da operadora.`;
-
-}
-
-
-/* =========================================================
-   RESUMO DA FORMA DE PAGAMENTO PARA WHATSAPP
-========================================================= */
-
-function getWhatsappPaymentText() {
-
-  const payment =
-    selectedPaymentOption;
-
-
-  if (
-    payment.type === "pix"
-  ) {
-
-    return (
-      `Pix de ${formatCurrency(
-        BASE_PRICE
-      )}`
-    );
-
-  }
-
-
-  if (
-    payment.installments === 1
-  ) {
-
-    return (
-      `1x no cartão de ${formatCurrency(
-        payment.installmentValue
-      )}`
-    );
-
-  }
-
-
-  return (
-    `${payment.installments}x de ` +
-    `${formatCurrency(
-      payment.installmentValue
-    )} no cartão`
-  );
-
-}
-
-
-/* =========================================================
-   MENSAGEM DO WHATSAPP
-========================================================= */
-
-function buildWhatsappMessage() {
-
-  const company =
-    safeText(
-      proposalData?.company,
-      "minha empresa"
-    );
-
-
-  const region =
-    safeText(
-      proposalData?.region,
-      "minha região"
-    );
-
-
-  const paymentText =
-    getWhatsappPaymentText();
-
-
-  return (
-    `Olá, Diego! Recebi o Relatório de Oportunidade Digital da ${company}.\n\n` +
-    `Vi a análise da nossa presença digital e o Plano de Captura Local recomendado para a região de ${region}.\n\n` +
-    `Quero iniciar a estruturação digital da empresa.\n\n` +
-    `A condição que estou considerando é: ${paymentText}.\n\n` +
-    `Pode me orientar sobre o próximo passo?`
-  );
-
-}
-
-
-/* =========================================================
-   LINK WHATSAPP
-========================================================= */
-
-function updateWhatsappLink() {
-
-  if (
-    !whatsappProposalButton
-  ) {
-
-    return;
-
-  }
-
-
-  const message =
-    buildWhatsappMessage();
-
-
-  const encodedMessage =
-    encodeURIComponent(
-      message
-    );
-
-
-  /*
-    Se o número estiver configurado,
-    abre diretamente sua conversa.
-
-    Se ainda estiver vazio,
-    abre o WhatsApp com a mensagem
-    pronta para compartilhamento.
-  */
-
-  if (
-    WHATSAPP_NUMBER.trim()
-  ) {
-
-    whatsappProposalButton.href =
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
-
-  } else {
-
-    whatsappProposalButton.href =
-      `https://wa.me/?text=${encodedMessage}`;
-
-  }
-
-}
-
-
-/* =========================================================
-   CTA PERSONALIZADO
-========================================================= */
-
-function renderFinalCTA(data) {
 
   const company =
     safeText(
@@ -2217,49 +1269,31 @@ function renderFinalCTA(data) {
     );
 
 
-  const region =
-    safeText(
-      data.region,
-      "sua região"
+  const element =
+    document.querySelector(
+      ".simple-reading strong"
     );
 
 
-  document.getElementById(
-    "finalCtaText"
-  ).textContent =
-    `Se fizer sentido fortalecer a presença da ${company} e aproveitar melhor a procura identificada em ${region}, podemos iniciar a implantação do Plano de Captura Local agora.`;
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    `As pessoas já procuram serviços como os oferecidos pela ${company}. O plano recomendado fortalece a estrutura digital para aumentar as chances de essa procura encontrar a empresa e entrar em contato.`;
 
 }
 
 
-/* =========================================================
-   TÍTULO DO DOCUMENTO
-========================================================= */
-
-function updateDocumentTitle(data) {
-
-  const company =
-    safeText(
-      data.company,
-      "Empresa"
-    );
-
-
-  document.title =
-    `Relatório de Oportunidade Digital - ${company}`;
-
-}
-
 
 /* =========================================================
-   RENDER COMPLETO
+   INICIALIZAÇÃO
 ========================================================= */
 
 function renderProposal() {
 
-  if (
-    !proposalData
-  ) {
+  if (!proposalData) {
 
     alert(
       "Nenhuma análise foi encontrada. Faça uma análise no Radar Local antes de gerar o relatório."
@@ -2275,12 +1309,17 @@ function renderProposal() {
   }
 
 
-  updateDocumentTitle(
+  renderCover(
     proposalData
   );
 
 
-  renderCover(
+  renderMetrics(
+    proposalData
+  );
+
+
+  renderStrategicReading(
     proposalData
   );
 
@@ -2305,56 +1344,55 @@ function renderProposal() {
   );
 
 
-  renderPaymentOptions();
-
-
-  renderFinalCTA(
+  renderSimpleReading(
     proposalData
   );
-
-
-  updateWhatsappLink();
 
 }
 
 
+
 /* =========================================================
-   SALVAR PDF
+   SALVAR EM PDF
 ========================================================= */
 
-printButton.addEventListener(
-  "click",
-  () => {
+if (printButton) {
 
-    /*
-      O estado de pagamento selecionado
-      permanece visualmente destacado
-      quando o documento é impresso.
-    */
+  printButton.addEventListener(
+    "click",
+    () => {
 
-    window.print();
+      window.print();
 
-  }
-);
+    }
+  );
+
+}
+
 
 
 /* =========================================================
    VOLTAR
 ========================================================= */
 
-backButton.addEventListener(
-  "click",
-  () => {
+if (backButton) {
 
-    window.location.href =
-      "index.html";
+  backButton.addEventListener(
+    "click",
+    () => {
 
-  }
-);
+      window.location.href =
+        "index.html";
+
+    }
+  );
+
+}
+
 
 
 /* =========================================================
-   INICIALIZAÇÃO
+   START
 ========================================================= */
 
 renderProposal();
