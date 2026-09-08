@@ -32,7 +32,7 @@ const BASE_PRICE =
 */
 
 const WHATSAPP_NUMBER =
-  "";
+  "5511970349654";
 
 
 /*
