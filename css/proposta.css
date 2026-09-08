@@ -2934,7 +2934,83 @@ h4 {
 
 }
 
+/* =========================================================
+   BOTÃO WHATSAPP
+========================================================= */
 
+.report-whatsapp-button {
+  width: 100%;
+
+  max-width: 520px;
+
+  min-height: 58px;
+
+  margin:
+    22px auto 0;
+
+  padding:
+    0 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  text-decoration: none;
+
+  border-radius: 16px;
+
+  background: #25d366;
+
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 24px
+    rgba(37, 211, 102, 0.18);
+}
+
+
+.report-whatsapp-button span {
+  color: #ffffff;
+
+  font-size: 16px;
+
+  font-weight: 750;
+}
+
+
+.report-whatsapp-button strong {
+  color: #ffffff;
+
+  font-size: 15px;
+
+  white-space: nowrap;
+}
+
+
+@media (max-width: 600px) {
+
+  .report-whatsapp-button {
+    min-height: 56px;
+
+    padding:
+      0 17px;
+  }
+
+
+  .report-whatsapp-button span {
+    font-size: 15px;
+  }
+
+
+  .report-whatsapp-button strong {
+    font-size: 14px;
+  }
+
+}
 
 /* =========================================================
    PDF / IMPRESSÃO A4
