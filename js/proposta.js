@@ -155,7 +155,8 @@ function slugify(text) {
 
 }
 
-
+const RADAR_WHATSAPP_NUMBER =
+  "5511970349654";
 
 /* =========================================================
    CONFIGURAÇÃO DOS SEGMENTOS
