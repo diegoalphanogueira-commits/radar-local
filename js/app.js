@@ -43,6 +43,11 @@ const newAnalysisBtn =
 const toggleKeywordsBtn =
   document.getElementById("toggleKeywordsBtn");
 
+const generateProposalBtn =
+  document.getElementById(
+    "generateProposalBtn"
+  );
+
 
 /* =========================================================
    ELEMENTOS DO LOADING
@@ -1855,7 +1860,88 @@ form.addEventListener(
         selectedServices,
         customSegment
       );
+/* =========================================================
+   SALVAR DADOS PARA A PROPOSTA
+========================================================= */
 
+const segment =
+  RADAR_SEGMENTS[
+    segmentKey
+  ];
+
+const segmentLabel =
+  segmentKey === "outro" &&
+  customSegment &&
+  customSegment.trim()
+    ? customSegment.trim()
+    : segment.label;
+
+
+const proposalData = {
+
+  company:
+    company,
+
+  region:
+    region,
+
+  radius:
+    radius,
+
+  segmentKey:
+    segmentKey,
+
+  segmentLabel:
+    segmentLabel,
+
+  selectedServices:
+    selectedServices,
+
+  weekly:
+    data.weekly,
+
+  monthly:
+    data.monthly,
+
+  presence:
+    data.presence,
+
+  uncaptured:
+    data.uncaptured,
+
+  overall:
+    data.overall,
+
+  googleScore:
+    data.googleScore,
+
+  authorityScore:
+    data.authorityScore,
+
+  reviewsScore:
+    data.reviewsScore,
+
+  demandLevel:
+    data.demandLevel,
+
+  competitionLevel:
+    data.competitionLevel,
+
+  visibilityLevel:
+    data.visibilityLevel,
+
+  keywordData:
+    data.keywordData
+
+};
+
+
+localStorage.setItem(
+  "radarProposal",
+  JSON.stringify(
+    proposalData
+  )
+);
 
     /*
       Esconde resultados antigos
@@ -2032,6 +2118,35 @@ function initializeRadar() {
   }
 
 }
+/* =========================================================
+   GERAR PROPOSTA
+========================================================= */
 
+generateProposalBtn.addEventListener(
+  "click",
+  () => {
+
+    const savedProposal =
+      localStorage.getItem(
+        "radarProposal"
+      );
+
+
+    if (!savedProposal) {
+
+      alert(
+        "Faça uma análise antes de gerar o Plano de Captura."
+      );
+
+      return;
+
+    }
+
+
+    window.location.href =
+      "proposta.html";
+
+  }
+);
 
 initializeRadar();
