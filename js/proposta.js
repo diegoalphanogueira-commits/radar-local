@@ -462,8 +462,20 @@ const WEBSITE_TEMPLATES = {
 };
 
 /* =========================================================
-   IMAGENS DA PROPOSTA POR SEGMENTO
+   IMAGENS DA PROPOSTA
 ========================================================= */
+
+/*
+  As três imagens dos serviços
+  são iguais para todos os negócios:
+
+  - Google
+  - Site
+  - Avaliações
+
+  Apenas o preview maior do site
+  muda conforme o segmento.
+*/
 
 const PROPOSAL_VISUAL_FOLDERS = {
 
@@ -518,7 +530,7 @@ function getProposalVisualPaths(
   data
 ) {
 
-  const folder =
+  const segment =
     PROPOSAL_VISUAL_FOLDERS[
       data.segmentKey
     ] ||
@@ -527,14 +539,28 @@ function getProposalVisualPaths(
 
   return {
 
+    /*
+      IMAGENS PADRÃO
+      Iguais em todos os relatórios
+    */
+
     google:
-      `assets/proposta/${folder}/google.webp`,
+      "assets/proposta/padrao/google.webp",
 
     site:
-      `assets/proposta/${folder}/site.webp`,
+      "assets/proposta/padrao/site.webp",
 
     reviews:
-      `assets/proposta/${folder}/avaliacoes.webp`
+      "assets/proposta/padrao/avaliacoes.webp",
+
+
+    /*
+      PREVIEW PERSONALIZADO
+      Muda conforme o segmento
+    */
+
+    preview:
+      `assets/proposta/previews/${segment}.webp`
 
   };
 
@@ -575,8 +601,8 @@ function loadProposalVisual(
 
 
   /*
-    Começa sempre mostrando
-    o placeholder.
+    Enquanto a imagem não existir,
+    mantém o placeholder.
   */
 
   image.hidden =
@@ -588,8 +614,8 @@ function loadProposalVisual(
 
 
   /*
-    Se a imagem existir,
-    mostramos a imagem.
+    Quando a imagem carregar,
+    esconde o placeholder.
   */
 
   image.onload =
@@ -606,9 +632,8 @@ function loadProposalVisual(
 
 
   /*
-    Se a imagem ainda
-    não existir, mantém
-    o placeholder normalmente.
+    Se o arquivo não existir,
+    não quebra o relatório.
   */
 
   image.onerror =
@@ -646,7 +671,8 @@ function renderProposalVisuals(
 
 
   /*
-    CARD GOOGLE
+    GOOGLE
+    Imagem padrão
   */
 
   loadProposalVisual(
@@ -657,7 +683,8 @@ function renderProposalVisuals(
 
 
   /*
-    CARD SITE
+    SITE ESTRATÉGICO
+    Imagem padrão
   */
 
   loadProposalVisual(
@@ -668,7 +695,8 @@ function renderProposalVisuals(
 
 
   /*
-    CARD AVALIAÇÕES
+    AVALIAÇÕES
+    Imagem padrão
   */
 
   loadProposalVisual(
@@ -680,15 +708,17 @@ function renderProposalVisuals(
 
   /*
     PREVIEW GRANDE DO SITE
+    Personalizado pelo segmento
   */
 
   loadProposalVisual(
     "previewSiteImage",
     "previewSitePlaceholder",
-    paths.site
+    paths.preview
   );
 
 }
+
 
 /* =========================================================
    TEMPLATE DO SEGMENTO
