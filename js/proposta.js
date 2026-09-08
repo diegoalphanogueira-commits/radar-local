@@ -1700,26 +1700,23 @@ if (
     */
 
     const linkX =
-      x +
-      relativeX *
-      renderWidth;
+  relativeX *
+  pdfWidth;
 
 
-    const linkY =
-      y +
-      relativeY *
-      renderHeight;
+const linkY =
+  relativeY *
+  pdfHeight;
 
 
-    const linkWidth =
-      relativeWidth *
-      renderWidth;
+const linkWidth =
+  relativeWidth *
+  pdfWidth;
 
 
-    const linkHeight =
-      relativeHeight *
-      renderHeight;
-
+const linkHeight =
+  relativeHeight *
+  pdfHeight;
 
     pdf.link(
       linkX,
@@ -2017,7 +2014,23 @@ if (printButton) {
 
 }
 
+/* =========================================================
+   VOLTAR
+========================================================= */
 
+if (backButton) {
+
+  backButton.addEventListener(
+    "click",
+    () => {
+
+      window.location.href =
+        "index.html";
+
+    }
+  );
+
+}
 
 /* =========================================================
    START
