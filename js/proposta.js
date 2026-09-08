@@ -1518,6 +1518,39 @@ async function generateVisualPdf() {
           }
         );
 
+       const companyName =
+  safeText(
+    proposalData?.company,
+    "Empresa"
+  );
+
+
+const segmentName =
+  safeText(
+    proposalData?.segmentLabel,
+    "Negócio local"
+  );
+
+
+pdf.setProperties({
+
+  title:
+    `Relatório de Oportunidade Digital — ${companyName}`,
+
+  subject:
+    `Análise de oportunidade local e presença digital para ${companyName}`,
+
+  author:
+    "Radar Local",
+
+  creator:
+    "Radar Local",
+
+  keywords:
+    `Radar Local, presença digital, oportunidade local, ${segmentName}`
+
+});
+
     }
 
 
@@ -1585,23 +1618,30 @@ function getPdfFileName() {
   const company =
     safeText(
       proposalData?.company,
-      "empresa"
+      "Empresa"
     );
 
 
-  const companySlug =
-    slugify(
-      company
-    ) ||
-    "empresa";
+  /*
+    Remove apenas caracteres
+    que não podem aparecer
+    em nomes de arquivo.
+  */
+
+  const cleanCompany =
+    company
+      .replace(
+        /[\\/:*?"<>|]/g,
+        ""
+      )
+      .trim();
 
 
   return (
-    `Plano-de-Captura-Local-${companySlug}.pdf`
+    `Relatório de Oportunidade Digital - ${cleanCompany}.pdf`
   );
 
 }
-
 
 
 /* =========================================================
@@ -1666,24 +1706,28 @@ async function deliverPdf(
 
       if (canShareFiles) {
 
-        await navigator.share(
-          {
+       const companyName =
+  safeText(
+    proposalData?.company,
+    "a empresa"
+  );
 
-            title:
-              "Plano de Captura Local",
 
-            text:
-              `Plano personalizado para ${safeText(
-                proposalData?.company,
-                "a empresa"
-              )}.`,
+await navigator.share({
 
-            files: [
-              file
-            ]
+  title:
+    `Relatório de Oportunidade Digital — ${companyName}`,
 
-          }
-        );
+  text:
+    `Segue a análise personalizada de oportunidade digital preparada para ${companyName}.`,
+
+  files: [
+    file
+  ]
+
+});
+
+         
 
 
         return;
