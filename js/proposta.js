@@ -1610,6 +1610,11 @@ function renderProposal() {
   );
 
 
+   renderProposalVisuals(
+  proposalData
+);
+
+
   renderSimpleReading(
     proposalData
   );
