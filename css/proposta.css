@@ -1713,130 +1713,6 @@ h4 {
 }
 
 
-
-/* =========================================================
-   PÁGINA 05 — PREVIEW DO SITE
-========================================================= */
-/*
-     PÁGINA 05
-     SITE ESTRATÉGICO
-*/
-
-.preview-page
-.segment-site-showcase {
-  margin-top:
-    6mm !important;
-}
-
-
-.preview-page
-.segment-site-image-wrap {
-  width:
-    100% !important;
-
-  height:
-    202mm !important;
-
-  aspect-ratio:
-    auto !important;
-
-  border-radius:
-    5mm !important;
-
-  box-shadow:
-    none !important;
-
-  overflow:
-    hidden !important;
-
-  background:
-    #ffffff !important;
-}
-
-
-.preview-page
-.segment-site-image {
-  width:
-    100% !important;
-
-  height:
-    100% !important;
-
-  display:
-    block !important;
-
-  object-fit:
-    contain !important;
-
-  object-position:
-    center !important;
-
-  background:
-    #ffffff !important;
-}
-
-
-.preview-page
-.segment-site-image[hidden] {
-  display:
-    none !important;
-}
-
-
-.preview-page
-.segment-site-placeholder {
-  width:
-    100% !important;
-
-  height:
-    100% !important;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  background:
-    #f5f8fc !important;
-}
-
-
-.preview-page
-.segment-site-caption {
-  margin-top:
-    4mm !important;
-
-  padding:
-    3.5mm 4mm !important;
-
-  break-inside:
-    avoid !important;
-
-  page-break-inside:
-    avoid !important;
-}
-
-
-.preview-page
-.segment-site-caption strong {
-  font-size:
-    10pt !important;
-}
-
-
-.preview-page
-.segment-site-caption span {
-  font-size:
-    9pt !important;
-
-  line-height:
-    1.35 !important;
-}
-
 /* =========================================================
    PÁGINA 06 — ENTREGA + INVESTIMENTO
 ========================================================= */
@@ -2983,13 +2859,13 @@ h4 {
 ========================================================= */
 
 .solution-visual {
-.solution-visual {
   width: 100%;
 
   aspect-ratio: 3 / 2;
   height: auto;
 
-  margin: 20px 0 22px;
+  margin:
+    20px 0 22px;
 
   position: relative;
 
@@ -2997,25 +2873,8 @@ h4 {
 
   border-radius: 18px;
 
-  border: 1px solid var(--border);
-
-  background:
-    linear-gradient(
-      145deg,
-      #f7faff,
-      #eef4fb
-    );
-}
-
-  margin: 0 0 20px;
-
-  position: relative;
-
-  overflow: hidden;
-
-  border-radius: 18px;
-
-  border: 1px solid var(--border);
+  border:
+    1px solid var(--border);
 
   background:
     linear-gradient(
@@ -3401,156 +3260,6 @@ h4 {
 }
 
 
-/* =========================================================
-   SITE ESTRATÉGICO — MOBILE
-========================================================= */
-
-@media (max-width: 600px) {
-
-  .segment-site-showcase {
-    width: 100%;
-    margin-top: 20px;
-  }
-
-
-  .segment-site-image-wrap {
-  width: 82% !important;
-  max-width: 340px !important;
-
-  height: fit-content !important;
-  min-height: 0 !important;
-  max-height: none !important;
-
-  aspect-ratio: auto !important;
-
-  margin: 0 auto !important;
-  padding: 0 !important;
-
-  display: block !important;
-
-  position: relative;
-
-  overflow: hidden;
-
-  border-radius: 18px;
-
-  border: 1px solid #dbe5f2;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 12px 30px
-    rgba(35, 57, 88, 0.10);
-}
-
-
-  .segment-site-image {
-  width: 100% !important;
-  height: auto !important;
-
-  min-height: 0 !important;
-  max-height: none !important;
-
-  display: block !important;
-
-  object-fit: contain !important;
-  object-position: center !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
-
-  background: #ffffff;
-}
-
-  .segment-site-image[hidden] {
-    display: none !important;
-  }
-
-
-  .segment-site-placeholder {
-    width: 100%;
-    height: auto;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    padding: 24px;
-
-    text-align: center;
-
-    color: #8190a7;
-
-    font-size: 14px;
-    font-weight: 700;
-
-    background:
-      linear-gradient(
-        145deg,
-        #f8fbff,
-        #edf4fc
-      );
-  }
-
-    font-size: 14px;
-    font-weight: 700;
-
-    background:
-      linear-gradient(
-        145deg,
-        #f8fbff,
-        #edf4fc
-      );
-
-     .preview-page .preview-visual {
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-
-  aspect-ratio: auto !important;
-
-  padding: 0 !important;
-}
-  }
-
-  .segment-site-caption {
-    width: 100%;
-
-    margin-top: 14px;
-
-    padding:
-      16px 17px;
-
-    border-radius: 16px;
-
-    background: #f5f8fc;
-
-    border:
-      1px solid #e0e7f0;
-  }
-
-
-  .segment-site-caption strong {
-    display: block;
-
-    font-size: 15px;
-
-    line-height: 1.3;
-  }
-
-
-  .segment-site-caption span {
-    display: block;
-
-    margin-top: 4px;
-
-    font-size: 13px;
-
-    line-height: 1.45;
-  }
-
-}
 
 /* =========================================================
    PDF / IMPRESSÃO A4
