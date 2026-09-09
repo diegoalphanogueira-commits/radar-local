@@ -1620,6 +1620,344 @@ h4 {
   font-weight: 800;
 }
 
+/* =========================================================
+   RESULTADO DE CADA MECANISMO
+========================================================= */
+
+.plan-impact {
+  margin-top: 22px;
+
+  padding: 17px 18px;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f4f8ff,
+      #ffffff
+    );
+
+  border:
+    1px solid var(--border-blue);
+}
+
+
+.plan-impact span {
+  display: block;
+
+  color: var(--blue);
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.07em;
+
+  text-transform: uppercase;
+}
+
+
+.plan-impact strong {
+  display: block;
+
+  margin-top: 6px;
+
+  color: var(--text);
+
+  font-size: 15px;
+
+  line-height: 1.4;
+}
+
+
+
+/* =========================================================
+   TRANSFORMAÇÃO — ANTES E DEPOIS
+========================================================= */
+
+.capture-transformation {
+  margin-top: 28px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    110px
+    minmax(0, 1fr);
+
+  align-items: stretch;
+
+  gap: 14px;
+}
+
+
+.capture-state {
+  padding: 22px;
+
+  border-radius: 22px;
+
+  border:
+    1px solid var(--border);
+}
+
+
+.capture-before {
+  background:
+    linear-gradient(
+      145deg,
+      #f8fafc,
+      #ffffff
+    );
+}
+
+
+.capture-after {
+  background:
+    linear-gradient(
+      145deg,
+      #f1f8ff,
+      #ffffff
+    );
+
+  border-color:
+    var(--border-blue);
+}
+
+
+.capture-label {
+  display: block;
+
+  color: var(--text-3);
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+}
+
+
+.capture-after
+.capture-label {
+  color: var(--blue);
+}
+
+
+.capture-state h3 {
+  margin:
+    7px 0 0;
+
+  font-size: 20px;
+
+  line-height: 1.15;
+
+  letter-spacing: -0.025em;
+}
+
+
+.capture-points {
+  margin-top: 17px;
+
+  display: grid;
+
+  gap: 9px;
+}
+
+
+.capture-points div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  color: var(--text-2);
+
+  font-size: 13px;
+
+  line-height: 1.3;
+}
+
+
+.capture-points div > span {
+  width: 25px;
+  height: 25px;
+
+  flex-shrink: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 8px;
+
+  background:
+    #eef2f7;
+
+  color:
+    #6f7b8d;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+
+.capture-state > p {
+  margin:
+    17px 0 0;
+
+  color:
+    var(--text-3);
+
+  font-size: 13px;
+
+  line-height: 1.45;
+}
+
+
+
+/* PONTE CENTRAL */
+
+.capture-bridge {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 11px;
+
+  text-align: center;
+}
+
+
+.capture-bridge > span {
+  color: var(--blue);
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  line-height: 1.25;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.06em;
+}
+
+
+.capture-arrow {
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    var(--blue);
+
+  color:
+    #ffffff;
+
+  font-size: 23px;
+
+  font-weight: 800;
+
+  box-shadow:
+    0 10px 22px
+    rgba(26, 115, 232, 0.20);
+}
+
+
+
+/* MECANISMOS */
+
+.capture-mechanisms {
+  margin-top: 17px;
+
+  display: grid;
+
+  gap: 8px;
+}
+
+
+.capture-mechanisms > div {
+  padding:
+    10px 12px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+
+  border-radius: 11px;
+
+  background:
+    rgba(255, 255, 255, 0.86);
+
+  border:
+    1px solid var(--border-blue);
+}
+
+
+.capture-mechanisms strong {
+  font-size: 12px;
+}
+
+
+.capture-mechanisms span {
+  color: var(--text-2);
+
+  font-size: 11px;
+}
+
+
+.capture-flow {
+  margin-top: 13px;
+
+  padding:
+    12px 10px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 6px;
+
+  border-radius: 11px;
+
+  background:
+    var(--blue);
+
+  color:
+    #ffffff;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-align: center;
+}
+
+
+.capture-flow span {
+  color:
+    rgba(255, 255, 255, 0.72);
+}
 
 .before-after {
   margin-top: 28px;
@@ -2756,7 +3094,89 @@ h4 {
 
     font-size: 12px;
   }
+/* PLANO DE CAPTURA — MOBILE */
 
+.plan-impact {
+  margin-top: 18px;
+
+  padding:
+    15px 16px;
+}
+
+
+.plan-impact span {
+  font-size: 11px;
+}
+
+
+.plan-impact strong {
+  font-size: 14px;
+}
+
+
+.capture-transformation {
+  margin-top: 22px;
+
+  grid-template-columns:
+    1fr;
+
+  gap: 12px;
+}
+
+
+.capture-state {
+  padding: 18px;
+}
+
+
+.capture-state h3 {
+  font-size: 19px;
+}
+
+
+.capture-bridge {
+  min-height: 70px;
+}
+
+
+.capture-arrow {
+  width: 44px;
+  height: 44px;
+
+  transform:
+    rotate(90deg);
+
+  font-size: 21px;
+}
+
+
+.capture-bridge > span {
+  font-size: 10px;
+}
+
+
+.capture-mechanisms > div {
+  padding:
+    11px 12px;
+}
+
+
+.capture-mechanisms strong {
+  font-size: 13px;
+}
+
+
+.capture-mechanisms span {
+  font-size: 12px;
+}
+
+
+.capture-flow {
+  padding:
+    13px 10px;
+
+  font-size: 11px;
+}
 }
 
 /* =========================================================
