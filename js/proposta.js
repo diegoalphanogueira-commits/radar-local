@@ -157,7 +157,11 @@ function slugify(text) {
 
 const RADAR_WHATSAPP_NUMBER =
   "5511970349654";
-function getReportWhatsappUrl() {
+
+
+function getPlanWhatsappUrl(
+  planKey
+) {
 
   const company =
     safeText(
@@ -180,10 +184,44 @@ function getReportWhatsappUrl() {
     );
 
 
+  const plans = {
+
+    presence: {
+      name:
+        "Plano Presença Local",
+
+      price:
+        "R$ 497",
+
+      installment:
+        "até 6x de R$ 97"
+    },
+
+
+    capture: {
+      name:
+        "Plano Captura Local",
+
+      price:
+        "R$ 897",
+
+      installment:
+        "até 6x de R$ 166"
+    }
+
+  };
+
+
+  const selectedPlan =
+    plans[planKey] ||
+    plans.capture;
+
+
   const message =
     `Olá! Acabei de ver o Relatório de Oportunidade Digital da ${company} pelo Radar Local. ` +
-    `Segmento: ${segment}. Região: ${region}. ` +
-    `Quero entender melhor o Plano de Captura Local para a empresa.`;
+    `Quero implementar o ${selectedPlan.name}. ` +
+    `Investimento: ${selectedPlan.price} à vista ou ${selectedPlan.installment}. ` +
+    `Segmento: ${segment}. Região: ${region}.`;
 
 
   return (
@@ -1648,17 +1686,38 @@ function renderProposal() {
   renderSimpleReading(
     proposalData
   );
-   const whatsappButton =
+   const presencePlanButton =
   document.getElementById(
-    "whatsappReportBtn"
+    "presencePlanBtn"
   );
 
 
-if (whatsappButton) {
+const capturePlanButton =
+  document.getElementById(
+    "capturePlanBtn"
+  );
 
-  whatsappButton.href =
-    getReportWhatsappUrl();
 
+if (
+  presencePlanButton
+) {
+
+  presencePlanButton.href =
+    getPlanWhatsappUrl(
+      "presence"
+    );
+
+}
+
+
+if (
+  capturePlanButton
+) {
+
+  capturePlanButton.href =
+    getPlanWhatsappUrl(
+      "capture"
+    );
 
 }
 
@@ -2056,42 +2115,124 @@ if (
       pageRect.height;
 
 
-    /*
-      Converte a posição para
-      coordenadas do PDF.
-    */
+   /*
+  Links clicáveis dos planos
+  na última página do PDF.
+*/
 
-    const linkX =
-  relativeX *
-  pdfWidth;
+if (
+  page.classList.contains(
+    "investment-page"
+  )
+) {
+
+  const planLinks = [
+
+    {
+      selector:
+        "#presencePlanBtn",
+
+      url:
+        getPlanWhatsappUrl(
+          "presence"
+        )
+    },
 
 
-const linkY =
-  relativeY *
-  pdfHeight;
+    {
+      selector:
+        "#capturePlanBtn",
+
+      url:
+        getPlanWhatsappUrl(
+          "capture"
+        )
+    }
+
+  ];
 
 
-const linkWidth =
-  relativeWidth *
-  pdfWidth;
+  const pageRect =
+    page.getBoundingClientRect();
 
 
-const linkHeight =
-  relativeHeight *
-  pdfHeight;
+  planLinks.forEach(
+    function (planLink) {
 
-    pdf.link(
-      linkX,
-      linkY,
-      linkWidth,
-      linkHeight,
-      {
-        url:
-          getReportWhatsappUrl()
+      const button =
+        page.querySelector(
+          planLink.selector
+        );
+
+
+      if (!button) {
+        return;
       }
-    );
 
-  }
+
+      const buttonRect =
+        button.getBoundingClientRect();
+
+
+      const relativeX =
+        (
+          buttonRect.left -
+          pageRect.left
+        ) /
+        pageRect.width;
+
+
+      const relativeY =
+        (
+          buttonRect.top -
+          pageRect.top
+        ) /
+        pageRect.height;
+
+
+      const relativeWidth =
+        buttonRect.width /
+        pageRect.width;
+
+
+      const relativeHeight =
+        buttonRect.height /
+        pageRect.height;
+
+
+      const linkX =
+        relativeX *
+        pdfWidth;
+
+
+      const linkY =
+        relativeY *
+        pdfHeight;
+
+
+      const linkWidth =
+        relativeWidth *
+        pdfWidth;
+
+
+      const linkHeight =
+        relativeHeight *
+        pdfHeight;
+
+
+      pdf.link(
+        linkX,
+        linkY,
+        linkWidth,
+        linkHeight,
+        {
+          url:
+            planLink.url
+        }
+      );
+
+    }
+  );
 
 }
 
