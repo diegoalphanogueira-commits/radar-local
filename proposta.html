@@ -2,23 +2,30 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f7f5f2">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f8fb">
   <title>Diagnóstico de Oportunidade Local</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/proposta.css">
 </head>
+
 <body>
   <header class="proposal-toolbar no-print">
     <div class="proposal-brand">
-      <div class="radar-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="radar-mark" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+
       <div>
         <strong>Radar Local</strong>
         <span>Diagnóstico de oportunidade</span>
       </div>
     </div>
+
     <div class="toolbar-actions">
       <button id="backButton" class="secondary-button" type="button">← Voltar</button>
       <button id="printButton" class="primary-button" type="button">Salvar em PDF</button>
@@ -26,8 +33,11 @@
   </header>
 
   <main class="proposal-document" id="proposalDocument">
-    <!-- 01 — CAPA -->
-    <section class="pdf-page cover-page">
+
+    <!-- =========================================================
+         01 — CAPA / RESUMO EXECUTIVO
+    ========================================================== -->
+    <section class="pdf-page cover-page" data-page="cover">
       <div class="page-topline">
         <span class="page-label">Diagnóstico de Oportunidade Local</span>
         <span class="analysis-id" id="analysisId">RADAR • —</span>
@@ -35,17 +45,48 @@
 
       <div class="cover-hero">
         <span class="eyebrow">Análise personalizada</span>
+
         <h1>
-          <span id="companyNameHero">Sua empresa</span>, existe uma oportunidade acontecendo <em>ao seu redor.</em>
+          <span id="companyNameHero">Sua empresa</span>:
+          existe procura na sua região.
+          <em>O ponto é quanto dessa oportunidade chega até você.</em>
         </h1>
+
         <p id="coverDescription">
-          Analisamos o cenário local para entender quanto da procura pelo seu serviço pode estar passando sem chegar até o seu negócio.
+          Analisamos sinais de demanda, presença e disputa local para entender onde sua empresa
+          pode estar deixando oportunidades passarem antes mesmo do primeiro contato.
         </p>
       </div>
 
+      <div class="cover-summary-grid">
+        <article class="summary-card summary-card-primary">
+          <span>Score de presença local</span>
+          <div class="summary-score">
+            <strong id="coverOverallScore">0</strong>
+            <small>/100</small>
+          </div>
+          <b id="coverScoreLabel">Análise em processamento</b>
+        </article>
+
+        <article class="summary-card">
+          <span>Demanda estimada</span>
+          <strong id="coverMonthlyDemand">0</strong>
+          <small>buscas relacionadas/mês*</small>
+        </article>
+
+        <article class="summary-card">
+          <span>Concorrência</span>
+          <strong id="coverCompetitionLevel">—</strong>
+          <small>no cenário analisado</small>
+        </article>
+      </div>
+
       <div class="executive-card">
-        <span class="executive-kicker">A principal leitura</span>
-        <strong id="executiveStatement">O problema não parece ser falta de mercado. Existe espaço para melhorar a capacidade de captura local.</strong>
+        <span class="executive-kicker">Leitura principal</span>
+        <strong id="executiveStatement">
+          O problema não parece ser falta de mercado. Existe espaço para melhorar a capacidade
+          de ser encontrado, considerado e escolhido.
+        </strong>
       </div>
 
       <div class="company-grid">
@@ -53,30 +94,47 @@
           <span>Empresa</span>
           <strong id="companyNameCard">Sua empresa</strong>
         </article>
+
         <article>
           <span>Segmento</span>
           <strong id="segmentHero">Negócio local</strong>
         </article>
+
         <article>
           <span>Região analisada</span>
           <strong id="regionHero">Sua região</strong>
         </article>
+
         <article>
           <span>Raio</span>
           <strong id="radiusHero">3 km</strong>
         </article>
       </div>
 
-      <div class="cover-bottom-note">
-        <span></span>
-        <p>Este relatório foi preparado para mostrar o cenário primeiro. Depois, você decide o próximo passo.</p>
+      <div class="address-row">
+        <span>Endereço de referência</span>
+        <strong id="businessAddress">—</strong>
       </div>
 
-      <footer class="page-footer"><span>Radar Local</span><span>01</span></footer>
+      <div class="cover-bottom-note">
+        <span></span>
+        <p>
+          Este relatório mostra primeiro o cenário e os pontos de atenção.
+          A solução é discutida somente depois da leitura do diagnóstico.
+        </p>
+      </div>
+
+      <footer class="page-footer">
+        <span>Radar Local</span>
+        <span>01</span>
+      </footer>
     </section>
 
-    <!-- 02 — DEMANDA -->
-    <section class="pdf-page demand-page">
+
+    <!-- =========================================================
+         02 — DEMANDA + TERMOS MAIS BUSCADOS
+    ========================================================== -->
+    <section class="pdf-page demand-page" data-page="demand">
       <div class="page-topline">
         <span class="page-label">01 · Demanda local</span>
         <span class="mini-company" data-company>Sua empresa</span>
@@ -84,63 +142,199 @@
 
       <div class="section-heading">
         <span class="eyebrow">O mercado está se movimentando</span>
-        <h2>A demanda existe.<br><em>A disputa por ela também.</em></h2>
-        <p id="demandIntro">O Radar encontrou sinais de procura relacionados ao seu segmento dentro da região analisada.</p>
+
+        <h2>
+          A demanda existe.
+          <em>A disputa por ela também.</em>
+        </h2>
+
+        <p id="demandIntro">
+          O Radar encontrou sinais de procura relacionados ao seu segmento dentro da região analisada.
+        </p>
       </div>
 
-      <div class="demand-hero-card">
-        <div>
-          <span class="metric-overline">Estimativa mensal de procura</span>
-          <strong id="monthlyDemand" class="giant-number">0</strong>
-          <small>buscas relacionadas/mês*</small>
-        </div>
-        <div class="demand-side">
-          <span>Nível de demanda</span>
-          <strong id="demandLevelLabel">—</strong>
-          <div class="meter"><i id="demandMeter"></i></div>
-        </div>
-      </div>
+      <div class="demand-dashboard">
+        <article class="demand-hero-card">
+          <div>
+            <span class="metric-overline">Estimativa mensal de procura</span>
+            <strong id="monthlyDemand" class="giant-number">0</strong>
+            <small>buscas relacionadas/mês*</small>
+          </div>
 
-      <div class="split-metrics">
-        <article>
-          <span>Estimativa semanal</span>
-          <strong id="weeklyDemand">0</strong>
-          <small>intenções relacionadas</small>
+          <div class="demand-side">
+            <span>Nível de demanda</span>
+            <strong id="demandLevelLabel">—</strong>
+            <div class="meter">
+              <i id="demandMeter"></i>
+            </div>
+          </div>
         </article>
-        <article>
-          <span>Concorrência percebida</span>
-          <strong id="competitionLevel">—</strong>
-          <small>no cenário simulado</small>
-        </article>
+
+        <div class="split-metrics">
+          <article>
+            <span>Estimativa semanal</span>
+            <strong id="weeklyDemand">0</strong>
+            <small>intenções relacionadas</small>
+          </article>
+
+          <article>
+            <span>Concorrência percebida</span>
+            <strong id="competitionLevel">—</strong>
+            <small>no cenário analisado</small>
+          </article>
+        </div>
       </div>
 
-      <div class="keywords-block">
+      <div class="search-intelligence-card">
         <div class="keywords-heading">
-          <span>Exemplos de intenção de busca</span>
-          <small>o que um potencial cliente procura antes de escolher</small>
+          <div>
+            <span>Principais intenções de busca</span>
+            <small>como o cliente costuma procurar antes de escolher</small>
+          </div>
+
+          <span class="data-badge">Leitura estimada</span>
         </div>
+
+        <!--
+          O JS novo poderá inserir linhas com:
+          termo | estimativa/mês | barra proporcional
+        -->
+        <div id="keywordRanking" class="keyword-ranking" aria-label="Ranking de termos de busca"></div>
+
+        <!-- Mantido para compatibilidade com o JS atual -->
         <div id="keywordChips" class="keyword-chips"></div>
       </div>
 
       <div class="insight-strip">
         <span class="insight-icon">↗</span>
-        <strong id="demandInsight">Quando existe procura e outras empresas disputam essa atenção, não aparecer com força suficiente tem custo de oportunidade.</strong>
+        <strong id="demandInsight">
+          Quando existe procura e outras empresas disputam essa atenção,
+          não aparecer com força suficiente tem custo de oportunidade.
+        </strong>
       </div>
 
-      <p class="method-note">*Estimativas estratégicas do Radar Local para leitura comercial. Não representam volume oficial de pesquisa medido em tempo real.</p>
-      <footer class="page-footer"><span>Diagnóstico de Oportunidade Local</span><span>02</span></footer>
+      <p class="method-note">
+        *Estimativas estratégicas do Radar Local para leitura comercial.
+        Não representam volume oficial de pesquisa medido em tempo real.
+      </p>
+
+      <footer class="page-footer">
+        <span>Diagnóstico de Oportunidade Local</span>
+        <span>02</span>
+      </footer>
     </section>
 
-    <!-- 03 — SCORE -->
-    <section class="pdf-page score-page">
+
+    <!-- =========================================================
+         03 — MAPA DE OPORTUNIDADE LOCAL
+    ========================================================== -->
+    <section class="pdf-page map-page" data-page="map">
       <div class="page-topline">
-        <span class="page-label">02 · Capacidade de captura</span>
+        <span class="page-label">02 · Mapa de oportunidade local</span>
+        <span class="mini-company" data-company>Sua empresa</span>
+      </div>
+
+      <div class="section-heading compact-heading">
+        <span class="eyebrow">Leitura geográfica da região</span>
+
+        <h2>
+          A oportunidade está ao redor do seu negócio.
+          <em>A disputa também.</em>
+        </h2>
+
+        <p>
+          O mapa posiciona sua empresa dentro da área analisada e ajuda a visualizar
+          a presença de negócios semelhantes e a intensidade competitiva ao redor.
+        </p>
+      </div>
+
+      <div class="map-shell">
+        <!--
+          Este bloco será preenchido no JS.
+          Pode receber:
+          - imagem estática da Geoapify/Mapbox
+          - canvas
+          - mapa renderizado e depois capturado para o PDF
+        -->
+        <div
+          id="opportunityMap"
+          class="opportunity-map"
+          role="img"
+          aria-label="Mapa da oportunidade local">
+          <div class="map-placeholder">
+            <div class="map-radar-icon" aria-hidden="true"></div>
+            <strong>Mapa da região analisada</strong>
+            <span>O endereço do negócio será usado como ponto central.</span>
+          </div>
+        </div>
+
+        <div class="map-overlay-card">
+          <span>Seu negócio</span>
+          <strong id="mapCompanyName">Sua empresa</strong>
+          <small id="mapAddress">Endereço ainda não informado</small>
+        </div>
+
+        <div class="map-legend" aria-label="Legenda do mapa">
+          <span><i class="legend-dot legend-business"></i> Seu negócio</span>
+          <span><i class="legend-dot legend-competitor"></i> Negócios semelhantes</span>
+          <span><i class="legend-dot legend-radius"></i> Raio analisado</span>
+          <span><i class="legend-dot legend-opportunity"></i> Oportunidade estimada</span>
+        </div>
+      </div>
+
+      <div class="map-stat-grid">
+        <article>
+          <span>Raio analisado</span>
+          <strong id="mapRadius">3 km</strong>
+        </article>
+
+        <article>
+          <span>Negócios semelhantes</span>
+          <strong id="nearbyCompetitors">—</strong>
+        </article>
+
+        <article>
+          <span>Leitura competitiva</span>
+          <strong id="mapCompetitionLevel">—</strong>
+        </article>
+      </div>
+
+      <div class="map-reading-card">
+        <span>Leitura do Radar</span>
+        <strong id="mapInsight">
+          Existe mercado dentro da área analisada. O desafio é aumentar a capacidade
+          da empresa de ser percebida e considerada nesse cenário.
+        </strong>
+      </div>
+
+      <p class="method-note">
+        A visualização de oportunidade é uma representação estratégica baseada nos sinais analisados.
+        Não representa a localização individual de pessoas ou buscas reais.
+      </p>
+
+      <footer class="page-footer">
+        <span>Diagnóstico de Oportunidade Local</span>
+        <span>03</span>
+      </footer>
+    </section>
+
+
+    <!-- =========================================================
+         04 — SCORE / CAPACIDADE DE CAPTURA
+    ========================================================== -->
+    <section class="pdf-page score-page" data-page="score">
+      <div class="page-topline">
+        <span class="page-label">03 · Capacidade de captura</span>
         <span class="mini-company" data-company>Sua empresa</span>
       </div>
 
       <div class="section-heading compact-heading">
         <span class="eyebrow">Não basta existir na internet</span>
-        <h2>O ponto é conseguir ser <em>encontrado, considerado e escolhido.</em></h2>
+
+        <h2>
+          O ponto é conseguir ser
+          <em>encontrado, considerado e escolhido.</em>
+        </h2>
       </div>
 
       <div class="score-stage">
@@ -150,29 +344,83 @@
             <span>/100</span>
           </div>
         </div>
+
         <div class="score-copy">
-          <span>Score de Captura Local</span>
+          <span>Índice de presença local</span>
           <h3 id="scoreHeadline">Existe espaço relevante para evolução.</h3>
-          <p id="scoreExplanation">O score resume sinais de descoberta, autoridade e confiança que influenciam a capacidade de transformar procura local em contato.</p>
+          <p id="scoreExplanation">
+            O score resume sinais de descoberta, autoridade e confiança
+            que influenciam a capacidade de transformar procura local em contato.
+          </p>
         </div>
       </div>
 
       <div class="capture-pillars">
         <article>
-          <div class="pillar-top"><span>Descoberta local</span><strong id="discoveryScore">0</strong></div>
+          <div class="pillar-top">
+            <span>Descoberta local</span>
+            <strong id="discoveryScore">0</strong>
+          </div>
           <div class="pillar-meter"><i id="discoveryMeter"></i></div>
           <p>Facilidade estimada de ser percebido quando alguém procura o serviço na região.</p>
         </article>
+
         <article>
-          <div class="pillar-top"><span>Autoridade percebida</span><strong id="authorityScore">0</strong></div>
+          <div class="pillar-top">
+            <span>Autoridade percebida</span>
+            <strong id="authorityScore">0</strong>
+          </div>
           <div class="pillar-meter"><i id="authorityMeter"></i></div>
           <p>Clareza e consistência dos sinais que ajudam o cliente a considerar o negócio.</p>
         </article>
+
         <article>
-          <div class="pillar-top"><span>Confiança pública</span><strong id="trustScore">0</strong></div>
+          <div class="pillar-top">
+            <span>Confiança pública</span>
+            <strong id="trustScore">0</strong>
+          </div>
           <div class="pillar-meter"><i id="trustMeter"></i></div>
           <p>Força estimada dos sinais de confiança que reduzem a dúvida antes do contato.</p>
         </article>
+      </div>
+
+      <div class="potential-reading-card">
+        <div class="potential-heading">
+          <span>Leitura rápida</span>
+          <strong>Potencial da região</strong>
+        </div>
+
+        <div class="potential-row">
+          <div class="potential-row-top">
+            <span>Demanda</span>
+            <strong id="potentialDemandLabel">—</strong>
+          </div>
+          <div class="potential-meter"><i id="potentialDemandMeter"></i></div>
+        </div>
+
+        <div class="potential-row">
+          <div class="potential-row-top">
+            <span>Concorrência</span>
+            <strong id="potentialCompetitionLabel">—</strong>
+          </div>
+          <div class="potential-meter"><i id="potentialCompetitionMeter"></i></div>
+        </div>
+
+        <div class="potential-row">
+          <div class="potential-row-top">
+            <span>Visibilidade atual</span>
+            <strong id="potentialVisibilityLabel">—</strong>
+          </div>
+          <div class="potential-meter"><i id="potentialVisibilityMeter"></i></div>
+        </div>
+
+        <div class="system-reading">
+          <span>Leitura do sistema</span>
+          <strong id="systemReading">
+            Existe procura relevante na região, mas a presença estimada do negócio ainda pode evoluir
+            para capturar melhor essa oportunidade.
+          </strong>
+        </div>
       </div>
 
       <div class="uncaptured-card">
@@ -180,116 +428,313 @@
           <span>Índice estimado de oportunidade não capturada</span>
           <strong id="uncapturedDemand">0%</strong>
         </div>
-        <p id="uncapturedText">Existe uma distância entre a procura disponível e a estrutura atual de captura.</p>
+
+        <p id="uncapturedText">
+          Existe uma distância entre a procura disponível e a estrutura atual de captura.
+        </p>
       </div>
 
-      <footer class="page-footer"><span>Diagnóstico de Oportunidade Local</span><span>03</span></footer>
+      <footer class="page-footer">
+        <span>Diagnóstico de Oportunidade Local</span>
+        <span>04</span>
+      </footer>
     </section>
 
-    <!-- 04 — JORNADA -->
-    <section class="pdf-page journey-page">
+
+    <!-- =========================================================
+         05 — ONDE A OPORTUNIDADE ESCAPA
+    ========================================================== -->
+    <section class="pdf-page journey-page" data-page="journey">
       <div class="page-topline">
-        <span class="page-label">03 · Onde a oportunidade escapa</span>
+        <span class="page-label">04 · Onde a oportunidade escapa</span>
         <span class="mini-company" data-company>Sua empresa</span>
       </div>
 
       <div class="section-heading">
         <span class="eyebrow">A jornada acontece antes da mensagem no WhatsApp</span>
-        <h2>Seu futuro cliente toma pequenas decisões <em>antes de falar com você.</em></h2>
-        <p>Quando um desses pontos perde força, outra empresa pode entrar na frente.</p>
+
+        <h2>
+          Seu futuro cliente toma pequenas decisões
+          <em>antes de falar com você.</em>
+        </h2>
+
+        <p>
+          Quando um desses pontos perde força, outra empresa pode entrar na frente.
+        </p>
       </div>
 
       <div class="journey-flow">
         <article>
           <span class="step-number">01</span>
-          <div><strong>Procura</strong><small>“preciso desse serviço”</small></div>
+          <div>
+            <strong>Procura</strong>
+            <small>“preciso desse serviço”</small>
+          </div>
         </article>
+
         <span class="journey-arrow">→</span>
+
         <article>
           <span class="step-number">02</span>
-          <div><strong>Descoberta</strong><small>“quem aparece para mim?”</small></div>
+          <div>
+            <strong>Descoberta</strong>
+            <small>“quem aparece para mim?”</small>
+          </div>
         </article>
+
         <span class="journey-arrow">→</span>
+
         <article>
           <span class="step-number">03</span>
-          <div><strong>Comparação</strong><small>“em quem eu confio?”</small></div>
+          <div>
+            <strong>Comparação</strong>
+            <small>“em quem eu confio?”</small>
+          </div>
         </article>
+
         <span class="journey-arrow">→</span>
+
         <article>
           <span class="step-number">04</span>
-          <div><strong>Contato</strong><small>“vou chamar no WhatsApp”</small></div>
+          <div>
+            <strong>Contato</strong>
+            <small>“vou chamar no WhatsApp”</small>
+          </div>
         </article>
       </div>
 
       <div class="bottleneck-card">
         <span class="bottleneck-label">Principal ponto de atenção identificado</span>
+
         <div class="bottleneck-content">
-          <div class="bottleneck-score"><strong id="weakestScore">0</strong><span>/100</span></div>
+          <div class="bottleneck-score">
+            <strong id="weakestScore">0</strong>
+            <span>/100</span>
+          </div>
+
           <div>
             <h3 id="weakestTitle">Descoberta local</h3>
-            <p id="weakestDescription">Este é o ponto que hoje apresenta maior espaço estimado para evolução.</p>
+            <p id="weakestDescription">
+              Este é o ponto que hoje apresenta maior espaço estimado para evolução.
+            </p>
           </div>
         </div>
       </div>
 
       <div class="business-reading">
         <span>Leitura para o negócio</span>
-        <strong id="businessReading">A demanda pode estar presente, mas parte da oportunidade se perde antes mesmo de o cliente iniciar uma conversa.</strong>
+        <strong id="businessReading">
+          A demanda pode estar presente, mas parte da oportunidade se perde
+          antes mesmo de o cliente iniciar uma conversa.
+        </strong>
       </div>
 
       <div class="no-ads-note">
         <span>Importante</span>
-        <p>Nem todo problema de captação começa com falta de anúncio. Antes de aumentar investimento em mídia, vale corrigir os pontos que reduzem a capacidade de aproveitar a procura que já existe.</p>
+        <p>
+          Nem todo problema de captação começa com falta de anúncio.
+          Antes de aumentar investimento em mídia, vale corrigir os pontos
+          que reduzem a capacidade de aproveitar a procura que já existe.
+        </p>
       </div>
 
-      <footer class="page-footer"><span>Diagnóstico de Oportunidade Local</span><span>04</span></footer>
+      <footer class="page-footer">
+        <span>Diagnóstico de Oportunidade Local</span>
+        <span>05</span>
+      </footer>
     </section>
 
-    <!-- 05 — CTA -->
-    <section class="pdf-page cta-page">
+
+    <!-- =========================================================
+         06 — DIAGNÓSTICO DOS MECANISMOS
+    ========================================================== -->
+    <section class="pdf-page mechanisms-page" data-page="mechanisms">
       <div class="page-topline">
-        <span class="page-label">04 · Próximo passo</span>
+        <span class="page-label">05 · Diagnóstico dos mecanismos</span>
+        <span class="mini-company" data-company>Sua empresa</span>
+      </div>
+
+      <div class="section-heading compact-heading">
+        <span class="eyebrow">Onde a empresa perde força hoje</span>
+
+        <h2>
+          Três mecanismos ajudam a explicar
+          <em>por que a oportunidade não vira contato.</em>
+        </h2>
+      </div>
+
+      <div class="mechanism-grid">
+        <article class="mechanism-card mechanism-discovery">
+          <div class="mechanism-icon" aria-hidden="true">G</div>
+
+          <div class="mechanism-copy">
+            <span>Mecanismo 01</span>
+            <h3>Descoberta local</h3>
+            <p>
+              Mede a força estimada dos sinais que ajudam o negócio a ser percebido
+              no momento em que alguém procura pelo serviço na região.
+            </p>
+
+            <div class="mechanism-score">
+              <strong id="mechanismDiscoveryScore">0</strong>
+              <small>/100</small>
+            </div>
+          </div>
+        </article>
+
+        <article class="mechanism-card mechanism-authority">
+          <div class="mechanism-icon" aria-hidden="true">◎</div>
+
+          <div class="mechanism-copy">
+            <span>Mecanismo 02</span>
+            <h3>Autoridade percebida</h3>
+            <p>
+              Mede a clareza e a consistência dos sinais que ajudam o potencial cliente
+              a considerar a empresa como uma opção relevante.
+            </p>
+
+            <div class="mechanism-score">
+              <strong id="mechanismAuthorityScore">0</strong>
+              <small>/100</small>
+            </div>
+          </div>
+        </article>
+
+        <article class="mechanism-card mechanism-trust">
+          <div class="mechanism-icon" aria-hidden="true">★</div>
+
+          <div class="mechanism-copy">
+            <span>Mecanismo 03</span>
+            <h3>Confiança pública</h3>
+            <p>
+              Mede a força estimada dos sinais de segurança e confiança
+              que reduzem a dúvida antes de o cliente iniciar uma conversa.
+            </p>
+
+            <div class="mechanism-score">
+              <strong id="mechanismTrustScore">0</strong>
+              <small>/100</small>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="diagnostic-conclusion">
+        <span>Conclusão do diagnóstico</span>
+
+        <strong id="diagnosticConclusion">
+          A oportunidade está presente, mas o negócio ainda pode melhorar
+          a forma como é encontrado, percebido e escolhido.
+        </strong>
+      </div>
+
+      <footer class="page-footer">
+        <span>Diagnóstico de Oportunidade Local</span>
+        <span>06</span>
+      </footer>
+    </section>
+
+
+    <!-- =========================================================
+         07 — PRÓXIMO PASSO / CTA
+    ========================================================== -->
+    <section class="pdf-page cta-page" data-page="cta">
+      <div class="page-topline">
+        <span class="page-label">06 · Próximo passo</span>
         <span class="mini-company" data-company>Sua empresa</span>
       </div>
 
       <div class="cta-hero">
         <span class="eyebrow">A boa notícia</span>
-        <h2>Você pode começar a corrigir esses pontos <em>nos próximos 7 dias.</em></h2>
-        <p>Antes de qualquer decisão, entenda quais são as prioridades e o que faz sentido corrigir na sua empresa.</p>
+
+        <h2>
+          Você não precisa começar investindo mais em anúncios.
+          <em>Comece entendendo o que corrigir primeiro.</em>
+        </h2>
+
+        <p>
+          Os pontos prioritários identificados neste relatório podem começar
+          a ser trabalhados nos próximos 7 dias, conforme o cenário e a execução.
+        </p>
       </div>
 
       <div class="call-card">
         <div class="call-time">
-          <strong>10</strong><span>min</span>
+          <strong>10</strong>
+          <span>min</span>
         </div>
+
         <div>
           <span>Leitura guiada do diagnóstico</span>
           <h3>Abra este relatório com o Diego e veja o que corrigir primeiro.</h3>
-          <p>Em uma conversa rápida, mostramos os pontos prioritários encontrados e como eles afetam a captura local do negócio.</p>
+          <p>
+            Em uma conversa rápida, mostramos os pontos prioritários encontrados
+            e como eles afetam a captura local do negócio.
+          </p>
         </div>
       </div>
 
       <div class="call-outcomes">
-        <article><span>01</span><strong>Entender o gargalo</strong><small>sem termos técnicos desnecessários</small></article>
-        <article><span>02</span><strong>Definir prioridade</strong><small>o que atacar primeiro</small></article>
-        <article><span>03</span><strong>Traçar o próximo passo</strong><small>de forma objetiva</small></article>
+        <article>
+          <span>01</span>
+          <strong>Entender o gargalo</strong>
+          <small>sem termos técnicos desnecessários</small>
+        </article>
+
+        <article>
+          <span>02</span>
+          <strong>Definir prioridade</strong>
+          <small>o que atacar primeiro</small>
+        </article>
+
+        <article>
+          <span>03</span>
+          <strong>Traçar o próximo passo</strong>
+          <small>de forma objetiva</small>
+        </article>
       </div>
 
-      <a id="whatsappReportBtn" class="report-whatsapp-button" href="#" target="_blank" rel="noopener">
-        <div><small>Quero entender meu diagnóstico</small><strong>Agendar conversa de 10 minutos</strong></div>
+      <a
+        id="whatsappReportBtn"
+        class="report-whatsapp-button"
+        href="#"
+        target="_blank"
+        rel="noopener">
+
+        <div>
+          <small>Quero entender meu diagnóstico</small>
+          <strong>Agendar conversa de 10 minutos</strong>
+        </div>
+
         <span class="whatsapp-arrow">→</span>
       </a>
 
-      <p class="cta-helper">Ao tocar no botão, uma mensagem pronta será aberta no WhatsApp do Diego.</p>
+      <p class="cta-helper">
+        Ao tocar no botão, uma mensagem pronta será aberta no WhatsApp do Diego.
+      </p>
 
       <div class="closing-brand">
-        <div class="radar-mark large" aria-hidden="true"><span></span><span></span><span></span></div>
-        <div><strong>Radar Local</strong><span>Transformando presença local em decisões mais claras.</span></div>
+        <div class="radar-mark large" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+
+        <div>
+          <strong>Radar Local</strong>
+          <span>Transformando presença local em decisões mais claras.</span>
+        </div>
       </div>
 
-      <p class="method-note final-note">Diagnóstico estratégico baseado em estimativas simuladas e sinais de presença. Resultados futuros dependem do cenário, execução e comportamento real do mercado.</p>
-      <footer class="page-footer"><span>Radar Local</span><span>05</span></footer>
+      <p class="method-note final-note">
+        Diagnóstico estratégico baseado em estimativas e sinais de presença.
+        Resultados futuros dependem do cenário, execução e comportamento real do mercado.
+      </p>
+
+      <footer class="page-footer">
+        <span>Radar Local</span>
+        <span>07</span>
+      </footer>
     </section>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
