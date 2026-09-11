@@ -2352,24 +2352,53 @@ await navigator.share({
 
 
   /*
-    Fallback:
-    abre o PDF gerado
-    no próprio navegador.
+  Fallback:
+  salva o PDF mantendo
+  o nome personalizado
+  da empresa.
+*/
 
-    Depois é só tocar
-    no botão compartilhar
-    do iPhone.
-  */
+const pdfUrl =
+  URL.createObjectURL(
+    pdfBlob
+  );
 
-  const pdfUrl =
-    URL.createObjectURL(
-      pdfBlob
+
+const downloadLink =
+  document.createElement(
+    "a"
+  );
+
+
+downloadLink.href =
+  pdfUrl;
+
+
+downloadLink.download =
+  fileName;
+
+
+document.body.appendChild(
+  downloadLink
+);
+
+
+downloadLink.click();
+
+
+downloadLink.remove();
+
+
+setTimeout(
+  () => {
+
+    URL.revokeObjectURL(
+      pdfUrl
     );
 
-
-  window.location.href =
-    pdfUrl;
-
+  },
+  1500
+);
 }
 
 
