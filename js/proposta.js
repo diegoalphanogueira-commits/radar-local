@@ -2058,64 +2058,6 @@ pdf.setProperties({
       "FAST"
     );
 /*
-  Link clicável do WhatsApp
-  na última página.
-*/
-
-if (
-  page.classList.contains(
-    "investment-page"
-  )
-) {
-
-  const whatsappButton =
-    page.querySelector(
-      "#whatsappReportBtn"
-    );
-
-
-  if (whatsappButton) {
-
-    const pageRect =
-      page.getBoundingClientRect();
-
-
-    const buttonRect =
-      whatsappButton.getBoundingClientRect();
-
-
-    /*
-      Posição relativa do botão
-      dentro da página capturada.
-    */
-
-    const relativeX =
-      (
-        buttonRect.left -
-        pageRect.left
-      ) /
-      pageRect.width;
-
-
-    const relativeY =
-      (
-        buttonRect.top -
-        pageRect.top
-      ) /
-      pageRect.height;
-
-
-    const relativeWidth =
-      buttonRect.width /
-      pageRect.width;
-
-
-    const relativeHeight =
-      buttonRect.height /
-      pageRect.height;
-
-
-   /*
   Links clicáveis dos planos
   na última página do PDF.
 */
@@ -2137,7 +2079,6 @@ if (
           "presence"
         )
     },
-
 
     {
       selector:
