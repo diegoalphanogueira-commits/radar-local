@@ -2406,7 +2406,919 @@ h4 {
   text-align: center;
 }
 
+/* =========================================================
+   NOVA PROPOSTA — PLANOS
+   PRESENÇA LOCAL + CAPTURA LOCAL
+========================================================= */
 
+
+/* ABERTURA DOS PLANOS */
+
+.plans-heading {
+  max-width: 720px;
+
+  margin:
+    34px auto 0;
+
+  text-align: center;
+}
+
+
+.plans-heading > span {
+  display: block;
+
+  color: var(--blue);
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.07em;
+
+  text-transform: uppercase;
+}
+
+
+.plans-heading h3 {
+  margin:
+    8px 0 0;
+
+  color: var(--text);
+
+  font-size: 31px;
+
+  line-height: 1.08;
+
+  letter-spacing: -0.04em;
+}
+
+
+.plans-heading p {
+  max-width: 620px;
+
+  margin:
+    12px auto 0;
+
+  color: var(--text-2);
+
+  font-size: 15px;
+
+  line-height: 1.5;
+}
+
+
+
+/* =========================================================
+   GRID DOS PLANOS
+========================================================= */
+
+.pricing-plans {
+  margin-top: 26px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+
+  align-items: stretch;
+}
+
+
+
+/* =========================================================
+   CARD BASE
+========================================================= */
+
+.pricing-plan {
+  padding: 25px;
+
+  position: relative;
+
+  display: flex;
+
+  flex-direction: column;
+
+  border-radius: 24px;
+
+  background: #ffffff;
+
+  border:
+    1px solid var(--border);
+
+  box-shadow:
+    0 10px 30px
+    rgba(40, 64, 100, 0.07);
+}
+
+
+
+/* PLANO PRESENÇA */
+
+.pricing-plan-presence {
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #fbfcfe
+    );
+}
+
+
+
+/* PLANO PRINCIPAL */
+
+.pricing-plan-featured {
+  border:
+    2px solid var(--blue);
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(26, 115, 232, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #f4f8ff
+    );
+
+  box-shadow:
+    0 18px 42px
+    rgba(26, 115, 232, 0.14);
+
+  transform:
+    translateY(-5px);
+}
+
+
+
+/* =========================================================
+   SELO RECOMENDADO
+========================================================= */
+
+.pricing-recommended {
+  width: fit-content;
+
+  margin:
+    -39px 0 17px auto;
+
+  padding:
+    8px 14px;
+
+  border-radius: 999px;
+
+  background:
+    var(--blue);
+
+  color:
+    #ffffff;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.07em;
+
+  text-transform: uppercase;
+
+  box-shadow:
+    0 8px 18px
+    rgba(26, 115, 232, 0.22);
+}
+
+
+
+/* =========================================================
+   TOPO DO PLANO
+========================================================= */
+
+.pricing-plan-label {
+  display: block;
+
+  color: var(--blue);
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.07em;
+
+  text-transform: uppercase;
+}
+
+
+.pricing-plan-top h3 {
+  margin:
+    7px 0 0;
+
+  color:
+    var(--text);
+
+  font-size: 23px;
+
+  line-height: 1.1;
+
+  letter-spacing: -0.03em;
+}
+
+
+.pricing-plan-top p {
+  margin:
+    10px 0 0;
+
+  min-height: 46px;
+
+  color:
+    var(--text-2);
+
+  font-size: 14px;
+
+  line-height: 1.45;
+}
+
+
+
+/* =========================================================
+   PREÇO
+========================================================= */
+
+.pricing-price {
+  margin-top: 22px;
+}
+
+
+.pricing-price > span {
+  display: block;
+
+  color:
+    var(--text-3);
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.06em;
+
+  text-transform: uppercase;
+}
+
+
+.pricing-price > strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    var(--text);
+
+  font-size: 43px;
+
+  line-height: 1;
+
+  letter-spacing: -0.055em;
+}
+
+
+.pricing-plan-featured
+.pricing-price > strong {
+  color:
+    var(--blue);
+}
+
+
+.pricing-price > small {
+  display: block;
+
+  margin-top: 4px;
+
+  color:
+    var(--text-3);
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+
+/* =========================================================
+   PARCELAMENTO
+========================================================= */
+
+.pricing-installment {
+  margin-top: 14px;
+
+  padding:
+    13px 15px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+
+  border-radius: 14px;
+
+  background:
+    var(--surface-soft);
+
+  border:
+    1px solid var(--border);
+}
+
+
+.pricing-plan-featured
+.pricing-installment {
+  background:
+    var(--blue-soft);
+
+  border-color:
+    var(--border-blue);
+}
+
+
+.pricing-installment span {
+  color:
+    var(--text-3);
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+
+.pricing-installment strong {
+  color:
+    var(--text);
+
+  font-size: 16px;
+}
+
+
+.pricing-plan-featured
+.pricing-installment strong {
+  color:
+    var(--blue);
+}
+
+
+
+/* =========================================================
+   DIVISÓRIA
+========================================================= */
+
+.pricing-divider {
+  width: 100%;
+  height: 1px;
+
+  margin:
+    20px 0;
+
+  background:
+    var(--border);
+}
+
+
+
+/* =========================================================
+   ITENS INCLUSOS
+========================================================= */
+
+.pricing-includes {
+  display: grid;
+
+  gap: 10px;
+}
+
+
+.pricing-includes span {
+  color:
+    var(--text-2);
+
+  font-size: 13px;
+
+  line-height: 1.4;
+}
+
+
+.pricing-highlight-item {
+  color:
+    var(--blue) !important;
+
+  font-weight: 800;
+}
+
+
+
+/* =========================================================
+   RESULTADO DO PLANO
+========================================================= */
+
+.pricing-result {
+  margin-top: 20px;
+
+  padding:
+    16px;
+
+  border-radius: 15px;
+
+  background:
+    #f7f9fc;
+
+  border:
+    1px solid var(--border);
+}
+
+
+.pricing-result > span {
+  display: block;
+
+  color:
+    var(--text-3);
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.07em;
+
+  text-transform: uppercase;
+}
+
+
+.pricing-result > strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    var(--text);
+
+  font-size: 14px;
+
+  line-height: 1.4;
+}
+
+
+.pricing-result-featured {
+  background:
+    var(--blue);
+
+  border-color:
+    var(--blue);
+}
+
+
+.pricing-result-featured > span {
+  color:
+    rgba(255, 255, 255, 0.74);
+}
+
+
+.pricing-result-featured > strong {
+  color:
+    #ffffff;
+}
+
+
+
+/* =========================================================
+   BOTÕES DOS PLANOS
+========================================================= */
+
+.plan-action {
+  width: 100%;
+
+  min-height: 54px;
+
+  margin-top: 20px;
+
+  padding:
+    0 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+
+  border-radius: 15px;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  font-weight: 800;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.plan-action:hover {
+  transform:
+    translateY(-1px);
+}
+
+
+.plan-action-secondary {
+  background:
+    #ffffff;
+
+  color:
+    var(--blue);
+
+  border:
+    1px solid var(--border-blue);
+}
+
+
+.plan-action-secondary span {
+  color:
+    var(--blue);
+}
+
+
+.plan-action-primary {
+  background:
+    var(--blue);
+
+  color:
+    #ffffff;
+
+  border:
+    1px solid var(--blue);
+
+  box-shadow:
+    0 10px 24px
+    rgba(26, 115, 232, 0.20);
+}
+
+
+.plan-action-primary span {
+  color:
+    #ffffff;
+}
+
+
+.plan-action-arrow {
+  flex-shrink: 0;
+
+  font-size: 19px;
+
+  line-height: 1;
+}
+
+
+
+/* =========================================================
+   COMPARAÇÃO DOS PLANOS
+========================================================= */
+
+.plans-comparison {
+  margin-top: 24px;
+
+  overflow: hidden;
+
+  border:
+    1px solid var(--border);
+
+  border-radius: 18px;
+
+  background:
+    #ffffff;
+}
+
+
+.plans-comparison-row {
+  min-height: 45px;
+
+  padding:
+    0 18px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    90px
+    90px;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border-bottom:
+    1px solid var(--border);
+}
+
+
+.plans-comparison-row:last-child {
+  border-bottom: 0;
+}
+
+
+.plans-comparison-row > span {
+  color:
+    var(--text-2);
+
+  font-size: 13px;
+
+  font-weight: 650;
+}
+
+
+.plans-comparison-row > strong {
+  color:
+    var(--green);
+
+  font-size: 15px;
+
+  text-align: center;
+}
+
+
+.plans-comparison-head {
+  min-height: 48px;
+
+  background:
+    var(--surface-soft);
+}
+
+
+.plans-comparison-head > span {
+  color:
+    var(--text);
+
+  font-weight: 800;
+}
+
+
+.plans-comparison-head > strong {
+  color:
+    var(--text);
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.04em;
+}
+
+
+.plans-comparison-head
+> strong:last-child {
+  color:
+    var(--blue);
+}
+
+
+.comparison-no {
+  color:
+    #b8c0cc !important;
+}
+
+
+
+/* =========================================================
+   OBSERVAÇÃO DE PAGAMENTO
+========================================================= */
+
+.payment-note {
+  max-width: 700px;
+
+  margin:
+    16px auto 0;
+
+  color:
+    var(--text-3);
+
+  font-size: 12px;
+
+  line-height: 1.45;
+
+  text-align: center;
+}
+
+
+
+/* =========================================================
+   AJUSTES DA PÁGINA 06
+========================================================= */
+
+.investment-page
+.closing-brand {
+  margin-top: 22px;
+}
+
+
+.investment-page
+.proposal-disclaimer {
+  margin-top: 14px;
+}
+
+
+
+/* =========================================================
+   NOVA PROPOSTA — MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .plans-heading {
+    margin-top: 28px;
+
+    text-align: left;
+  }
+
+
+  .plans-heading > span {
+    font-size: 12px;
+  }
+
+
+  .plans-heading h3 {
+    font-size: 27px;
+
+    line-height: 1.08;
+  }
+
+
+  .plans-heading p {
+    margin-top: 10px;
+
+    font-size: 15px;
+  }
+
+
+
+  .pricing-plans {
+    margin-top: 22px;
+
+    grid-template-columns:
+      1fr;
+
+    gap: 22px;
+  }
+
+
+
+  .pricing-plan {
+    padding: 21px;
+
+    border-radius: 21px;
+  }
+
+
+
+  .pricing-plan-featured {
+    transform:
+      none;
+
+    border-width:
+      2px;
+  }
+
+
+
+  .pricing-recommended {
+    margin:
+      -35px 0 16px auto;
+
+    padding:
+      7px 12px;
+
+    font-size: 10px;
+  }
+
+
+
+  .pricing-plan-top h3 {
+    font-size: 22px;
+  }
+
+
+
+  .pricing-plan-top p {
+    min-height: 0;
+
+    font-size: 14px;
+  }
+
+
+
+  .pricing-price {
+    margin-top: 20px;
+  }
+
+
+
+  .pricing-price > strong {
+    font-size: 42px;
+  }
+
+
+
+  .pricing-installment {
+    padding:
+      13px 14px;
+  }
+
+
+
+  .pricing-installment strong {
+    font-size: 16px;
+  }
+
+
+
+  .pricing-includes span {
+    font-size: 14px;
+  }
+
+
+
+  .pricing-result {
+    padding:
+      15px;
+  }
+
+
+
+  .pricing-result > strong {
+    font-size: 14px;
+  }
+
+
+
+  .plan-action {
+    min-height: 55px;
+
+    margin-top: 18px;
+
+    font-size: 14px;
+  }
+
+
+
+  .plans-comparison {
+    margin-top: 22px;
+
+    border-radius: 16px;
+  }
+
+
+
+  .plans-comparison-row {
+    min-height: 48px;
+
+    padding:
+      0 12px;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      66px
+      66px;
+
+    gap: 4px;
+  }
+
+
+
+  .plans-comparison-row > span {
+    font-size: 12px;
+  }
+
+
+
+  .plans-comparison-row > strong {
+    font-size: 14px;
+  }
+
+
+
+  .plans-comparison-head > strong {
+    font-size: 10px;
+  }
+
+
+
+  .payment-note {
+    margin-top: 14px;
+
+    font-size: 11px;
+  }
+
+}
 
 /* =========================================================
    TABLET
