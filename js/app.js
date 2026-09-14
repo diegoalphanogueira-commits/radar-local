@@ -419,3 +419,318 @@ if (radarAddressInput) {
   );
 
 }
+/* =========================================================
+   EMERGÊNCIA — SEGMENTO SEGUROS
+========================================================= */
+
+const insuranceEmergencyForm =
+  document.getElementById("analysisForm");
+
+
+if (insuranceEmergencyForm) {
+
+  insuranceEmergencyForm.addEventListener(
+    "submit",
+    function (event) {
+
+      const segment =
+        document.getElementById("segment");
+
+      if (
+        !segment ||
+        segment.value !== "seguros"
+      ) {
+        return;
+      }
+
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+
+      const company =
+        document.getElementById("company")?.value.trim() ||
+        "Empresa";
+
+
+      const region =
+        document.getElementById("region")?.value.trim() ||
+        "Guarulhos";
+
+
+      const radius =
+        document.getElementById("radius")?.value ||
+        "3";
+
+
+      const address =
+        document.getElementById("address")?.value.trim() ||
+        localStorage.getItem("radarAddress") ||
+        region;
+
+
+      const insuranceData = {
+
+        company:
+          company,
+
+        segmentKey:
+          "seguros",
+
+        segmentLabel:
+          "Seguro / Corretora de Seguros",
+
+        region:
+          region,
+
+        address:
+          address,
+
+        radius:
+          radius,
+
+        weekly:
+          80,
+
+        monthly:
+          320,
+
+        demandLevel:
+          "Alta",
+
+        demandMeter:
+          86,
+
+        competitionLevel:
+          "Alta",
+
+        presence:
+          38,
+
+        overall:
+          38,
+
+        googleScore:
+          32,
+
+        authorityScore:
+          46,
+
+        reviewsScore:
+          41,
+
+        uncaptured:
+          62,
+
+        keywordData: [
+          {
+            keyword: "Seguro Auto"
+          },
+          {
+            keyword: "Seguro Residencial"
+          },
+          {
+            keyword: "Seguro de Vida"
+          },
+          {
+            keyword: "Seguro Empresarial"
+          },
+          {
+            keyword: "Seguro Moto"
+          },
+          {
+            keyword: "Cotação de Seguro"
+          }
+        ]
+
+      };
+
+
+      localStorage.setItem(
+        "radarProposal",
+        JSON.stringify(
+          insuranceData
+        )
+      );
+
+
+      localStorage.setItem(
+        "radarAddress",
+        address
+      );
+
+
+      const resultsSection =
+        document.getElementById(
+          "resultsSection"
+        );
+
+
+      if (resultsSection) {
+        resultsSection.classList.remove(
+          "hidden"
+        );
+      }
+
+
+      const setInsuranceText =
+        (
+          id,
+          text
+        ) => {
+
+          const element =
+            document.getElementById(id);
+
+          if (element) {
+            element.textContent =
+              text;
+          }
+
+        };
+
+
+      setInsuranceText(
+        "resultsTitle",
+        `Análise de oportunidade — ${company}`
+      );
+
+
+      setInsuranceText(
+        "resultsSubtitle",
+        `Seguro / Corretora de Seguros em ${region}`
+      );
+
+
+      setInsuranceText(
+        "weeklyDemand",
+        "80"
+      );
+
+
+      setInsuranceText(
+        "monthlyDemand",
+        "320"
+      );
+
+
+      setInsuranceText(
+        "presenceScore",
+        "38"
+      );
+
+
+      setInsuranceText(
+        "presenceLabel",
+        "Presença com espaço para evolução"
+      );
+
+
+      setInsuranceText(
+        "uncapturedDemand",
+        "62%"
+      );
+
+
+      setInsuranceText(
+        "competitionLevel",
+        "Alta"
+      );
+
+
+      setInsuranceText(
+        "keywordsCount",
+        "6 termos"
+      );
+
+
+      const presenceThermometer =
+        document.getElementById(
+          "presenceThermometer"
+        );
+
+      if (presenceThermometer) {
+        presenceThermometer.style.width =
+          "38%";
+      }
+
+
+      const keywordsList =
+        document.getElementById(
+          "keywordsList"
+        );
+
+
+      if (keywordsList) {
+
+        keywordsList.innerHTML =
+          insuranceData.keywordData
+            .map(
+              item =>
+                `<span>${item.keyword}</span>`
+            )
+            .join("");
+
+      }
+
+
+      if (resultsSection) {
+
+        resultsSection.scrollIntoView({
+          behavior:
+            "smooth",
+
+          block:
+            "start"
+        });
+
+      }
+
+    },
+    true
+  );
+
+}
+
+
+/* ABRIR RELATÓRIO DE SEGUROS */
+
+const insuranceReportButton =
+  document.getElementById(
+    "generateReportBtn"
+  );
+
+
+if (insuranceReportButton) {
+
+  insuranceReportButton.addEventListener(
+    "click",
+    function (event) {
+
+      const saved =
+        JSON.parse(
+          localStorage.getItem(
+            "radarProposal"
+          ) || "null"
+        );
+
+
+      if (
+        saved?.segmentKey !==
+        "seguros"
+      ) {
+        return;
+      }
+
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      window.location.href =
+        "proposta.html";
+
+    },
+    true
+  );
+
+}
