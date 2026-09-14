@@ -386,3 +386,36 @@ newAnalysisBtn.addEventListener("click", () => {
   resultsSection.classList.add("hidden");
   document.querySelector(".search-panel").scrollIntoView({ behavior: "smooth", block: "center" });
 });
+/* =========================================================
+   RADAR LOCAL — ENDEREÇO DO NEGÓCIO
+========================================================= */
+
+const radarAddressInput =
+  document.getElementById("address");
+
+if (radarAddressInput) {
+
+  const savedRadarAddress =
+    localStorage.getItem("radarAddress");
+
+  if (
+    savedRadarAddress &&
+    !radarAddressInput.value
+  ) {
+    radarAddressInput.value =
+      savedRadarAddress;
+  }
+
+  radarAddressInput.addEventListener(
+    "input",
+    () => {
+
+      localStorage.setItem(
+        "radarAddress",
+        radarAddressInput.value.trim()
+      );
+
+    }
+  );
+
+}
