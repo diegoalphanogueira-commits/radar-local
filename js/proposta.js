@@ -780,6 +780,29 @@ async function generateVisualPdf() {
 
   if (document.fonts?.ready) await document.fonts.ready;
 
+try {
+
+  await radarMapReady;
+
+} catch (error) {
+
+  console.warn(
+    "Mapa ainda não terminou de carregar:",
+    error
+  );
+
+}
+
+await new Promise(
+  resolve =>
+    requestAnimationFrame(
+      () =>
+        requestAnimationFrame(
+          resolve
+        )
+    )
+);
+   
   document.body.classList.add("pdf-exporting");
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
