@@ -729,6 +729,11 @@ function renderReport() {
   if (demandMeter) demandMeter.style.width = `${getDemandMeter(monthly, proposalData.demandMeter)}%`;
   renderKeywords(proposalData);
 
+radarMapReady =
+  renderOpportunityMap(
+    proposalData
+  );
+   
   setText("overallScore", overall);
   setText("scoreHeadline", getScoreHeadline(overall));
   const scoreRing = byId("scoreRing");
