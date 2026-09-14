@@ -30,6 +30,524 @@ function safeText(value, fallback = "—") {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
 }
+/* =========================================================
+   RADAR LOCAL — MAPA
+========================================================= */
+
+const storedRadarAddress =
+  localStorage.getItem("radarAddress");
+
+if (
+  proposalData &&
+  !proposalData.address &&
+  storedRadarAddress
+) {
+  proposalData.address =
+    storedRadarAddress;
+}
+
+
+let radarMapInstance =
+  null;
+
+let radarMapReady =
+  Promise.resolve();
+
+
+function getRadarMapZoom(radius) {
+
+  const value =
+    Number(radius) || 3;
+
+  if (value <= 1) return 15;
+  if (value <= 3) return 14;
+  if (value <= 5) return 13;
+  if (value <= 8) return 12;
+
+  return 11;
+}
+
+
+function createRadarPoint(
+  lat,
+  lon,
+  distanceKm,
+  angle
+) {
+
+  const radians =
+    angle * Math.PI / 180;
+
+  const latitudeOffset =
+    (
+      distanceKm *
+      Math.cos(radians)
+    ) / 111.32;
+
+  const longitudeOffset =
+    (
+      distanceKm *
+      Math.sin(radians)
+    ) /
+    (
+      111.32 *
+      Math.cos(
+        lat *
+        Math.PI /
+        180
+      )
+    );
+
+  return [
+    lat + latitudeOffset,
+    lon + longitudeOffset
+  ];
+}
+
+
+async function renderOpportunityMap(
+  data
+) {
+
+  const mapElement =
+    document.getElementById(
+      "opportunityMap"
+    );
+
+  if (!mapElement) {
+    return;
+  }
+
+
+  const company =
+    safeText(
+      data?.company,
+      "Sua empresa"
+    );
+
+
+  const address =
+    safeText(
+      data?.address ||
+      localStorage.getItem(
+        "radarAddress"
+      ),
+      ""
+    );
+
+
+  const region =
+    safeText(
+      data?.region,
+      ""
+    );
+
+
+  const radius =
+    Number(
+      data?.radius
+    ) || 3;
+
+
+  const competitionLevel =
+    safeText(
+      data?.competitionLevel,
+      "Relevante"
+    );
+
+
+  document.getElementById(
+    "mapCompanyName"
+  ).textContent =
+    company;
+
+
+  document.getElementById(
+    "mapAddress"
+  ).textContent =
+    address ||
+    region ||
+    "Região analisada";
+
+
+  document.getElementById(
+    "mapRadius"
+  ).textContent =
+    `${radius} km`;
+
+
+  document.getElementById(
+    "mapCompetitionLevel"
+  ).textContent =
+    competitionLevel;
+
+
+  const competitorCount =
+    competitionLevel
+      .toLowerCase()
+      .includes("alta")
+        ? 14
+        : competitionLevel
+            .toLowerCase()
+            .includes("baixa")
+          ? 5
+          : 9;
+
+
+  document.getElementById(
+    "nearbyCompetitors"
+  ).textContent =
+    competitorCount;
+
+
+  if (!address) {
+    return;
+  }
+
+
+  if (typeof L === "undefined") {
+
+    console.error(
+      "Leaflet não carregado."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const fullAddress =
+      [address, region]
+        .filter(Boolean)
+        .join(", ");
+
+
+    const response =
+      await fetch(
+        "https://nominatim.openstreetmap.org/search" +
+        "?format=jsonv2" +
+        "&limit=1" +
+        "&countrycodes=br" +
+        "&accept-language=pt-BR" +
+        `&q=${encodeURIComponent(
+          fullAddress
+        )}`
+      );
+
+
+    const results =
+      await response.json();
+
+
+    if (
+      !Array.isArray(results) ||
+      !results.length
+    ) {
+
+      throw new Error(
+        "Endereço não encontrado."
+      );
+
+    }
+
+
+    const latitude =
+      Number(results[0].lat);
+
+    const longitude =
+      Number(results[0].lon);
+
+
+    mapElement.innerHTML =
+      "";
+
+
+    if (radarMapInstance) {
+
+      radarMapInstance.remove();
+
+      radarMapInstance =
+        null;
+
+    }
+
+
+    radarMapInstance =
+      L.map(
+        mapElement,
+        {
+          zoomControl:
+            false,
+
+          attributionControl:
+            true,
+
+          preferCanvas:
+            true
+        }
+      );
+
+
+    radarMapInstance.setView(
+      [
+        latitude,
+        longitude
+      ],
+      getRadarMapZoom(
+        radius
+      )
+    );
+
+
+    const tileLayer =
+      L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          maxZoom:
+            19,
+
+          crossOrigin:
+            true,
+
+          attribution:
+            "© OpenStreetMap"
+        }
+      );
+
+
+    tileLayer.addTo(
+      radarMapInstance
+    );
+
+
+    L.circle(
+      [
+        latitude,
+        longitude
+      ],
+      {
+        radius:
+          radius * 1000,
+
+        color:
+          "#2563eb",
+
+        weight:
+          2,
+
+        opacity:
+          0.45,
+
+        fillColor:
+          "#2563eb",
+
+        fillOpacity:
+          0.07
+      }
+    ).addTo(
+      radarMapInstance
+    );
+
+
+    L.circleMarker(
+      [
+        latitude,
+        longitude
+      ],
+      {
+        radius:
+          10,
+
+        color:
+          "#ffffff",
+
+        weight:
+          4,
+
+        fillColor:
+          "#2563eb",
+
+        fillOpacity:
+          1
+      }
+    ).addTo(
+      radarMapInstance
+    );
+
+
+    const angles = [
+      35,
+      78,
+      125,
+      170,
+      218,
+      265,
+      310,
+      345
+    ];
+
+
+    const distances = [
+      0.35,
+      0.52,
+      0.68,
+      0.44,
+      0.71,
+      0.57,
+      0.39,
+      0.61
+    ];
+
+
+    angles.forEach(
+      (
+        angle,
+        index
+      ) => {
+
+        const point =
+          createRadarPoint(
+            latitude,
+            longitude,
+            radius *
+            distances[index],
+            angle
+          );
+
+
+        L.circleMarker(
+          point,
+          {
+            radius:
+              6,
+
+            color:
+              "#ffffff",
+
+            weight:
+              2,
+
+            fillColor:
+              "#ea4335",
+
+            fillOpacity:
+              0.95
+          }
+        ).addTo(
+          radarMapInstance
+        );
+
+      }
+    );
+
+
+    [
+      {
+        angle: 100,
+        distance: 0.78
+      },
+      {
+        angle: 290,
+        distance: 0.82
+      }
+    ].forEach(
+      item => {
+
+        const point =
+          createRadarPoint(
+            latitude,
+            longitude,
+            radius *
+            item.distance,
+            item.angle
+          );
+
+
+        L.circleMarker(
+          point,
+          {
+            radius:
+              6,
+
+            color:
+              "#ffffff",
+
+            weight:
+              2,
+
+            fillColor:
+              "#34a853",
+
+            fillOpacity:
+              0.95
+          }
+        ).addTo(
+          radarMapInstance
+        );
+
+      }
+    );
+
+
+    setTimeout(
+      () => {
+
+        radarMapInstance
+          ?.invalidateSize();
+
+      },
+      100
+    );
+
+
+    await new Promise(
+      resolve => {
+
+        let completed =
+          false;
+
+
+        const finish =
+          () => {
+
+            if (completed) {
+              return;
+            }
+
+            completed =
+              true;
+
+            resolve();
+
+          };
+
+
+        tileLayer.once(
+          "load",
+          finish
+        );
+
+
+        setTimeout(
+          finish,
+          3000
+        );
+
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao gerar mapa:",
+      error
+    );
+
+  }
+
+}
 
 function formatNumber(value) {
   return new Intl.NumberFormat("pt-BR").format(Number(value) || 0);
