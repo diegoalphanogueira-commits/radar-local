@@ -619,7 +619,53 @@ if (insuranceEmergencyForm) {
         "38"
       );
 
+setInsuranceText(
+  "mainScore",
+  "38"
+);
 
+setInsuranceText(
+  "scoreStatus",
+  "Presença baixa"
+);
+
+setInsuranceText(
+  "scoreMessage",
+  "Existe procura relevante na região, mas a presença digital ainda tem espaço importante para transformar essa demanda em oportunidades."
+);
+
+setInsuranceText(
+  "googleScore",
+  "32"
+);
+
+setInsuranceText(
+  "authorityScore",
+  "46"
+);
+
+setInsuranceText(
+  "reviewsScore",
+  "41"
+);
+
+const scoreGauge =
+  document.getElementById(
+    "scoreGauge"
+  );
+
+if (scoreGauge) {
+
+  const degrees =
+    Math.round(
+      (38 / 100) * 360
+    );
+
+  scoreGauge.style.background =
+    `conic-gradient(#667085 0deg ${degrees}deg, #ece8e3 ${degrees}deg 360deg)`;
+
+}
+      
       setInsuranceText(
         "presenceLabel",
         "Presença com espaço para evolução"
