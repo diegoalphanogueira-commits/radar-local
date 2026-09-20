@@ -437,21 +437,20 @@ async function renderOpportunityMap(
 
   const tileLayer =
   L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
 
       maxZoom:
         19,
 
-      subdomains:
-        "abcd",
+      crossOrigin:
+        true,
 
       attribution:
-        '&copy; OpenStreetMap &copy; CARTO'
+        '&copy; OpenStreetMap contributors'
 
     }
   );
-
 
   tileLayer.addTo(
     radarMapInstance
