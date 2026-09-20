@@ -486,5 +486,188 @@
                             </option>
 
                             <option value="10">
-                                10 km
-                           
+    10 km
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<!-- BOTÃO PARA ACESSO MANUAL AO RADAR -->
+
+<button
+    type="submit"
+    class="primary-button"
+>
+    Gerar diagnóstico
+    <span>→</span>
+</button>
+
+
+</form>
+
+</section>
+
+
+<!-- =====================================================
+     CARREGAMENTO AUTOMÁTICO
+====================================================== -->
+
+<section
+    id="loadingSection"
+    class="panel loading-panel hidden"
+>
+
+    <div class="loading-content">
+
+        <span class="loading-kicker">
+            RADAR LOCAL
+        </span>
+
+        <h2 id="loadingTitle">
+            Preparando sua análise...
+        </h2>
+
+        <p id="loadingText">
+            Estamos organizando os dados da sua região.
+        </p>
+
+        <div class="loading-progress">
+
+            <span
+                id="progressBar"
+            ></span>
+
+        </div>
+
+        <div class="loading-steps">
+
+            <span class="loading-step">
+                Localizando o negócio
+            </span>
+
+            <span class="loading-step">
+                Analisando demanda
+            </span>
+
+            <span class="loading-step">
+                Comparando presença
+            </span>
+
+            <span class="loading-step">
+                Calculando oportunidade
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     RESULTADO INTERMEDIÁRIO
+====================================================== -->
+
+<section
+    id="resultsSection"
+    class="hidden"
+>
+
+    <div class="panel">
+
+        <span class="section-kicker">
+            ANÁLISE CONCLUÍDA
+        </span>
+
+        <h2 id="resultsTitle">
+            Diagnóstico pronto
+        </h2>
+
+        <p id="resultsSubtitle">
+            Sua análise local foi concluída.
+        </p>
+
+        <!-- IDs usados pelo app.js -->
+
+        <div style="display:none">
+
+            <span id="weeklyDemand"></span>
+            <span id="monthlyDemand"></span>
+            <span id="presenceScore"></span>
+            <span id="presenceLabel"></span>
+            <span id="uncapturedDemand"></span>
+
+            <span id="mainScore"></span>
+            <span id="scoreStatus"></span>
+            <span id="scoreMessage"></span>
+
+            <span id="googleScore"></span>
+            <span id="authorityScore"></span>
+            <span id="reviewsScore"></span>
+
+            <span id="demandLevel"></span>
+            <span id="competitionLevel"></span>
+            <span id="visibilityLevel"></span>
+
+            <span id="keywordsCount"></span>
+            <span id="systemReading"></span>
+            <span id="captureStatus"></span>
+
+            <span id="presenceThermometer"></span>
+            <span id="demandMeter"></span>
+            <span id="competitionMeter"></span>
+            <span id="visibilityMeter"></span>
+
+            <span id="scoreGauge"></span>
+
+            <div id="keywordsList"></div>
+
+        </div>
+
+
+        <button
+            id="generateReportBtn"
+            type="button"
+            class="primary-button"
+        >
+            Ver meu diagnóstico completo
+            <span>→</span>
+        </button>
+
+
+        <button
+            id="newAnalysisBtn"
+            type="button"
+            class="secondary-button"
+        >
+            Fazer nova análise
+        </button>
+
+    </div>
+
+</section>
+
+
+</main>
+
+</div>
+
+
+<!-- =====================================================
+     SCRIPTS
+====================================================== -->
+
+<script src="js/data.js"></script>
+
+<script src="js/app.js"></script>
+
+<script src="js/landing-bridge.js"></script>
+
+
+</body>
+
+</html>
