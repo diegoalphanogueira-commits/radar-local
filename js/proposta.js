@@ -417,7 +417,7 @@ async function renderOpportunityMap(
           true,
 
         preferCanvas:
-          true
+  false
 
       }
     );
