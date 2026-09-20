@@ -17,6 +17,9 @@ const printButton = document.getElementById("printButton");
 const backButton = document.getElementById("backButton");
 const RADAR_WHATSAPP_NUMBER = "5511970349654";
 
+const GEOAPIFY_API_KEY =
+  "61752d18dba9485784b870f8d4e38b17";
+
 function byId(id) {
   return document.getElementById(id);
 }
@@ -133,6 +136,171 @@ function createRadarPoint(
     lat + latitudeOffset,
     lon + longitudeOffset
   ];
+}
+
+/* =========================================================
+   BUSCAR NEGÓCIOS SEMELHANTES
+========================================================= */
+
+async function fetchNearbyBusinesses({
+  latitude,
+  longitude,
+  radius,
+  segmentKey
+}) {
+
+  /*
+    Primeiro vamos validar Seguros.
+    Depois expandimos para os outros segmentos.
+  */
+
+  const categoryMap = {
+
+    seguros:
+      "office.insurance",
+
+    advocacia:
+      "office.lawyer"
+
+  };
+
+
+  const category =
+    categoryMap[
+      segmentKey
+    ];
+
+
+  if (
+    !category
+  ) {
+
+    console.log(
+      "Categoria Geoapify ainda não configurada:",
+      segmentKey
+    );
+
+    return [];
+
+  }
+
+
+  if (
+    !GEOAPIFY_API_KEY ||
+    GEOAPIFY_API_KEY.includes(
+      "COLE_AQUI"
+    )
+  ) {
+
+    console.error(
+      "Configure a chave GEOAPIFY_API_KEY."
+    );
+
+    return [];
+
+  }
+
+
+  const radiusMeters =
+    radius *
+    1000;
+
+
+  const url =
+    new URL(
+      "https://api.geoapify.com/v2/places"
+    );
+
+
+  url.searchParams.set(
+    "categories",
+    category
+  );
+
+
+  url.searchParams.set(
+    "filter",
+    `circle:${longitude},${latitude},${radiusMeters}`
+  );
+
+
+  url.searchParams.set(
+    "bias",
+    `proximity:${longitude},${latitude}`
+  );
+
+
+  url.searchParams.set(
+    "limit",
+    "50"
+  );
+
+
+  url.searchParams.set(
+    "lang",
+    "pt"
+  );
+
+
+  url.searchParams.set(
+    "apiKey",
+    GEOAPIFY_API_KEY
+  );
+
+
+  try {
+
+    const response =
+      await fetch(
+        url.toString()
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        `Geoapify respondeu ${response.status}`
+      );
+
+    }
+
+
+    const payload =
+      await response.json();
+
+
+    const places =
+      Array.isArray(
+        payload.features
+      )
+        ? payload.features
+        : [];
+
+
+    console.log(
+      "Negócios semelhantes encontrados:",
+      places
+    );
+
+
+    return places;
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Erro ao buscar negócios semelhantes:",
+      error
+    );
+
+
+    return [];
+
+  }
+
 }
 
 
