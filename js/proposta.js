@@ -729,6 +729,351 @@ async function renderOpportunityMap(
     `
   );
 
+/* =====================================================
+   NEGÓCIOS SEMELHANTES REAIS
+====================================================== */
+
+const nearbyPlaces =
+  await fetchNearbyBusinesses({
+
+    latitude,
+
+    longitude,
+
+    radius,
+
+    segmentKey:
+      data?.originalSegmentKey ||
+      data?.segmentKey
+
+  });
+
+
+/*
+  Normalização simples para evitar
+  contar a própria empresa como concorrente.
+*/
+
+function normalizeBusinessName(
+  value
+) {
+
+  return String(
+    value ||
+    ""
+  )
+    .normalize("NFD")
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    )
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9]/g,
+      ""
+    );
+
+}
+
+
+const currentCompanyName =
+  normalizeBusinessName(
+    company
+  );
+
+
+const competitors =
+  nearbyPlaces.filter(
+    function (
+      feature
+    ) {
+
+      const properties =
+        feature?.properties ||
+        {};
+
+
+      const placeName =
+        normalizeBusinessName(
+          properties.name
+        );
+
+
+      /*
+        Se tiver exatamente o mesmo nome,
+        entendemos que é a própria empresa.
+      */
+
+      if (
+        placeName &&
+        placeName ===
+        currentCompanyName
+      ) {
+
+        return false;
+
+      }
+
+
+      const coordinates =
+        feature?.geometry
+          ?.coordinates;
+
+
+      if (
+        !Array.isArray(
+          coordinates
+        ) ||
+        coordinates.length < 2
+      ) {
+
+        return false;
+
+      }
+
+
+      return true;
+
+    }
+  );
+
+
+/* =====================================================
+   QUANTIDADE ENCONTRADA
+====================================================== */
+
+const competitorCount =
+  competitors.length;
+
+
+setText(
+  "nearbyCompetitors",
+  competitorCount >= 50
+    ? "50+"
+    : String(
+        competitorCount
+      )
+);
+
+
+/* =====================================================
+   CLASSIFICAR DISPUTA LOCAL
+====================================================== */
+
+let realCompetitionLevel =
+  "Baixa";
+
+
+if (
+  competitorCount >= 15
+) {
+
+  realCompetitionLevel =
+    "Alta";
+
+}
+
+else if (
+  competitorCount >= 8
+) {
+
+  realCompetitionLevel =
+    "Média-alta";
+
+}
+
+else if (
+  competitorCount >= 4
+) {
+
+  realCompetitionLevel =
+    "Moderada";
+
+}
+
+
+setText(
+  "mapCompetitionLevel",
+  realCompetitionLevel
+);
+
+
+/* =====================================================
+   MARCADORES DOS NEGÓCIOS
+====================================================== */
+
+competitors.forEach(
+  function (
+    feature
+  ) {
+
+    const properties =
+      feature?.properties ||
+      {};
+
+
+    const coordinates =
+      feature.geometry
+        .coordinates;
+
+
+    const competitorLongitude =
+      Number(
+        coordinates[0]
+      );
+
+
+    const competitorLatitude =
+      Number(
+        coordinates[1]
+      );
+
+
+    if (
+      !Number.isFinite(
+        competitorLatitude
+      ) ||
+      !Number.isFinite(
+        competitorLongitude
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const competitorName =
+      safeText(
+        properties.name,
+        "Negócio semelhante"
+      );
+
+
+    const competitorAddress =
+      safeText(
+        properties.formatted ||
+        properties.address_line2 ||
+        "",
+        ""
+      );
+
+
+    const competitorMarker =
+      L.circleMarker(
+        [
+          competitorLatitude,
+          competitorLongitude
+        ],
+        {
+
+          radius:
+            6,
+
+          color:
+            "#ffffff",
+
+          weight:
+            2,
+
+          fillColor:
+            "#ea4335",
+
+          fillOpacity:
+            0.95
+
+        }
+      )
+        .addTo(
+          radarMapInstance
+        );
+
+
+    competitorMarker.bindPopup(
+      `
+        <div style="
+          min-width:180px;
+          font-family:Inter,Arial,sans-serif;
+        ">
+
+          <strong style="
+            display:block;
+            margin-bottom:5px;
+            font-size:13px;
+          ">
+            ${escapeMapText(
+              competitorName
+            )}
+          </strong>
+
+          <span style="
+            color:#667085;
+            font-size:10px;
+            line-height:1.4;
+          ">
+            ${escapeMapText(
+              competitorAddress
+            )}
+          </span>
+
+        </div>
+      `
+    );
+
+  }
+);
+
+
+/* =====================================================
+   LEITURA DO MAPA
+====================================================== */
+
+const mapInsight =
+  document.getElementById(
+    "mapInsight"
+  );
+
+
+if (
+  mapInsight
+) {
+
+  if (
+    competitorCount >= 15
+  ) {
+
+    mapInsight.textContent =
+      `Foram identificados ${competitorCount} negócios semelhantes dentro do raio analisado. A disputa local é relevante e aumenta a importância de aparecer com força, autoridade e confiança.`;
+
+  }
+
+  else if (
+    competitorCount >= 8
+  ) {
+
+    mapInsight.textContent =
+      `Foram identificados ${competitorCount} negócios semelhantes no raio analisado. Existe concorrência próxima disputando a atenção do mesmo mercado local.`;
+
+  }
+
+  else if (
+    competitorCount >= 4
+  ) {
+
+    mapInsight.textContent =
+      `Foram identificados ${competitorCount} negócios semelhantes na região. Existe disputa local, mas também espaço para construir maior destaque.`;
+
+  }
+
+  else {
+
+    mapInsight.textContent =
+      `Foram identificados poucos negócios semelhantes no raio analisado. Isso pode representar uma oportunidade de ganhar presença local com mais facilidade.`;
+
+  }
+
+}
+   
 
   /*
     Ajusta automaticamente o mapa
