@@ -421,7 +421,19 @@ async function renderOpportunityMap(
 
       }
     );
+  /* =====================================================
+     DEFINIR CENTRO INICIAL DO MAPA
+  ====================================================== */
 
+  radarMapInstance.setView(
+    [
+      latitude,
+      longitude
+    ],
+    getRadarMapZoom(
+      radius
+    )
+  );
 
   const tileLayer =
   L.tileLayer(
