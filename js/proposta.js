@@ -720,6 +720,50 @@ function renderReport() {
   setText("coverDescription", `Analisamos o cenário de ${segment.toLowerCase()} em ${region} para entender quanto da procura local pode estar passando sem chegar até a ${company}.`);
   setText("executiveStatement", getExecutiveStatement(proposalData));
 
+     /* =====================================================
+     INDICADORES DA CAPA
+  ====================================================== */
+
+  const coverScoreLabel =
+    overall >= 75
+      ? "Presença forte"
+      : overall >= 55
+        ? "Presença boa"
+        : overall >= 35
+          ? "Presença intermediária"
+          : "Presença baixa";
+
+
+  setText(
+    "coverOverallScore",
+    formatNumber(
+      overall
+    )
+  );
+
+
+  setText(
+    "coverScoreLabel",
+    coverScoreLabel
+  );
+
+
+  setText(
+    "coverMonthlyDemand",
+    formatNumber(
+      monthly
+    )
+  );
+
+
+  setText(
+    "coverCompetitionLevel",
+    safeText(
+      proposalData.competitionLevel,
+      "Relevante"
+    )
+  );
+
   setText("monthlyDemand", formatNumber(monthly));
   setText("weeklyDemand", formatNumber(weekly));
   setText("demandLevelLabel", getDemandLevel(monthly, proposalData.demandLevel));
