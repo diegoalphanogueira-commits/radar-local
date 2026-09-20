@@ -30,6 +30,37 @@ function safeText(value, fallback = "—") {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
 }
+
+function escapeMapText(
+  value
+) {
+
+  return String(
+    value ||
+    ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
 /* =========================================================
    RADAR LOCAL — MAPA
 ========================================================= */
@@ -114,6 +145,7 @@ async function renderOpportunityMap(
       "opportunityMap"
     );
 
+
   if (!mapElement) {
     return;
   }
@@ -156,208 +188,316 @@ async function renderOpportunityMap(
     );
 
 
-  document.getElementById(
-    "mapCompanyName"
-  ).textContent =
-    company;
+  /* =====================================================
+     INFORMAÇÕES DO CARD
+  ====================================================== */
+
+  setText(
+    "mapCompanyName",
+    company
+  );
 
 
-  document.getElementById(
-    "mapAddress"
-  ).textContent =
+  setText(
+    "mapAddress",
     address ||
     region ||
-    "Região analisada";
+    "Região analisada"
+  );
 
 
-  document.getElementById(
-    "mapRadius"
-  ).textContent =
-    `${radius} km`;
+  setText(
+    "mapRadius",
+    `${radius} km`
+  );
 
 
-  document.getElementById(
-    "mapCompetitionLevel"
-  ).textContent =
-    competitionLevel;
-
-
-  const competitorCount =
+  setText(
+    "mapCompetitionLevel",
     competitionLevel
-      .toLowerCase()
-      .includes("alta")
-        ? 14
-        : competitionLevel
-            .toLowerCase()
-            .includes("baixa")
-          ? 5
-          : 9;
+  );
 
 
-  document.getElementById(
-    "nearbyCompetitors"
-  ).textContent =
-    competitorCount;
+  /*
+    Concorrentes serão conectados
+    em uma próxima etapa.
+
+    Não mostramos um número inventado
+    como se fosse quantidade real.
+  */
+
+  setText(
+    "nearbyCompetitors",
+    "—"
+  );
 
 
-  if (!address) {
-    return;
-  }
-
-
-  if (typeof L === "undefined") {
+  if (
+    typeof L ===
+    "undefined"
+  ) {
 
     console.error(
       "Leaflet não carregado."
     );
 
     return;
+
   }
 
 
-  try {
+  /* =====================================================
+     COORDENADAS
+  ====================================================== */
 
-    const fullAddress =
-      [address, region]
-        .filter(Boolean)
-        .join(", ");
-
-
-    const response =
-      await fetch(
-        "https://nominatim.openstreetmap.org/search" +
-        "?format=jsonv2" +
-        "&limit=1" +
-        "&countrycodes=br" +
-        "&accept-language=pt-BR" +
-        `&q=${encodeURIComponent(
-          fullAddress
-        )}`
-      );
+  let latitude =
+    Number(
+      data?.lat
+    );
 
 
-    const results =
-      await response.json();
+  let longitude =
+    Number(
+      data?.lon
+    );
 
 
-    if (
-      !Array.isArray(results) ||
-      !results.length
-    ) {
+  /*
+    Primeiro usamos as coordenadas
+    recebidas diretamente da landing.
 
-      throw new Error(
-        "Endereço não encontrado."
-      );
+    Só fazemos geocodificação como
+    fallback se elas não existirem.
+  */
+
+  const validCoordinates =
+    Number.isFinite(
+      latitude
+    ) &&
+    Number.isFinite(
+      longitude
+    ) &&
+    latitude !== 0 &&
+    longitude !== 0;
+
+
+  if (
+    !validCoordinates
+  ) {
+
+    try {
+
+      const fullAddress =
+        [
+          address,
+          region
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+
+      if (!fullAddress) {
+
+        throw new Error(
+          "Endereço indisponível."
+        );
+
+      }
+
+
+      const response =
+        await fetch(
+          "https://nominatim.openstreetmap.org/search" +
+          "?format=jsonv2" +
+          "&limit=1" +
+          "&countrycodes=br" +
+          "&accept-language=pt-BR" +
+          `&q=${encodeURIComponent(
+            fullAddress
+          )}`
+        );
+
+
+      const results =
+        await response.json();
+
+
+      if (
+        !Array.isArray(
+          results
+        ) ||
+        !results.length
+      ) {
+
+        throw new Error(
+          "Endereço não encontrado."
+        );
+
+      }
+
+
+      latitude =
+        Number(
+          results[0].lat
+        );
+
+
+      longitude =
+        Number(
+          results[0].lon
+        );
 
     }
 
+    catch (error) {
 
-    const latitude =
-      Number(results[0].lat);
-
-    const longitude =
-      Number(results[0].lon);
-
-
-    mapElement.innerHTML =
-      "";
+      console.error(
+        "Não foi possível localizar o endereço no mapa:",
+        error
+      );
 
 
-    if (radarMapInstance) {
+      mapElement.innerHTML =
+        `
+          <div style="
+            height:100%;
+            min-height:300px;
+            display:grid;
+            place-items:center;
+            text-align:center;
+            padding:30px;
+            color:#7b8798;
+          ">
+            Não foi possível carregar
+            a localização neste momento.
+          </div>
+        `;
 
-      radarMapInstance.remove();
 
-      radarMapInstance =
-        null;
+      return;
 
     }
 
+  }
+
+
+  /* =====================================================
+     LIMPAR MAPA ANTIGO
+  ====================================================== */
+
+  mapElement.innerHTML =
+    "";
+
+
+  if (
+    radarMapInstance
+  ) {
+
+    radarMapInstance.remove();
 
     radarMapInstance =
-      L.map(
-        mapElement,
-        {
-          zoomControl:
-            false,
+      null;
 
-          attributionControl:
-            true,
-
-          preferCanvas:
-            true
-        }
-      );
+  }
 
 
-    radarMapInstance.setView(
-      [
-        latitude,
-        longitude
-      ],
-      getRadarMapZoom(
-        radius
-      )
+  /* =====================================================
+     CRIAR MAPA
+  ====================================================== */
+
+  radarMapInstance =
+    L.map(
+      mapElement,
+      {
+
+        zoomControl:
+          true,
+
+        attributionControl:
+          true,
+
+        preferCanvas:
+          true
+
+      }
     );
 
 
-    const tileLayer =
-      L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          maxZoom:
-            19,
+  const tileLayer =
+    L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
 
-          crossOrigin:
-            true,
+        maxZoom:
+          19,
 
-          attribution:
-            "© OpenStreetMap"
-        }
-      );
+        crossOrigin:
+          true,
 
+        attribution:
+          "© OpenStreetMap"
 
-    tileLayer.addTo(
-      radarMapInstance
+      }
     );
 
 
+  tileLayer.addTo(
+    radarMapInstance
+  );
+
+
+  /* =====================================================
+     RAIO REAL
+  ====================================================== */
+
+  const radiusCircle =
     L.circle(
       [
         latitude,
         longitude
       ],
       {
+
         radius:
-          radius * 1000,
+          radius *
+          1000,
 
         color:
-          "#2563eb",
+          "#2878f0",
 
         weight:
           2,
 
         opacity:
-          0.45,
+          0.65,
 
         fillColor:
-          "#2563eb",
+          "#2878f0",
 
         fillOpacity:
-          0.07
+          0.08
+
       }
-    ).addTo(
-      radarMapInstance
-    );
+    )
+      .addTo(
+        radarMapInstance
+      );
 
 
+  /* =====================================================
+     EMPRESA
+  ====================================================== */
+
+  const companyMarker =
     L.circleMarker(
       [
         latitude,
         longitude
       ],
       {
+
         radius:
-          10,
+          11,
 
         color:
           "#ffffff",
@@ -366,189 +506,127 @@ async function renderOpportunityMap(
           4,
 
         fillColor:
-          "#2563eb",
+          "#2878f0",
 
         fillOpacity:
           1
-      }
-    ).addTo(
-      radarMapInstance
-    );
-
-
-    const angles = [
-      35,
-      78,
-      125,
-      170,
-      218,
-      265,
-      310,
-      345
-    ];
-
-
-    const distances = [
-      0.35,
-      0.52,
-      0.68,
-      0.44,
-      0.71,
-      0.57,
-      0.39,
-      0.61
-    ];
-
-
-    angles.forEach(
-      (
-        angle,
-        index
-      ) => {
-
-        const point =
-          createRadarPoint(
-            latitude,
-            longitude,
-            radius *
-            distances[index],
-            angle
-          );
-
-
-        L.circleMarker(
-          point,
-          {
-            radius:
-              6,
-
-            color:
-              "#ffffff",
-
-            weight:
-              2,
-
-            fillColor:
-              "#ea4335",
-
-            fillOpacity:
-              0.95
-          }
-        ).addTo(
-          radarMapInstance
-        );
 
       }
-    );
-
-
-    [
-      {
-        angle: 100,
-        distance: 0.78
-      },
-      {
-        angle: 290,
-        distance: 0.82
-      }
-    ].forEach(
-      item => {
-
-        const point =
-          createRadarPoint(
-            latitude,
-            longitude,
-            radius *
-            item.distance,
-            item.angle
-          );
-
-
-        L.circleMarker(
-          point,
-          {
-            radius:
-              6,
-
-            color:
-              "#ffffff",
-
-            weight:
-              2,
-
-            fillColor:
-              "#34a853",
-
-            fillOpacity:
-              0.95
-          }
-        ).addTo(
-          radarMapInstance
-        );
-
-      }
-    );
-
-
-    setTimeout(
-      () => {
-
+    )
+      .addTo(
         radarMapInstance
-          ?.invalidateSize();
-
-      },
-      100
-    );
+      );
 
 
-    await new Promise(
-      resolve => {
+  companyMarker.bindPopup(
+    `
+      <div style="
+        min-width:190px;
+        font-family:Inter,Arial,sans-serif;
+      ">
 
-        let completed =
-          false;
+        <strong style="
+          display:block;
+          margin-bottom:5px;
+          font-size:14px;
+        ">
+          ${escapeMapText(
+            company
+          )}
+        </strong>
 
+        <span style="
+          color:#667085;
+          font-size:11px;
+          line-height:1.4;
+        ">
+          ${escapeMapText(
+            address ||
+            region
+          )}
+        </span>
 
-        const finish =
-          () => {
-
-            if (completed) {
-              return;
-            }
-
-            completed =
-              true;
-
-            resolve();
-
-          };
-
-
-        tileLayer.once(
-          "load",
-          finish
-        );
-
-
-        setTimeout(
-          finish,
-          3000
-        );
-
-      }
-    );
+      </div>
+    `
+  );
 
 
-  } catch (error) {
+  /*
+    Ajusta automaticamente o mapa
+    para mostrar todo o raio escolhido.
+  */
 
-    console.error(
-      "Erro ao gerar mapa:",
-      error
-    );
+  radarMapInstance.fitBounds(
+    radiusCircle.getBounds(),
+    {
 
-  }
+      padding:
+        [
+          20,
+          20
+        ]
+
+    }
+  );
+
+
+  setTimeout(
+    function () {
+
+      radarMapInstance
+        ?.invalidateSize();
+
+    },
+    150
+  );
+
+
+  /*
+    Aguarda os tiles para o PDF.
+  */
+
+  await new Promise(
+    function (resolve) {
+
+      let completed =
+        false;
+
+
+      const finish =
+        function () {
+
+          if (
+            completed
+          ) {
+
+            return;
+
+          }
+
+
+          completed =
+            true;
+
+          resolve();
+
+        };
+
+
+      tileLayer.once(
+        "load",
+        finish
+      );
+
+
+      setTimeout(
+        finish,
+        3000
+      );
+
+    }
+  );
 
 }
-
 function formatNumber(value) {
   return new Intl.NumberFormat("pt-BR").format(Number(value) || 0);
 }
