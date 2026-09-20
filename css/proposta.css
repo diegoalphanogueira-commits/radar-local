@@ -1988,3 +1988,31 @@ body.pdf-exporting .pdf-page {
     position: absolute !important;
   }
 }
+/* =========================================================
+   MAPA REAL
+========================================================= */
+
+.opportunity-map {
+    background: #eef2f6;
+}
+
+.opportunity-map .leaflet-map-pane {
+    z-index: 2;
+}
+
+.opportunity-map .leaflet-tile-pane {
+    z-index: 2;
+}
+
+.opportunity-map .leaflet-overlay-pane {
+    z-index: 4;
+}
+
+.opportunity-map .leaflet-marker-pane {
+    z-index: 5;
+}
+
+.opportunity-map .leaflet-control-container {
+    position: relative;
+    z-index: 8;
+}
