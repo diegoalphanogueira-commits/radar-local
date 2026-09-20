@@ -1183,275 +1183,622 @@
 
     }
 
+function escapeHtml(
+    value
+) {
 
+    return String(
+        value ||
+        ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+   
     /* =====================================================
        PREPARAR TELA
     ====================================================== */
 
     function prepareLoadingScreen(
-        lead
+    lead
+) {
+
+    /*
+        Quem veio da landing não precisa
+        ver formulário, hero ou resultado
+        intermediário.
+    */
+
+    const appShell =
+        document.querySelector(
+            ".app-shell"
+        );
+
+
+    if (
+        appShell
     ) {
 
-        const hero =
-            document.querySelector(
-                ".hero"
-            );
+        appShell.style.display =
+            "none";
+
+    }
 
 
-        const searchPanel =
-            document.querySelector(
-                ".search-panel"
-            );
+    /*
+        Criamos uma tela limpa
+        exclusivamente para a análise.
+    */
+
+    const screen =
+        document.createElement(
+            "div"
+        );
 
 
-        const entryContext =
-            document.getElementById(
-                "entryContext"
-            );
+    screen.id =
+        "landingAnalysisScreen";
 
 
-        const loadingSection =
-            document.getElementById(
-                "loadingSection"
-            );
+    screen.innerHTML =
+        `
+        <div class="bridge-loader">
+
+            <div class="bridge-brand">
+
+                <div class="bridge-mark">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <div>
+                    <strong>Radar Local</strong>
+                    <small>Diagnóstico de oportunidade local</small>
+                </div>
+
+            </div>
 
 
-        if (hero) {
+            <div class="bridge-content">
 
-            hero.style.display =
-                "none";
+                <span class="bridge-kicker">
+                    ANALISANDO SUA REGIÃO
+                </span>
 
+                <h1 id="bridgeTitle">
+                    Localizando seu negócio...
+                </h1>
+
+                <p id="bridgeText">
+                    Estamos preparando a análise da ${escapeHtml(
+                        lead.company
+                    )}.
+                </p>
+
+
+                <div class="bridge-progress">
+                    <span id="bridgeProgress"></span>
+                </div>
+
+
+                <div class="bridge-steps">
+
+                    <div class="bridge-step active">
+                        <span>✓</span>
+                        <div>
+                            <strong>Negócio identificado</strong>
+                            <small>${escapeHtml(
+                                lead.company
+                            )}</small>
+                        </div>
+                    </div>
+
+                    <div class="bridge-step">
+                        <span>02</span>
+                        <div>
+                            <strong>Demanda local</strong>
+                            <small>Analisando procura na região</small>
+                        </div>
+                    </div>
+
+                    <div class="bridge-step">
+                        <span>03</span>
+                        <div>
+                            <strong>Presença digital</strong>
+                            <small>Calculando capacidade de captura</small>
+                        </div>
+                    </div>
+
+                    <div class="bridge-step">
+                        <span>04</span>
+                        <div>
+                            <strong>Diagnóstico</strong>
+                            <small>Preparando sua leitura</small>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="bridge-location">
+                <span>◎</span>
+                ${escapeHtml(
+                    lead.region
+                )}
+            </div>
+
+        </div>
+        `;
+
+
+    document.body.appendChild(
+        screen
+    );
+
+
+    /*
+        CSS isolado.
+    */
+
+    const style =
+        document.createElement(
+            "style"
+        );
+
+
+    style.textContent =
+        `
+
+        body {
+            margin: 0;
+            background: #f4f7fc;
         }
 
-
-        if (searchPanel) {
-
-            searchPanel.style.display =
-                "none";
-
-        }
-
-
-        if (entryContext) {
-
-            entryContext.classList.remove(
-                "hidden"
-            );
-
-
-            const text =
-                document.getElementById(
-                    "entryContextText"
+        #landingAnalysisScreen {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 32px 20px;
+            font-family: Inter, Arial, sans-serif;
+            box-sizing: border-box;
+            background:
+                radial-gradient(
+                    circle at 50% 20%,
+                    #edf4ff 0%,
+                    #f6f8fc 45%,
+                    #f4f7fc 100%
                 );
+        }
 
+        .bridge-loader {
+            width: min(680px, 100%);
+        }
 
-            if (text) {
+        .bridge-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 38px;
+        }
 
-                text.textContent =
-                    `${lead.company} identificado em ${lead.region}`;
+        .bridge-brand strong {
+            display: block;
+            font-size: 15px;
+            color: #202124;
+        }
 
+        .bridge-brand small {
+            display: block;
+            margin-top: 2px;
+            color: #8a94a4;
+            font-size: 11px;
+        }
+
+        .bridge-mark {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            padding: 8px;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow:
+                0 8px 24px
+                rgba(24, 48, 90, .08);
+            box-sizing: border-box;
+        }
+
+        .bridge-mark span {
+            border-radius: 50%;
+        }
+
+        .bridge-mark span:nth-child(1) {
+            background: #2878f0;
+        }
+
+        .bridge-mark span:nth-child(2) {
+            background: #ea4335;
+        }
+
+        .bridge-mark span:nth-child(3) {
+            background: #f9ab00;
+        }
+
+        .bridge-mark span:nth-child(4) {
+            background: #34a853;
+        }
+
+        .bridge-content {
+            padding: 44px;
+            background: #fff;
+            border: 1px solid #e4e9f1;
+            border-radius: 28px;
+            box-shadow:
+                0 24px 60px
+                rgba(29, 53, 87, .10);
+        }
+
+        .bridge-kicker {
+            display: block;
+            margin-bottom: 12px;
+            color: #2878f0;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .12em;
+        }
+
+        .bridge-content h1 {
+            margin: 0;
+            color: #202124;
+            font-size: clamp(28px, 5vw, 42px);
+            line-height: 1.08;
+            letter-spacing: -.04em;
+        }
+
+        .bridge-content > p {
+            margin: 16px 0 28px;
+            color: #697586;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .bridge-progress {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #edf1f6;
+        }
+
+        .bridge-progress span {
+            display: block;
+            width: 10%;
+            height: 100%;
+            border-radius: inherit;
+            background: #2878f0;
+            transition: width .5s ease;
+        }
+
+        .bridge-steps {
+            display: grid;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .bridge-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 14px;
+            border-radius: 14px;
+            color: #98a2b1;
+            transition:
+                background .25s ease,
+                color .25s ease;
+        }
+
+        .bridge-step > span {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 9px;
+            background: #f1f4f8;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .bridge-step strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .bridge-step small {
+            display: block;
+            margin-top: 2px;
+            font-size: 10px;
+            opacity: .75;
+        }
+
+        .bridge-step.active {
+            color: #202124;
+            background: #f4f8ff;
+        }
+
+        .bridge-step.active > span {
+            color: #fff;
+            background: #2878f0;
+        }
+
+        .bridge-step.done {
+            color: #566275;
+        }
+
+        .bridge-step.done > span {
+            color: #1f8f4d;
+            background: #eaf6ed;
+        }
+
+        .bridge-location {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 7px;
+            margin-top: 22px;
+            color: #7c8797;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+
+            #landingAnalysisScreen {
+                padding: 22px 14px;
+            }
+
+            .bridge-content {
+                padding: 30px 22px;
+                border-radius: 22px;
+            }
+
+            .bridge-brand {
+                margin-bottom: 24px;
             }
 
         }
 
-
-        if (loadingSection) {
-
-            loadingSection.classList.remove(
-                "hidden"
-            );
+        `;
 
 
-            loadingSection.scrollIntoView({
-                behavior:
-                    "smooth",
+    document.head.appendChild(
+        style
+    );
 
-                block:
-                    "center"
-            });
-
-        }
-
-    }
-
+}
 
     /* =====================================================
        ANIMAÇÃO
     ====================================================== */
 
     function runBridgeLoading(
-        lead
-    ) {
+    lead
+) {
 
-        const title =
-            document.getElementById(
-                "loadingTitle"
-            );
-
-
-        const text =
-            document.getElementById(
-                "loadingText"
-            );
+    const title =
+        document.getElementById(
+            "bridgeTitle"
+        );
 
 
-        const progress =
-            document.getElementById(
-                "progressBar"
-            );
+    const text =
+        document.getElementById(
+            "bridgeText"
+        );
 
 
-        const steps =
-            Array.from(
-                document.querySelectorAll(
-                    ".loading-step"
-                )
-            );
+    const progress =
+        document.getElementById(
+            "bridgeProgress"
+        );
 
 
-        const sequence = [
-
-            {
-                title:
-                    "Localizando seu negócio...",
-
-                text:
-                    `Confirmando a região de ${lead.company}.`,
-
-                progress:
-                    22
-            },
-
-            {
-                title:
-                    "Analisando a demanda local...",
-
-                text:
-                    `Mapeando intenções relacionadas a ${lead.segmentName}.`,
-
-                progress:
-                    48
-            },
-
-            {
-                title:
-                    "Comparando presença e oportunidade...",
-
-                text:
-                    "Organizando os principais sinais da análise.",
-
-                progress:
-                    76
-            },
-
-            {
-                title:
-                    "Diagnóstico pronto.",
-
-                text:
-                    "Abrindo seu relatório personalizado...",
-
-                progress:
-                    100
-            }
-
-        ];
+    const steps =
+        Array.from(
+            document.querySelectorAll(
+                ".bridge-step"
+            )
+        );
 
 
-        let index =
-            0;
+    const sequence = [
+
+        {
+            title:
+                "Localizando seu negócio...",
+
+            text:
+                `Confirmando os dados da ${lead.company}.`,
+
+            progress:
+                24
+        },
+
+        {
+            title:
+                "Existe procura na sua região?",
+
+            text:
+                `Analisando a demanda relacionada a ${lead.segmentName}.`,
+
+            progress:
+                50
+        },
+
+        {
+            title:
+                "Medindo sua capacidade de captura...",
+
+            text:
+                "Comparando presença, autoridade e sinais de confiança.",
+
+            progress:
+                77
+        },
+
+        {
+            title:
+                "Seu diagnóstico está pronto.",
+
+            text:
+                "Organizando os resultados e abrindo sua análise.",
+
+            progress:
+                100
+        }
+
+    ];
 
 
-        function next() {
-
-            const item =
-                sequence[
-                    index
-                ];
+    let index =
+        0;
 
 
-            if (title) {
+    function next() {
 
-                title.textContent =
-                    item.title;
-
-            }
-
-
-            if (text) {
-
-                text.textContent =
-                    item.text;
-
-            }
+        const item =
+            sequence[
+                index
+            ];
 
 
-            if (progress) {
+        if (title) {
 
-                progress.style.width =
-                    `${item.progress}%`;
-
-            }
-
-
-            steps.forEach(
-                function (
-                    step,
-                    stepIndex
-                ) {
-
-                    step.classList.toggle(
-                        "active",
-                        stepIndex ===
-                        index
-                    );
-
-
-                    step.classList.toggle(
-                        "done",
-                        stepIndex <
-                        index
-                    );
-
-                }
-            );
-
-
-            index++;
-
-
-            if (
-                index <
-                sequence.length
-            ) {
-
-                setTimeout(
-                    next,
-                    650
-                );
-
-                return;
-
-            }
-
-
-            setTimeout(
-                function () {
-
-                    window.location.replace(
-                        "proposta.html"
-                    );
-
-                },
-                550
-            );
+            title.textContent =
+                item.title;
 
         }
 
 
-        next();
+        if (text) {
+
+            text.textContent =
+                item.text;
+
+        }
+
+
+        if (progress) {
+
+            progress.style.width =
+                `${item.progress}%`;
+
+        }
+
+
+        steps.forEach(
+            function (
+                step,
+                stepIndex
+            ) {
+
+                step.classList.toggle(
+                    "active",
+                    stepIndex ===
+                    index
+                );
+
+
+                step.classList.toggle(
+                    "done",
+                    stepIndex <
+                    index
+                );
+
+
+                if (
+                    stepIndex <
+                    index
+                ) {
+
+                    const marker =
+                        step.querySelector(
+                            ":scope > span"
+                        );
+
+
+                    if (marker) {
+
+                        marker.textContent =
+                            "✓";
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        index++;
+
+
+        if (
+            index <
+            sequence.length
+        ) {
+
+            setTimeout(
+                next,
+                700
+            );
+
+            return;
+
+        }
+
+
+        setTimeout(
+            function () {
+
+                window.location.replace(
+                    "proposta.html"
+                );
+
+            },
+            650
+        );
 
     }
+
+
+    next();
+
+}
 
 
     /* =====================================================
