@@ -1038,22 +1038,6 @@ svg {
 }
 
 
-.opportunity-map::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 250px;
-  height: 250px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 2px solid rgba(66, 133, 244, .15);
-  box-shadow:
-    0 0 0 55px rgba(66, 133, 244, .045),
-    0 0 0 110px rgba(52, 168, 83, .025);
-  pointer-events: none;
-}
-
 /* SCORE */
 
 .score-stage {
