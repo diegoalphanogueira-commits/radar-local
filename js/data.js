@@ -8,6 +8,11 @@ if (!window.RadarPlaceSearch) {
   document.write('<script src="js/company-search.js?v=1"><\/script>');
 }
 
+/* Vincula a empresa real selecionada ao diagnóstico salvo. */
+if (!window.RadarPlaceDiagnosticBridge) {
+  document.write('<script src="js/place-diagnostic-bridge.js?v=1"><\/script>');
+}
+
 const RADAR_SEGMENTS = {
   estetica: {
     label: "Estética",
