@@ -3,6 +3,11 @@ if (!window.RadarAuth) {
   document.write('<script src="js/radar-auth.js?v=1"><\/script>');
 }
 
+/* Carrega a busca real de empresas antes do app principal. */
+if (!window.RadarPlaceSearch) {
+  document.write('<script src="js/company-search.js?v=1"><\/script>');
+}
+
 const RADAR_SEGMENTS = {
   estetica: {
     label: "Estética",
