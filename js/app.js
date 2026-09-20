@@ -3041,3 +3041,811 @@ if (
 prefillFromLanding();
 
 setupAddressStorage();
+/* =========================================================
+   ENTRADA AUTOMÁTICA VINDO DA LANDING
+========================================================= */
+
+function getLandingLead() {
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+
+  let savedLead =
+    null;
+
+
+  try {
+
+    savedLead =
+      JSON.parse(
+        localStorage.getItem(
+          "radarLocalLead"
+        ) ||
+        "null"
+      );
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Não foi possível ler radarLocalLead:",
+      error
+    );
+
+  }
+
+
+  /*
+    Só usamos o localStorage como fallback
+    se o lead acabou de ser criado.
+  */
+
+  const savedTimestamp =
+    savedLead?.timestamp
+      ? new Date(
+          savedLead.timestamp
+        ).getTime()
+      : 0;
+
+
+  const savedIsRecent =
+    savedTimestamp &&
+    (
+      Date.now() -
+      savedTimestamp
+    ) <
+    (
+      10 *
+      60 *
+      1000
+    );
+
+
+  const origem =
+    params.get(
+      "origem"
+    ) ||
+    (
+      savedIsRecent
+        ? savedLead?.origem
+        : ""
+    ) ||
+    "";
+
+
+  if (
+    origem !==
+    "posicionamento-local"
+  ) {
+
+    return null;
+
+  }
+
+
+  return {
+
+    company:
+      (
+        params.get(
+          "empresa"
+        ) ||
+        savedLead?.empresa ||
+        ""
+      ).trim(),
+
+
+    rawSegment:
+      (
+        params.get(
+          "segmento"
+        ) ||
+        savedLead?.segmento ||
+        ""
+      ).trim(),
+
+
+    segmentName:
+      (
+        params.get(
+          "segmento_nome"
+        ) ||
+        savedLead?.segmentoNome ||
+        ""
+      ).trim(),
+
+
+    region:
+      (
+        params.get(
+          "regiao"
+        ) ||
+        savedLead?.regiao ||
+        savedLead?.cidade ||
+        ""
+      ).trim(),
+
+
+    address:
+      (
+        params.get(
+          "endereco"
+        ) ||
+        savedLead?.endereco ||
+        ""
+      ).trim(),
+
+
+    phone:
+      (
+        params.get(
+          "telefone"
+        ) ||
+        savedLead?.telefone ||
+        ""
+      ).trim(),
+
+
+    lat:
+      (
+        params.get(
+          "lat"
+        ) ||
+        savedLead?.lat ||
+        ""
+      ).toString(),
+
+
+    lon:
+      (
+        params.get(
+          "lon"
+        ) ||
+        savedLead?.lon ||
+        ""
+      ).toString(),
+
+
+    placeId:
+      (
+        params.get(
+          "place_id"
+        ) ||
+        savedLead?.placeId ||
+        ""
+      ).toString(),
+
+
+    bairro:
+      (
+        params.get(
+          "bairro"
+        ) ||
+        savedLead?.bairro ||
+        ""
+      ).trim(),
+
+
+    cep:
+      (
+        params.get(
+          "cep"
+        ) ||
+        savedLead?.cep ||
+        ""
+      ).trim()
+
+  };
+
+}
+
+
+/* =========================================================
+   GARANTIR SEGMENTO NO RADAR
+========================================================= */
+
+function ensureRadarSegment(
+  rawSegment,
+  segmentName
+) {
+
+  const label =
+    segmentName ||
+    rawSegment ||
+    "Outro segmento";
+
+
+  let segmentKey =
+    rawSegment;
+
+
+  /*
+    Segmentos relacionados à beleza
+    usam a mesma base, mas preservamos
+    o nome correto na tela.
+  */
+
+  const aliases = {
+
+    barbearia:
+      "beleza",
+
+    manicure:
+      "beleza",
+
+    cilios:
+      "beleza"
+
+  };
+
+
+  /*
+    Para segmento personalizado,
+    criamos uma chave própria.
+
+    Exemplo:
+    outro + Imobiliária
+    →
+    outro-imobiliaria
+  */
+
+  if (
+    rawSegment ===
+    "outro"
+  ) {
+
+    const customSlug =
+      normalizeKeyPart(
+        label
+      )
+        .replace(
+          /\s+/g,
+          "-"
+        ) ||
+      "personalizado";
+
+
+    segmentKey =
+      `outro-${customSlug}`;
+
+  }
+
+
+  /*
+    Já existe normalmente.
+  */
+
+  if (
+    RADAR_SEGMENTS[
+      segmentKey
+    ]
+  ) {
+
+    return segmentKey;
+
+  }
+
+
+  /*
+    Se for uma especialidade de beleza,
+    clonamos a configuração de beleza.
+  */
+
+  const baseKey =
+    aliases[
+      rawSegment
+    ];
+
+
+  if (
+    baseKey &&
+    RADAR_SEGMENTS[
+      baseKey
+    ]
+  ) {
+
+    RADAR_SEGMENTS[
+      segmentKey
+    ] = {
+
+      ...RADAR_SEGMENTS[
+        baseKey
+      ],
+
+      label:
+        label,
+
+      keywords:
+        [
+          ...RADAR_SEGMENTS[
+            baseKey
+          ].keywords
+        ]
+
+    };
+
+
+    return segmentKey;
+
+  }
+
+
+  /*
+    Fallback genérico para segmentos
+    que ainda não possuem configuração própria.
+
+    Os números continuam sendo estimativas
+    determinísticas do Radar.
+  */
+
+  RADAR_SEGMENTS[
+    segmentKey
+  ] = {
+
+    label:
+      label,
+
+    baseMonthly:
+      [
+        55,
+        135
+      ],
+
+    scoreRange:
+      [
+        28,
+        62
+      ],
+
+    keywords:
+      [
+        `${label} perto de mim`,
+        `${label} próximo`,
+        `${label} na minha região`,
+        `melhor ${label}`,
+        `${label} preço`,
+        `${label} atendimento`
+      ]
+
+  };
+
+
+  return segmentKey;
+
+}
+
+
+/* =========================================================
+   PREENCHER RADAR E GERAR DIAGNÓSTICO
+========================================================= */
+
+async function runRadarFromLanding() {
+
+  const lead =
+    getLandingLead();
+
+
+  if (
+    !lead
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !lead.company ||
+    !lead.region ||
+    !lead.rawSegment
+  ) {
+
+    console.warn(
+      "Dados recebidos da landing estão incompletos:",
+      lead
+    );
+
+    return;
+
+  }
+
+
+  const segmentKey =
+    ensureRadarSegment(
+      lead.rawSegment,
+      lead.segmentName
+    );
+
+
+  const radius =
+    "3";
+
+
+  /* =====================================================
+     PREENCHER FORMULÁRIO
+  ====================================================== */
+
+  const companyInput =
+    document.getElementById(
+      "company"
+    );
+
+
+  const addressInput =
+    document.getElementById(
+      "address"
+    );
+
+
+  const segmentInput =
+    document.getElementById(
+      "segment"
+    );
+
+
+  const regionInput =
+    document.getElementById(
+      "region"
+    );
+
+
+  const radiusInput =
+    document.getElementById(
+      "radius"
+    );
+
+
+  if (
+    companyInput
+  ) {
+
+    companyInput.value =
+      lead.company;
+
+  }
+
+
+  if (
+    addressInput
+  ) {
+
+    addressInput.value =
+      lead.address;
+
+  }
+
+
+  if (
+    regionInput
+  ) {
+
+    regionInput.value =
+      lead.region;
+
+  }
+
+
+  if (
+    radiusInput
+  ) {
+
+    radiusInput.value =
+      radius;
+
+  }
+
+
+  /*
+    Caso seja "Outro segmento"
+    ou alguma opção nova,
+    adicionamos no select do Radar.
+  */
+
+  if (
+    segmentInput
+  ) {
+
+    const optionExists =
+      Array
+        .from(
+          segmentInput.options
+        )
+        .some(
+          option =>
+            option.value ===
+            segmentKey
+        );
+
+
+    if (
+      !optionExists
+    ) {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        segmentKey;
+
+
+      option.textContent =
+        RADAR_SEGMENTS[
+          segmentKey
+        ].label;
+
+
+      segmentInput.appendChild(
+        option
+      );
+
+    }
+
+
+    segmentInput.value =
+      segmentKey;
+
+  }
+
+
+  /* =====================================================
+     SALVAR ENDEREÇO
+  ====================================================== */
+
+  if (
+    lead.address
+  ) {
+
+    localStorage.setItem(
+      "radarAddress",
+      lead.address
+    );
+
+  }
+
+
+  /* =====================================================
+     AVISO DE CONTEXTO
+  ====================================================== */
+
+  const entryContext =
+    document.getElementById(
+      "entryContext"
+    );
+
+
+  const entryContextText =
+    document.getElementById(
+      "entryContextText"
+    );
+
+
+  if (
+    entryContext
+  ) {
+
+    entryContext
+      .classList
+      .remove(
+        "hidden"
+      );
+
+  }
+
+
+  if (
+    entryContextText
+  ) {
+
+    entryContextText.textContent =
+      `${lead.company} localizado em ${lead.region}`;
+
+  }
+
+
+  /* =====================================================
+     GERAR SNAPSHOT
+  ====================================================== */
+
+  const data =
+    getOrCreateSnapshot({
+
+      company:
+        lead.company,
+
+      region:
+        lead.region,
+
+      segmentKey:
+        segmentKey,
+
+      radius:
+        radius
+
+    });
+
+
+  /*
+    Acrescentar informações reais
+    coletadas na landing.
+  */
+
+  const enrichedData = {
+
+    ...data,
+
+    company:
+      lead.company,
+
+    region:
+      lead.region,
+
+    segmentKey:
+      segmentKey,
+
+    segmentLabel:
+      RADAR_SEGMENTS[
+        segmentKey
+      ].label,
+
+    address:
+      lead.address,
+
+    phone:
+      lead.phone,
+
+    lat:
+      lead.lat,
+
+    lon:
+      lead.lon,
+
+    placeId:
+      lead.placeId,
+
+    bairro:
+      lead.bairro,
+
+    cep:
+      lead.cep,
+
+    source:
+      "posicionamento-local"
+
+  };
+
+
+  saveCurrentReport(
+    enrichedData
+  );
+
+
+  /*
+    Atualizar também o snapshot salvo.
+  */
+
+  try {
+
+    const store =
+      loadSnapshotStore();
+
+
+    if (
+      store[
+        data.snapshotKey
+      ]
+    ) {
+
+      store[
+        data.snapshotKey
+      ].data =
+        enrichedData;
+
+
+      saveSnapshotStore(
+        store
+      );
+
+    }
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Erro ao atualizar snapshot:",
+      error
+    );
+
+  }
+
+
+  /* =====================================================
+     CARREGAMENTO
+  ====================================================== */
+
+  resultsSection
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  loadingSection
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  loadingSection.scrollIntoView({
+
+    behavior:
+      "smooth",
+
+    block:
+      "center"
+
+  });
+
+
+  await runLoadingSequence(
+    lead.company,
+    lead.region
+  );
+
+
+  loadingSection
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  /* =====================================================
+     RESULTADO
+  ====================================================== */
+
+  renderSimulation(
+    enrichedData
+  );
+
+
+  resultsSection
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  resultsSection.scrollIntoView({
+
+    behavior:
+      "smooth",
+
+    block:
+      "start"
+
+  });
+
+}
+
+
+/* =========================================================
+   INICIAR AUTOMATICAMENTE
+========================================================= */
+
+setTimeout(
+  function () {
+
+    runRadarFromLanding();
+
+  },
+  200
+);
