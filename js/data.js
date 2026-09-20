@@ -1,3 +1,8 @@
+/* Carrega a barreira de acesso antes do app principal. */
+if (!window.RadarAuth) {
+  document.write('<script src="js/radar-auth.js?v=1"><\/script>');
+}
+
 const RADAR_SEGMENTS = {
   estetica: {
     label: "Estética",
