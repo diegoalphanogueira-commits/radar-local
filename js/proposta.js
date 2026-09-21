@@ -1,11 +1,11 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V10
+   RADAR LOCAL — LOADER V11
    Mantém o relatório atual, carrega Google Maps/Places
-   e aplica páginas leves de benchmark, demanda e mapa.
+   e aplica páginas leves de benchmark, demanda, mapa e presença.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v3";
+  const VERSION = "20260920-report-light-v4";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -25,6 +25,7 @@
     .then(() => loadScript(`js/benchmark-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/demand-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/map-light.js?v=${VERSION}`))
+    .then(() => loadScript(`js/score-light.js?v=${VERSION}`))
     .catch(error => {
       console.error("[RadarLoader]", error);
 
