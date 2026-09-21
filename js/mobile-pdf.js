@@ -1,7 +1,8 @@
 /* =========================================================
-   RADAR LOCAL — PDF MOBILE VISUAL HQ
+   RADAR LOCAL — PDF MOBILE VISUAL HQ V2
    Exporta cada seção com o mesmo layout usado no celular,
-   em qualidade próxima de 300 DPI e com CTA clicável.
+   em qualidade próxima de 300 DPI, com CTA clicável,
+   cores estáveis e imagens sem distorção.
 ========================================================= */
 
 (() => {
@@ -46,6 +47,105 @@
     );
   };
 
+  const applyPdfOnlyVisualFixes = clonedDoc => {
+    const style = clonedDoc.createElement("style");
+    style.id = "radarPdfOnlyVisualFixes";
+    style.textContent = `
+      /*
+        Safari + html2canvas pode rasterizar gradientes claros do card
+        de leitura como um bloco verde saturado. No PDF usamos uma cor
+        sólida equivalente, mantendo a mesma hierarquia visual.
+      */
+      .pdf-page[data-page="map"] .map-reading-card {
+        background: #effaf2 !important;
+        background-image: none !important;
+        border: 1px solid #cfe9d7 !important;
+        box-shadow: none !important;
+        filter: none !important;
+        -webkit-filter: none !important;
+        isolation: auto !important;
+      }
+
+      .pdf-page[data-page="map"] .map-reading-card::before {
+        background: #dff4e5 !important;
+        color: #159947 !important;
+        box-shadow: none !important;
+      }
+
+      .pdf-page[data-page="map"] .map-reading-card span {
+        color: #159947 !important;
+      }
+
+      .pdf-page[data-page="map"] .map-reading-card strong {
+        color: #173524 !important;
+      }
+
+      /*
+        Trava as artes da proposta em 16:9 na cópia do PDF.
+        Assim o html2canvas não comprime verticalmente os WEBP.
+      */
+      .pitch-proposal-page .pp-solution-visual,
+      .pitch-proposal-page .pp-package-media {
+        position: relative !important;
+        width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: hidden !important;
+      }
+
+      .pitch-proposal-page .pp-package-visual {
+        display: block !important;
+        min-height: 0 !important;
+      }
+
+      .pitch-proposal-page .pp-package-copy {
+        display: flex !important;
+      }
+
+      .pitch-proposal-page .pp-solution-visual img,
+      .pitch-proposal-page .pp-package-media img {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: cover !important;
+        object-position: center center !important;
+        transform: none !important;
+      }
+
+      .pitch-proposal-page .pp-solution-visual,
+      .pitch-proposal-page .pp-package-media,
+      .pitch-proposal-page .pp-solution-visual img,
+      .pitch-proposal-page .pp-package-media img {
+        filter: none !important;
+        -webkit-filter: none !important;
+      }
+    `;
+
+    clonedDoc.head.appendChild(style);
+
+    /*
+      Além do aspect-ratio, aplicamos uma altura física calculada.
+      Isso contorna o bug do WebKit em clones usados pelo html2canvas.
+    */
+    const lockSixteenByNine = element => {
+      const width = Number(element?.getBoundingClientRect?.().width) || 0;
+      if (width <= 0) return;
+
+      const height = Math.round(width * 9 / 16);
+      element.style.setProperty("height", `${height}px`, "important");
+      element.style.setProperty("min-height", `${height}px`, "important");
+      element.style.setProperty("max-height", `${height}px`, "important");
+    };
+
+    clonedDoc
+      .querySelectorAll(".pitch-proposal-page .pp-solution-visual, .pitch-proposal-page .pp-package-media")
+      .forEach(lockSixteenByNine);
+  };
+
   const prepareMobileClone = (clonedDoc, selector) => {
     const html = clonedDoc.documentElement;
     const body = clonedDoc.body;
@@ -87,6 +187,8 @@
       page.style.overflow = "hidden";
       page.style.boxSizing = "border-box";
     }
+
+    applyPdfOnlyVisualFixes(clonedDoc);
   };
 
   async function captureMobilePage(page) {
@@ -126,11 +228,6 @@
     return directHref;
   };
 
-  /*
-    Mede a posição do botão dentro de um iframe de 430 px.
-    Assim a anotação do PDF acompanha exatamente o layout mobile,
-    mesmo quando o PDF é gerado a partir de um computador.
-  */
   const measureMobileButton = async page => {
     const iframe = document.createElement("iframe");
 
@@ -254,7 +351,6 @@
       }
     }
 
-    /* Fallback seguro caso algum visualizador/browser impeça a medição. */
     const fallbackY = Math.max(0, pdfHeightMm * 0.78);
     pdf.link(
       8,
@@ -265,11 +361,6 @@
     );
   };
 
-  /*
-    Sobrescreve a função global usada pelo botão já existente.
-    O listener legado continua funcionando, mas passa a chamar
-    esta versão no momento do clique.
-  */
   window.generateVisualPdf = async function generateVisualPdfMobileHQ() {
     if (typeof html2canvas === "undefined" || !window.jspdf) {
       throw new Error("As bibliotecas de PDF não foram carregadas.");
@@ -331,10 +422,6 @@
         pdf.addPage(format, orientation);
       }
 
-      /*
-        430 px x escala 3 = 1290 px para 108 mm.
-        Isso entrega aproximadamente 303 DPI na largura.
-      */
       const imageData = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
 
       pdf.addImage(
