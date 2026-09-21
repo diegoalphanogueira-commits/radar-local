@@ -1,11 +1,12 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V5
+   RADAR LOCAL — LOADER V6
    Mantém o relatório atual e substitui somente o mapa
    por Google Maps + Google Places via backend protegido.
+   Também captura o benchmark devolvido pela mesma consulta.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-google-map-v1";
+  const VERSION = "20260920-benchmark-v1";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -24,6 +25,7 @@
   window.L = undefined;
 
   loadScript(`js/proposta-legacy.js?v=${VERSION}`)
+    .then(() => loadScript(`js/benchmark-capture.js?v=${VERSION}`))
     .then(() => loadScript(`js/google-report-map.js?v=${VERSION}`))
     .catch(error => {
       console.error("[RadarLoader]", error);
