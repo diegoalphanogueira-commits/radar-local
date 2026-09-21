@@ -1,11 +1,11 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V7
+   RADAR LOCAL — LOADER V8
    Mantém o relatório atual, carrega Google Maps/Places
-   e injeta o benchmark executivo no diagnóstico.
+   e aplica o benchmark executivo em leitura leve.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-benchmark-v1";
+  const VERSION = "20260920-report-light-v1";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -22,6 +22,7 @@
     .then(() => loadScript(`js/benchmark-capture.js?v=${VERSION}`))
     .then(() => loadScript(`js/google-report-map.js?v=${VERSION}`))
     .then(() => loadScript(`js/benchmark-report.js?v=${VERSION}`))
+    .then(() => loadScript(`js/benchmark-light.js?v=${VERSION}`))
     .catch(error => {
       console.error("[RadarLoader]", error);
 
