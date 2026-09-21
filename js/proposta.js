@@ -1,5 +1,5 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V22
+   RADAR LOCAL — LOADER V23
    Mantém o relatório atual, carrega Google Maps/Places,
    aplica páginas leves, benchmark Top 5, score visual,
    palavras-chave contextuais, área local por bairro,
@@ -7,7 +7,7 @@
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v15";
+  const VERSION = "20260920-report-light-v16";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
