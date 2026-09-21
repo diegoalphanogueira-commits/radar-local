@@ -1,12 +1,12 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V19
+   RADAR LOCAL — LOADER V20
    Mantém o relatório atual, carrega Google Maps/Places,
    aplica páginas leves, benchmark Top 5, score visual,
-   proposta final e exportação em PDF com proporção mobile.
+   palavras-chave contextuais, proposta final e PDF mobile.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v12";
+  const VERSION = "20260920-report-light-v13";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -26,6 +26,7 @@
     .then(() => loadScript(`js/benchmark-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/benchmark-top5.js?v=${VERSION}`))
     .then(() => loadScript(`js/demand-light.js?v=${VERSION}`))
+    .then(() => loadScript(`js/smart-keywords.js?v=${VERSION}`))
     .then(() => loadScript(`js/map-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/score-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/journey-light.js?v=${VERSION}`))
