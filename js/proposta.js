@@ -1,12 +1,11 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V6
-   Mantém o relatório atual e substitui somente o mapa
-   por Google Maps + Google Places via backend protegido.
-   Também captura o benchmark devolvido pela mesma consulta.
+   RADAR LOCAL — LOADER V7
+   Mantém o relatório atual, carrega Google Maps/Places
+   e injeta o benchmark executivo no diagnóstico.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-benchmark-v3";
+  const VERSION = "20260920-report-benchmark-v1";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -17,16 +16,12 @@
     document.head.appendChild(script);
   });
 
-  /*
-    O relatório legado ainda contém o mapa antigo em Leaflet/Geoapify.
-    Desabilitamos apenas esse mapa para que o restante do relatório continue
-    funcionando normalmente. O novo mapa é carregado logo em seguida.
-  */
   window.L = undefined;
 
   loadScript(`js/proposta-legacy.js?v=${VERSION}`)
     .then(() => loadScript(`js/benchmark-capture.js?v=${VERSION}`))
     .then(() => loadScript(`js/google-report-map.js?v=${VERSION}`))
+    .then(() => loadScript(`js/benchmark-report.js?v=${VERSION}`))
     .catch(error => {
       console.error("[RadarLoader]", error);
 
