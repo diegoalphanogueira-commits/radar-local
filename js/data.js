@@ -14,7 +14,7 @@ if (!window.RadarPlaceDiagnosticBridge) {
 }
 
 /* Remove a seleção manual de segmento da experiência. */
-document.write('<script src="js/segmentless-entry.js?v=20260920-1"><\/script>');
+document.write('<script src="js/segmentless-entry.js?v=20260920-2"><\/script>');
 
 const RADAR_SEGMENTS = {
   estetica: {
