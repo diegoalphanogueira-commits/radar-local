@@ -1,11 +1,11 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V16
+   RADAR LOCAL — LOADER V17
    Mantém o relatório atual, carrega Google Maps/Places,
-   aplica páginas leves e benchmark baseado no Top 5 local.
+   aplica páginas leves, benchmark Top 5 e proposta final.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v9";
+  const VERSION = "20260920-report-light-v10";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -31,6 +31,7 @@
     .then(() => loadScript(`js/cta-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/cta-polish.js?v=${VERSION}`))
     .then(() => loadScript(`js/segmentless-report.js?v=${VERSION}`))
+    .then(() => loadScript(`js/pitch-proposal.js?v=${VERSION}`))
     .catch(error => {
       console.error("[RadarLoader]", error);
 
