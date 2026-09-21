@@ -6,7 +6,7 @@
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-benchmark-v2";
+  const VERSION = "20260920-benchmark-v3";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
