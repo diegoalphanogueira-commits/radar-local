@@ -1,11 +1,11 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V8
+   RADAR LOCAL — LOADER V9
    Mantém o relatório atual, carrega Google Maps/Places
-   e aplica o benchmark executivo em leitura leve.
+   e aplica o benchmark executivo premium.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v1";
+  const VERSION = "20260920-report-premium-v2";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
