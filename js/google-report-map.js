@@ -191,6 +191,19 @@
     data.latitude = latitude;
     data.longitude = longitude;
     data.primaryType = place.primaryType || data.primaryType || "";
+    data.googlePlace = {
+      ...(data.googlePlace || {}),
+      placeId: data.placeId,
+      latitude,
+      longitude,
+      primaryType: data.primaryType,
+      name: place.name || data.company || "",
+      address: place.address || data.address || ""
+    };
+
+    try {
+      localStorage.setItem("radarProposal", JSON.stringify(data));
+    } catch {}
 
     return {
       latitude,
@@ -214,12 +227,13 @@
     return apiKey;
   };
 
-  const fetchNearby = async ({ latitude, longitude, radiusKm, primaryType }) => {
+  const fetchNearby = async ({ latitude, longitude, radiusKm, primaryType, placeId }) => {
     if (!primaryType) {
       return {
         success: false,
         places: [],
         rawCount: 0,
+        benchmark: null,
         reason: "PRIMARY_TYPE_MISSING"
       };
     }
@@ -231,7 +245,8 @@
         latitude,
         longitude,
         radiusMeters: Math.round(radiusKm * 1000),
-        primaryType
+        primaryType,
+        placeId: String(placeId || "").trim()
       })
     });
 
@@ -245,7 +260,8 @@
       success: true,
       places: Array.isArray(payload?.places) ? payload.places : [],
       rawCount: Number(payload?.count) || 0,
-      provider: payload?.provider || "google_places"
+      provider: payload?.provider || "google_places",
+      benchmark: payload?.benchmark || null
     };
   };
 
@@ -401,9 +417,20 @@
       data.googleNearbyFetchedAt = new Date().toISOString();
       data.competitionLevel = competitionLevel;
 
+      if (nearbyResult?.benchmark) {
+        data.benchmark = nearbyResult.benchmark;
+        data.benchmarkUpdatedAt = new Date().toISOString();
+      }
+
       try {
         localStorage.setItem("radarProposal", JSON.stringify(data));
       } catch {}
+
+      if (nearbyResult?.benchmark) {
+        window.dispatchEvent(new CustomEvent("radar:benchmark-ready", {
+          detail: nearbyResult.benchmark
+        }));
+      }
     } else {
       setText("nearbyCompetitors", "—");
       setText("mapCompetitionLevel", "—");
@@ -461,7 +488,8 @@
           latitude: place.latitude,
           longitude: place.longitude,
           radiusKm,
-          primaryType
+          primaryType,
+          placeId: place.placeId
         })
       ]);
 
