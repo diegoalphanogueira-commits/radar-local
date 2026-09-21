@@ -120,6 +120,8 @@
     if (!resolvedType) return report;
 
     const typeChanged = rawType !== resolvedType;
+    const benchmarkType = normalizeType(report?.benchmarkComparableType || "");
+    const staleBenchmark = Boolean(report?.benchmark) && benchmarkType !== resolvedType;
 
     if (canonicalName && (report.googleMatched || report?.googlePlace?.matched)) {
       report.company = canonicalName;
@@ -132,9 +134,12 @@
       primaryType: resolvedType
     };
 
-    if (typeChanged) {
+    if (typeChanged || staleBenchmark) {
       clearCompetitiveData(report);
     }
+
+    /* Marca qual categoria deve sustentar o benchmark atual. */
+    report.benchmarkComparableType = resolvedType;
 
     try {
       localStorage.setItem(REPORT_KEY, JSON.stringify(report));
