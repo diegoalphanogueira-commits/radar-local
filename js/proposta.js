@@ -1,13 +1,13 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V21
+   RADAR LOCAL — LOADER V22
    Mantém o relatório atual, carrega Google Maps/Places,
    aplica páginas leves, benchmark Top 5, score visual,
    palavras-chave contextuais, área local por bairro,
-   proposta final e PDF mobile.
+   proposta visual final e PDF mobile.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v14";
+  const VERSION = "20260920-report-light-v15";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -36,6 +36,7 @@
     .then(() => loadScript(`js/segmentless-report.js?v=${VERSION}`))
     .then(() => loadScript(`js/cover-score-gauge.js?v=${VERSION}`))
     .then(() => loadScript(`js/pitch-proposal.js?v=${VERSION}`))
+    .then(() => loadScript(`js/proposal-visual-slots.js?v=${VERSION}`))
     .then(() => loadScript(`js/local-area-context.js?v=${VERSION}`))
     .then(() => loadScript(`js/mobile-pdf.js?v=${VERSION}`))
     .catch(error => {
