@@ -90,8 +90,11 @@
         return;
       }
 
+      const canonicalCompany = String(context.name || report.company || "").trim();
+
       const enriched = {
         ...report,
+        company: canonicalCompany || report.company,
         placeId: context.placeId,
         latitude: context.latitude,
         longitude: context.longitude,
@@ -123,6 +126,7 @@
       ) {
         snapshots[snapshotKey].data = {
           ...snapshots[snapshotKey].data,
+          company: canonicalCompany || snapshots[snapshotKey].data.company,
           placeId: context.placeId,
           latitude: context.latitude,
           longitude: context.longitude,
