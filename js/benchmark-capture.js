@@ -91,20 +91,40 @@
     } catch {}
   };
 
+  const persistBenchmark = (benchmark, payload) => {
+    const proposal = readProposal();
+    if (!proposal || !benchmark) return;
+
+    proposal.benchmark = benchmark;
+    proposal.benchmarkUpdatedAt = new Date().toISOString();
+    proposal.googleNearbyRawCount = Number(payload?.count) || proposal.googleNearbyRawCount || 0;
+    proposal.googleNearbyProvider = payload?.provider || proposal.googleNearbyProvider || "google_places";
+
+    writeProposal(proposal);
+  };
+
   const captureNearbyResponse = async response => {
     try {
       const payload = await response.clone().json();
       if (!payload?.benchmark) return;
 
-      const proposal = readProposal();
-      if (!proposal) return;
+      /*
+        Salva imediatamente e repete o merge logo depois.
+        O mapa também persiste radarProposal ao terminar de renderizar;
+        por isso o segundo merge impede que um objeto antigo apague o benchmark.
+      */
+      persistBenchmark(payload.benchmark, payload);
 
-      proposal.benchmark = payload.benchmark;
-      proposal.benchmarkUpdatedAt = new Date().toISOString();
-      proposal.googleNearbyRawCount = Number(payload?.count) || proposal.googleNearbyRawCount || 0;
-      proposal.googleNearbyProvider = payload?.provider || proposal.googleNearbyProvider || "google_places";
+      setTimeout(
+        () => persistBenchmark(payload.benchmark, payload),
+        300
+      );
 
-      writeProposal(proposal);
+      setTimeout(
+        () => persistBenchmark(payload.benchmark, payload),
+        1200
+      );
+
       window.dispatchEvent(new CustomEvent("radar:benchmark-ready", {
         detail: payload.benchmark
       }));
@@ -117,11 +137,11 @@
     const response = await originalFetch(input, nextInit);
 
     if (response.ok && url.includes("/radar/local-diagnostic/search")) {
-      captureSearchResponse(response);
+      await captureSearchResponse(response);
     }
 
     if (response.ok && url.includes("/radar/local-diagnostic/nearby")) {
-      captureNearbyResponse(response);
+      await captureNearbyResponse(response);
     }
 
     return response;
