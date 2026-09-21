@@ -1,12 +1,11 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V14
+   RADAR LOCAL — LOADER V15
    Mantém o relatório atual, carrega Google Maps/Places
-   e aplica páginas leves de benchmark, demanda, mapa,
-   presença, jornada e fechamento.
+   e aplica páginas leves sem classificação manual de segmento.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v7";
+  const VERSION = "20260920-report-light-v8";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -30,6 +29,7 @@
     .then(() => loadScript(`js/journey-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/cta-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/cta-polish.js?v=${VERSION}`))
+    .then(() => loadScript(`js/segmentless-report.js?v=${VERSION}`))
     .catch(error => {
       console.error("[RadarLoader]", error);
 
