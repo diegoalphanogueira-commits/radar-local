@@ -1,5 +1,5 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V24
+   RADAR LOCAL — LOADER V25
    Mantém o relatório atual, carrega Google Maps/Places,
    aplica páginas leves, benchmark Top 5, score visual,
    palavras-chave contextuais, área local por bairro,
@@ -7,7 +7,7 @@
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v17";
+  const VERSION = "20260921-report-light-v18";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -21,6 +21,7 @@
   window.L = undefined;
 
   loadScript(`js/proposta-legacy.js?v=${VERSION}`)
+    .then(() => loadScript(`js/business-type-normalizer.js?v=${VERSION}`))
     .then(() => loadScript(`js/benchmark-capture.js?v=${VERSION}`))
     .then(() => loadScript(`js/google-report-map.js?v=${VERSION}`))
     .then(() => loadScript(`js/benchmark-report.js?v=${VERSION}`))
@@ -39,6 +40,7 @@
     .then(() => loadScript(`js/proposal-visual-slots.js?v=${VERSION}`))
     .then(() => loadScript(`js/local-area-context.js?v=${VERSION}`))
     .then(() => loadScript(`js/mobile-pdf.js?v=${VERSION}`))
+    .then(() => loadScript(`js/pdf-delivery-fix.js?v=${VERSION}`))
     .catch(error => {
       console.error("[RadarLoader]", error);
 
