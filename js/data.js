@@ -13,6 +13,9 @@ if (!window.RadarPlaceDiagnosticBridge) {
   document.write('<script src="js/place-diagnostic-bridge.js?v=1"><\/script>');
 }
 
+/* Redesenha a tela inicial sem afetar o relatório. */
+document.write('<link rel="stylesheet" href="css/entry-premium.css?v=20260920-1">');
+
 /* Remove a seleção manual de segmento da experiência. */
 document.write('<script src="js/segmentless-entry.js?v=20260920-2"><\/script>');
 
