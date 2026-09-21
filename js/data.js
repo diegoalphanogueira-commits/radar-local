@@ -8,9 +8,14 @@ if (!window.RadarPlaceSearch) {
   document.write('<script src="js/company-search.js?v=1"><\/script>');
 }
 
+/* Normaliza o tipo real do negócio antes de salvar o diagnóstico. */
+if (!window.RadarBusinessType) {
+  document.write('<script src="js/business-type-normalizer.js?v=20260921-1"><\/script>');
+}
+
 /* Vincula a empresa real selecionada ao diagnóstico salvo. */
 if (!window.RadarPlaceDiagnosticBridge) {
-  document.write('<script src="js/place-diagnostic-bridge.js?v=1"><\/script>');
+  document.write('<script src="js/place-diagnostic-bridge.js?v=2"><\/script>');
 }
 
 /* Redesenha a tela inicial sem afetar o relatório. */
