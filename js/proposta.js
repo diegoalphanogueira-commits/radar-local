@@ -1,11 +1,11 @@
 /* =========================================================
-   RADAR LOCAL — LOADER V15
-   Mantém o relatório atual, carrega Google Maps/Places
-   e aplica páginas leves sem classificação manual de segmento.
+   RADAR LOCAL — LOADER V16
+   Mantém o relatório atual, carrega Google Maps/Places,
+   aplica páginas leves e benchmark baseado no Top 5 local.
 ========================================================= */
 
 (() => {
-  const VERSION = "20260920-report-light-v8";
+  const VERSION = "20260920-report-light-v9";
 
   const loadScript = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -23,6 +23,7 @@
     .then(() => loadScript(`js/google-report-map.js?v=${VERSION}`))
     .then(() => loadScript(`js/benchmark-report.js?v=${VERSION}`))
     .then(() => loadScript(`js/benchmark-light.js?v=${VERSION}`))
+    .then(() => loadScript(`js/benchmark-top5.js?v=${VERSION}`))
     .then(() => loadScript(`js/demand-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/map-light.js?v=${VERSION}`))
     .then(() => loadScript(`js/score-light.js?v=${VERSION}`))
