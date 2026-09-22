@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.4",
-  "description": "Radar Local V1 RC15: sessões isoladas, cobertura 50+ rápida, descoberta em paralelo e enriquecimento seguro.",
+  "version": "1.4.5",
+  "description": "Radar Local V1 RC16: progresso visual da extração, enriquecimento automático obrigatório e sessões isoladas.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -23,8 +23,8 @@
     },
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
-      "css": ["radar-v1-priority-local.css", "radar-coverage-target.css"],
-      "js": ["radar-runtime-v6.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
+      "css": ["radar-v1-priority-local.css", "radar-coverage-target.css", "radar-progress-v1.css"],
+      "js": ["radar-runtime-v6.js", "radar-progress-v1.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
       "run_at": "document_start"
     }
   ]
