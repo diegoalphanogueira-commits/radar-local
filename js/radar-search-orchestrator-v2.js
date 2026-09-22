@@ -1,7 +1,7 @@
 /* =========================================================
-   RADAR LOCAL — SEARCH ORCHESTRATOR V2
-   Busca completa + geocodificação da região + progresso ao vivo
-   + sincronização incremental com a extensão.
+   RADAR LOCAL — SEARCH ORCHESTRATOR V2.1
+   Busca completa + progresso ao vivo + sincronização incremental
+   + centro geográfico resiliente para bairros/regiões.
 ========================================================= */
 (() => {
   "use strict";
@@ -28,14 +28,8 @@
   const digits = value => String(value || "").replace(/\D/g, "");
 
   const KEYWORD_GROUPS = [
-    {
-      test: /estet|beleza|harmoniza|depila|limpeza de pele|spa/,
-      terms: ["clínica de estética","centro de estética","estética facial","estética corporal","estética avançada","harmonização facial","limpeza de pele","depilação a laser","esteticista","spa estético"]
-    },
-    {
-      test: /pet|veterin|banho e tosa|hotel.*cae|creche.*cae/,
-      terms: ["pet shop","petshop","banho e tosa","clínica veterinária","veterinário","hospital veterinário","hotel para cães","creche para cães"]
-    },
+    { test: /estet|beleza|harmoniza|depila|limpeza de pele|spa/, terms: ["clínica de estética","centro de estética","estética facial","estética corporal","estética avançada","harmonização facial","limpeza de pele","depilação a laser","esteticista","spa estético"] },
+    { test: /pet|veterin|banho e tosa|hotel.*cae|creche.*cae/, terms: ["pet shop","petshop","banho e tosa","clínica veterinária","veterinário","hospital veterinário","hotel para cães","creche para cães"] },
     { test: /podolog/, terms: ["podologia","clínica de podologia","podólogo","podóloga","tratamento dos pés","podologia clínica"] },
     { test: /odont|dentist/, terms: ["clínica odontológica","dentista","odontologia","implante dentário","ortodontia","clínica dental"] },
     { test: /barbear|barber/, terms: ["barbearia","barber shop","barbeiro","corte masculino","barbearia masculina"] },
@@ -105,7 +99,7 @@
   }
 
   function request(type, payload, expectedType, timeoutMs = 900000) {
-    const requestId = `radar-v2-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    const requestId = `radar-v21-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         pending.delete(requestId);
@@ -116,10 +110,120 @@
     });
   }
 
+  function pointOf(lead) {
+    const lat = Number(lead?.lat ?? lead?.latitude);
+    const lng = Number(lead?.lng ?? lead?.longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  }
+
+  function haversineKm(a, b) {
+    if (!a || !b) return Infinity;
+    const R = 6371;
+    const rad = value => value * Math.PI / 180;
+    const dLat = rad(b.lat - a.lat);
+    const dLng = rad(b.lng - a.lng);
+    const x = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  }
+
+  function median(values) {
+    const clean = values.filter(Number.isFinite).sort((a,b) => a-b);
+    if (!clean.length) return null;
+    const mid = Math.floor(clean.length / 2);
+    return clean.length % 2 ? clean[mid] : (clean[mid - 1] + clean[mid]) / 2;
+  }
+
+  function medianCenter(points, source, region) {
+    if (!points.length) return null;
+    return { lat: median(points.map(p => p.lat)), lng: median(points.map(p => p.lng)), source, region };
+  }
+
+  function regionTokens(region) {
+    const first = String(region || "").split(",")[0];
+    const ignored = new Set(["jardim","jd","vila","bairro","parque","regiao","região","distrito","sao","são","sp"]);
+    return normalize(first).split(" ").filter(token => token.length >= 3 && !ignored.has(token));
+  }
+
+  function fuzzyTokenMatch(token, candidate) {
+    if (token === candidate) return true;
+    if (token.length >= 4 && candidate.length >= 3) {
+      return token.startsWith(candidate) || candidate.startsWith(token.slice(0, Math.max(3, Math.min(token.length, 5))));
+    }
+    return false;
+  }
+
+  function addressMatchesRegion(lead, region) {
+    const tokens = regionTokens(region);
+    if (!tokens.length) return false;
+    const hay = normalize(`${lead?.address || ""} ${lead?.neighborhood || ""} ${lead?.city || ""}`);
+    const candidates = hay.split(" ").filter(Boolean);
+    const matched = tokens.filter(token => candidates.some(candidate => fuzzyTokenMatch(token, candidate))).length;
+    return tokens.length === 1 ? matched >= 1 : matched >= Math.min(2, tokens.length);
+  }
+
+  function densestClusterCenter(leads, radiusKm, region) {
+    const points = leads.map(pointOf).filter(Boolean);
+    if (!points.length) return null;
+    const clusterRadius = Math.max(1.5, Math.min(5, Number(radiusKm || 5) * 0.75));
+    let best = [];
+    for (const p of points) {
+      const cluster = points.filter(other => haversineKm(p, other) <= clusterRadius);
+      if (cluster.length > best.length) best = cluster;
+    }
+    return medianCenter(best.length ? best : points, "densest-cluster", region);
+  }
+
+  function coverage(center, leads, radiusKm, region) {
+    if (!center) return { inside: 0, matchedInside: 0, score: -1, avg: Infinity };
+    let inside = 0, matchedInside = 0, distanceSum = 0;
+    leads.forEach(lead => {
+      const point = pointOf(lead);
+      if (!point) return;
+      const distance = haversineKm(center, point);
+      if (distance <= radiusKm) {
+        inside += 1;
+        distanceSum += distance;
+        if (addressMatchesRegion(lead, region)) matchedInside += 1;
+      }
+    });
+    const avg = inside ? distanceSum / inside : Infinity;
+    return { inside, matchedInside, avg, score: matchedInside * 4 + inside - Math.min(avg, 20) * 0.03 };
+  }
+
+  function chooseBestCenter(leads, geocoded, region, radiusKm) {
+    const points = leads.map(pointOf).filter(Boolean);
+    if (!points.length) return geocoded || null;
+    const matchedPoints = leads.filter(lead => addressMatchesRegion(lead, region)).map(pointOf).filter(Boolean);
+    const candidates = [];
+    if (geocoded) candidates.push({ ...geocoded, source: geocoded.source || "region-geocode" });
+    const regionCenter = medianCenter(matchedPoints, "region-address", region);
+    if (regionCenter) candidates.push(regionCenter);
+    const dense = densestClusterCenter(leads, radiusKm, region);
+    if (dense) candidates.push(dense);
+    const globalMedian = medianCenter(points, "global-median", region);
+    if (globalMedian) candidates.push(globalMedian);
+
+    const sourceBonus = { "region-address": 1.5, "region-geocode": 1.0, "densest-cluster": .5, "global-median": 0 };
+    const ranked = candidates.map(center => {
+      const stats = coverage(center, leads, radiusKm, region);
+      return { center, ...stats, rank: stats.score + (sourceBonus[center.source] || 0) };
+    }).sort((a,b) => b.rank - a.rank || b.matchedInside - a.matchedInside || b.inside - a.inside || a.avg - b.avg);
+
+    const best = ranked[0];
+    if (!best) return geocoded || globalMedian || dense || null;
+    return {
+      ...best.center,
+      region,
+      coverage: best.inside,
+      matchedCoverage: best.matchedInside,
+      totalPoints: points.length
+    };
+  }
+
   function scoreGeocode(row, region) {
-    const queryTokens = normalize(region).split(" ").filter(token => token.length >= 3 && !["jardim","jd","vila","bairro","sp","sao","são"].includes(token));
+    const tokens = normalize(region).split(" ").filter(token => token.length >= 3 && !["jardim","jd","vila","bairro","sp","sao","são"].includes(token));
     const haystack = normalize(row?.display_name || "");
-    return queryTokens.reduce((score, token) => score + (haystack.includes(token) ? 1 : 0), 0);
+    return tokens.reduce((score, token) => score + (haystack.includes(token) ? 1 : 0), 0);
   }
 
   async function geocodeRegion(region) {
@@ -131,17 +235,36 @@
       const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`HTTP_${response.status}`);
       const rows = await response.json();
-      const ranked = (Array.isArray(rows) ? rows : [])
-        .map(row => ({ row, score: scoreGeocode(row, query) }))
-        .sort((a,b) => b.score - a.score);
+      const ranked = (Array.isArray(rows) ? rows : []).map(row => ({ row, score: scoreGeocode(row, query) })).sort((a,b) => b.score - a.score);
       const best = ranked[0]?.row;
       const lat = Number(best?.lat), lng = Number(best?.lon);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
       return { lat, lng, source: "region-geocode", region: query, displayName: best.display_name || query };
     } catch (error) {
-      console.warn("[RadarSearchOrchestratorV2] geocode", error);
+      console.warn("[RadarSearchOrchestratorV2.1] geocode", error);
       return null;
     }
+  }
+
+  function repairSavedCenter() {
+    const leads = dedupe(loadLeads());
+    const meta = loadMeta();
+    const region = String(meta.region || $("#mapsSearchCity")?.value || "").trim();
+    const radiusKm = Number(meta.radiusKm || $("#v4Radius")?.value || 5) || 5;
+    if (!leads.length || !region) return false;
+    const saved = meta.v4Center && Number.isFinite(Number(meta.v4Center.lat)) && Number.isFinite(Number(meta.v4Center.lng))
+      ? { ...meta.v4Center, lat: Number(meta.v4Center.lat), lng: Number(meta.v4Center.lng) }
+      : null;
+    const best = chooseBestCenter(leads, saved, region, radiusKm);
+    if (!best) return false;
+    const oldCoverage = coverage(saved, leads, radiusKm, region).inside;
+    const newCoverage = coverage(best, leads, radiusKm, region).inside;
+    const moved = !saved || haversineKm(saved, best) > .35;
+    if (moved || newCoverage > oldCoverage) {
+      localStorage.setItem(META_KEY, JSON.stringify({ ...meta, v4Center: best, centerCoverage: newCoverage }));
+      return oldCoverage === 0 && newCoverage > 0;
+    }
+    return false;
   }
 
   function ensurePanel() {
@@ -151,10 +274,7 @@
     panel.id = "radarLiveProgress";
     panel.className = "rlp-panel hidden";
     panel.innerHTML = `
-      <div class="rlp-head">
-        <div class="rlp-head-copy"><span class="rlp-kicker">COLETA EM TEMPO REAL</span><h3 id="rlpTitle">Preparando mapeamento...</h3><p id="rlpText">O Radar vai atualizar os dados conforme cada ficha for concluída.</p></div>
-        <span class="rlp-badge" id="rlpBadge">AUTOMÁTICO</span>
-      </div>
+      <div class="rlp-head"><div class="rlp-head-copy"><span class="rlp-kicker">COLETA EM TEMPO REAL</span><h3 id="rlpTitle">Preparando mapeamento...</h3><p id="rlpText">O Radar vai atualizar os dados conforme cada ficha for concluída.</p></div><span class="rlp-badge" id="rlpBadge">AUTOMÁTICO</span></div>
       <div class="rlp-progress-wrap"><div class="rlp-progress-track"><div class="rlp-progress-bar" id="rlpBar"></div></div></div>
       <div class="rlp-stats">
         <div class="rlp-stat"><span>Negócios</span><strong id="rlpBusinesses">0</strong></div>
@@ -169,6 +289,17 @@
     return panel;
   }
 
+  function refreshPanelStats(processed, total) {
+    const leads = dedupe(loadLeads());
+    const phones = leads.filter(lead => digits(lead.phone).length >= 10).length;
+    const sites = leads.filter(lead => String(lead.website || "").trim()).length;
+    $("#rlpBusinesses") && ($("#rlpBusinesses").textContent = leads.length.toLocaleString("pt-BR"));
+    $("#rlpPhones") && ($("#rlpPhones").textContent = phones.toLocaleString("pt-BR"));
+    $("#rlpSites") && ($("#rlpSites").textContent = sites.toLocaleString("pt-BR"));
+    if (Number.isFinite(processed)) $("#rlpProcessed").textContent = Number(processed).toLocaleString("pt-BR");
+    if (Number.isFinite(total)) $("#rlpRemaining").textContent = Math.max(0, Number(total) - Number(processed || 0)).toLocaleString("pt-BR");
+  }
+
   function setPanel({ title, text, progress, processed, total, current, done = false, error = false } = {}) {
     const panel = ensurePanel();
     if (!panel) return;
@@ -180,18 +311,6 @@
     if (Number.isFinite(progress)) $("#rlpBar").style.width = `${Math.max(0, Math.min(100, progress))}%`;
     if (current) $("#rlpCurrent").textContent = current;
     refreshPanelStats(processed, total);
-  }
-
-  function refreshPanelStats(processed, total) {
-    const leads = dedupe(loadLeads());
-    const phones = leads.filter(lead => digits(lead.phone).length >= 10).length;
-    const sites = leads.filter(lead => String(lead.website || "").trim()).length;
-    $("#rlpBusinesses") && ($("#rlpBusinesses").textContent = leads.length.toLocaleString("pt-BR"));
-    $("#rlpPhones") && ($("#rlpPhones").textContent = phones.toLocaleString("pt-BR"));
-    $("#rlpSites") && ($("#rlpSites").textContent = sites.toLocaleString("pt-BR"));
-    if (Number.isFinite(processed)) $("#rlpProcessed").textContent = Number(processed).toLocaleString("pt-BR");
-    if (Number.isFinite(total)) $("#rlpRemaining").textContent = Math.max(0, Number(total) - Number(processed || 0)).toLocaleString("pt-BR");
-    else if (!$("#rlpRemaining").textContent) $("#rlpRemaining").textContent = "—";
   }
 
   function setLegacyStatus(title, text, ready = false) {
@@ -230,6 +349,7 @@
       const current = dedupe(response.leads);
       if (!current.length) return;
       saveResults(current);
+      repairSavedCenter();
       if (!silent) setPanel({ title: "Estado recuperado", text: `${current.length} negócios recuperados da extensão.`, current: "Radar sincronizado com o coletor." });
     } catch {}
   }
@@ -256,18 +376,21 @@
 
       let leads = dedupe(batch.leads || []);
       if (!leads.length) throw new Error("O Google Maps não retornou negócios nessa pesquisa.");
-      const center = await geocodePromise;
+      const geocoded = await geocodePromise;
+      let center = chooseBestCenter(leads, geocoded, region, radiusKm);
 
       saveResults(leads, {
-        source: "radar-complete-search-v2",
+        source: "radar-complete-search-v21",
         term,
         region,
         searchTerms: terms,
         radiusKm,
         count: leads.length,
         importedAt: new Date().toISOString(),
-        v4Center: center || null
+        v4Center: center || null,
+        centerCoverage: center?.coverage || 0
       });
+
       setPanel({ title: "Empresas encontradas", text: `${leads.length} negócios únicos encontrados. Agora estou completando as fichas.`, progress: 48, processed: 0, total: leads.length, current: "Iniciando telefone, site e horário..." });
       setLegacyStatus("Completando informações...", `${leads.length} negócios encontrados. Buscando telefone, site e horário.`);
 
@@ -275,11 +398,11 @@
       const enriched = await request("ENRICH", { limit: enrichLimit }, "ENRICH_RESULT");
       if (enriched?.ok && Array.isArray(enriched.leads)) leads = dedupe(enriched.leads);
 
-      const finalCenter = center || await geocodeRegion(region);
+      center = chooseBestCenter(leads, geocoded, region, radiusKm) || center;
       const phoneCount = leads.filter(lead => digits(lead.phone).length >= 10).length;
       const siteCount = leads.filter(lead => String(lead.website || "").trim()).length;
       saveResults(leads, {
-        source: "radar-complete-search-v2",
+        source: "radar-complete-search-v21",
         term,
         region,
         searchTerms: terms,
@@ -288,15 +411,16 @@
         phoneCount,
         siteCount,
         importedAt: new Date().toISOString(),
-        v4Center: finalCenter || null
+        v4Center: center || null,
+        centerCoverage: center?.coverage || 0
       });
 
-      setPanel({ title: "Mapeamento concluído", text: `${leads.length} negócios · ${phoneCount} com telefone · ${siteCount} com site.`, progress: 100, processed: leads.length, total: leads.length, current: "Dados consolidados no Radar.", done: true });
+      setPanel({ title: "Mapeamento concluído", text: `${leads.length} negócios · ${phoneCount} com telefone · ${siteCount} com site.`, progress: 100, processed: leads.length, total: leads.length, current: `Centro validado: ${center?.coverage || 0} empresas dentro de ${radiusKm} km.`, done: true });
       setLegacyStatus("Mapeamento concluído", `${leads.length} negócios únicos · ${phoneCount} com telefone · ${siteCount} com site.`, true);
       sessionStorage.setItem("radarV4Toast", `${leads.length} negócios encontrados e enriquecidos.`);
       setTimeout(() => window.location.reload(), 900);
     } catch (error) {
-      console.error("[RadarSearchOrchestratorV2]", error);
+      console.error("[RadarSearchOrchestratorV2.1]", error);
       setPanel({ title: "Busca interrompida", text: error.message || "Tente novamente.", current: "Os dados já coletados foram preservados.", error: true });
       setLegacyStatus("Busca interrompida", error.message || "Tente novamente.");
       setButtonsBusy(false);
@@ -323,11 +447,11 @@
     }
     if (progress.event === "ENRICH_PROGRESS") {
       if (progress.lead) mergeOne(progress.lead);
+      repairSavedCenter();
       const current = Number(progress.current || 0), total = Number(progress.total || 0);
       const pct = total ? 48 + (current / total) * 50 : 52;
       const leadName = progress.lead?.name || "empresa atual";
       setPanel({ title: `Completando fichas ${current}/${total}`, text: "Cada ficha concluída já é atualizada no Radar.", progress: pct, processed: current, total, current: `Atualizado: ${leadName}` });
-      return;
     }
   }
 
@@ -346,6 +470,7 @@
     }
     if (["STATE_RESULT","BATCH_RESULT","ENRICH_RESULT","SEARCH_RESULT"].includes(message.type) && message.response?.ok && Array.isArray(message.response.leads)) {
       saveResults(message.response.leads);
+      repairSavedCenter();
       refreshPanelStats();
     }
 
@@ -363,6 +488,14 @@
     event.stopImmediatePropagation();
     runCompleteSearch();
   }, true);
+
+  const repairedZeroCoverage = repairSavedCenter();
+  if (repairedZeroCoverage && sessionStorage.getItem("radarCenterRepairOnce") !== "1") {
+    sessionStorage.setItem("radarCenterRepairOnce", "1");
+    setTimeout(() => window.location.reload(), 120);
+  } else if (!repairedZeroCoverage) {
+    sessionStorage.removeItem("radarCenterRepairOnce");
+  }
 
   const observer = new MutationObserver(prepareUi);
   observer.observe(document.documentElement, { childList: true, subtree: true });
