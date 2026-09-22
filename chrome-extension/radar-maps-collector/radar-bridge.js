@@ -4,7 +4,12 @@
   const SOURCE = "RADAR_LOCAL_WEB";
   const TARGET = "RADAR_MAPS_COLLECTOR";
 
+  function isProspectingPage() {
+    return /\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname);
+  }
+
   function injectWorkspaceAssets() {
+    if (!isProspectingPage()) return;
     const origin = window.location.origin;
     if (!document.getElementById("radarProspectingWorkspaceCss")) {
       const link = document.createElement("link");
