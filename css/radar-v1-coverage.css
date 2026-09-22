@@ -1,0 +1,15 @@
+/* Radar Local V1 — cobertura da descoberta */
+.v1-header-metrics{display:flex;align-items:stretch;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.v1-header-metrics .v4-history-badge{height:100%;min-width:170px}
+.v1-coverage-card{min-width:210px;max-width:260px;padding:13px 15px;border:1px solid #dce6f2;border-radius:15px;background:#fff;box-shadow:0 7px 22px rgba(34,57,83,.04);transition:.2s ease}
+.v1-coverage-kicker{display:block;color:#8793a3;font-size:.58rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.v1-coverage-value{display:flex;align-items:center;gap:8px;margin-top:6px}.v1-coverage-value i{width:9px;height:9px;border-radius:999px;background:#a8b3c1;box-shadow:0 0 0 5px rgba(168,179,193,.12)}.v1-coverage-value strong{font-size:1.02rem;color:#243548;letter-spacing:-.025em}
+.v1-coverage-card small{display:block;margin-top:5px;color:#7d8a99;font-size:.59rem;line-height:1.4}
+.v1-coverage-card.level-high{background:linear-gradient(180deg,#f6fcf8,#fff);border-color:#cde8d5}.v1-coverage-card.level-high .v1-coverage-value i{background:#22a35a;box-shadow:0 0 0 5px rgba(34,163,90,.11)}.v1-coverage-card.level-high .v1-coverage-value strong{color:#1e7544}
+.v1-coverage-card.level-medium{background:linear-gradient(180deg,#fffaf0,#fff);border-color:#f0dfb2}.v1-coverage-card.level-medium .v1-coverage-value i{background:#d89a15;box-shadow:0 0 0 5px rgba(216,154,21,.11)}.v1-coverage-card.level-medium .v1-coverage-value strong{color:#94620a}
+.v1-coverage-card.level-low{background:linear-gradient(180deg,#fff7f7,#fff);border-color:#efd0d0}.v1-coverage-card.level-low .v1-coverage-value i{background:#d94b4b;box-shadow:0 0 0 5px rgba(217,75,75,.1)}.v1-coverage-card.level-low .v1-coverage-value strong{color:#a52d2d}
+#rlpBadge[data-coverage="high"]{background:#edf9f1!important;border-color:#cfead8!important;color:#1f7543!important}
+#rlpBadge[data-coverage="medium"]{background:#fff8ea!important;border-color:#f0dfb4!important;color:#94620a!important}
+#rlpBadge[data-coverage="low"]{background:#fff2f2!important;border-color:#efd0d0!important;color:#a52d2d!important}
+@media(max-width:900px){.v4-header{align-items:flex-start!important}.v1-header-metrics{width:100%;justify-content:flex-start}.v1-coverage-card,.v1-header-metrics .v4-history-badge{flex:1 1 190px}}
+@media(max-width:560px){.v1-header-metrics{display:grid;grid-template-columns:1fr 1fr;width:100%}.v1-coverage-card,.v1-header-metrics .v4-history-badge{min-width:0;max-width:none}.v1-coverage-card{padding:12px}.v1-coverage-card small{font-size:.56rem}}
