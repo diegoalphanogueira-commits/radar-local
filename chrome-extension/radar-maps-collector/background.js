@@ -31,7 +31,11 @@ function mergeLeads(existing, incoming) {
   return [...map.values()];
 }
 
-function waitForTabComplete(tabId, timeoutMs = 20000) {
+function broadcast(message) {
+  chrome.runtime.sendMessage(message).catch(() => {});
+}
+
+function waitForTabComplete(tabId, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
     let done = false;
     const timeout = setTimeout(() => {
@@ -52,13 +56,59 @@ function waitForTabComplete(tabId, timeoutMs = 20000) {
   });
 }
 
+async function sendToTabWithRetry(tabId, message, attempts = 5) {
+  let lastError = null;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      const response = await chrome.tabs.sendMessage(tabId, message);
+      if (response) return response;
+    } catch (error) {
+      lastError = error;
+    }
+    await sleep(900 + i * 450);
+  }
+  throw lastError || new Error("CONTENT_SCRIPT_UNAVAILABLE");
+}
+
+async function runSearch(query, maxScrolls = 45) {
+  const cleanQuery = String(query || "").trim();
+  if (!cleanQuery) throw new Error("Informe segmento e região.");
+
+  broadcast({ event: "SEARCH_PROGRESS", stage: "opening", text: "Abrindo a busca no Google Maps..." });
+  const url = `https://www.google.com/maps/search/${encodeURIComponent(cleanQuery)}`;
+  const tab = await chrome.tabs.create({ url, active: false });
+
+  try {
+    await waitForTabComplete(tab.id, 35000).catch(() => {});
+    await sleep(2500);
+    broadcast({ event: "SEARCH_PROGRESS", stage: "scanning", text: "Percorrendo os resultados da região..." });
+
+    const response = await sendToTabWithRetry(tab.id, { cmd: "SCAN_SCROLL", maxScrolls }, 6);
+    if (!response?.ok) throw new Error(response?.error || "Falha ao ler os resultados do Maps.");
+
+    const existing = await getLeads();
+    const leads = mergeLeads(existing, Array.isArray(response.leads) ? response.leads : []);
+    await setLeads(leads);
+
+    broadcast({
+      event: "SEARCH_PROGRESS",
+      stage: "done",
+      text: `${response.leads?.length || 0} negócios encontrados nesta busca.`,
+      count: response.leads?.length || 0
+    });
+    return leads;
+  } finally {
+    await chrome.tabs.remove(tab.id).catch(() => {});
+  }
+}
+
 async function enrichOne(lead) {
   if (!lead?.mapsUrl) return lead;
   const tab = await chrome.tabs.create({ url: lead.mapsUrl, active: false });
   try {
-    await waitForTabComplete(tab.id);
-    await sleep(1300 + Math.round(Math.random() * 900));
-    const response = await chrome.tabs.sendMessage(tab.id, { cmd: "EXTRACT_DETAIL" }).catch(() => null);
+    await waitForTabComplete(tab.id, 25000).catch(() => {});
+    await sleep(1500 + Math.round(Math.random() * 650));
+    const response = await sendToTabWithRetry(tab.id, { cmd: "EXTRACT_DETAIL" }, 4).catch(() => null);
     if (!response?.ok || !response.lead) return lead;
     return mergeLeads([lead], [response.lead])[0];
   } finally {
@@ -71,19 +121,20 @@ async function enrichAll(limit = 60) {
   const indexes = leads
     .map((lead, index) => ({ lead, index }))
     .filter(item => item.lead?.mapsUrl)
-    .slice(0, limit);
+    .slice(0, Math.max(1, Math.min(Number(limit) || 60, 120)));
 
   for (let position = 0; position < indexes.length; position += 1) {
     const item = indexes[position];
     try {
       leads[item.index] = await enrichOne(item.lead);
       await setLeads(leads);
-      chrome.runtime.sendMessage({
+      broadcast({
         event: "ENRICH_PROGRESS",
         current: position + 1,
-        total: indexes.length
-      }).catch(() => {});
-      await sleep(850 + Math.round(Math.random() * 650));
+        total: indexes.length,
+        lead: leads[item.index]
+      });
+      await sleep(650 + Math.round(Math.random() * 500));
     } catch (error) {
       console.warn("[RadarMapsCollector] detail", error);
     }
@@ -115,6 +166,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     if (message?.cmd === "GET_STATE") {
       const leads = await getLeads();
+      sendResponse({ ok: true, leads });
+      return;
+    }
+
+    if (message?.cmd === "RUN_SEARCH") {
+      const leads = await runSearch(message.query, Number(message.maxScrolls) || 45);
       sendResponse({ ok: true, leads });
       return;
     }
@@ -152,6 +209,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ ok: true });
       return;
     }
+
+    sendResponse({ ok: false, error: "UNKNOWN_COMMAND" });
   })().catch(error => sendResponse({ ok: false, error: error.message }));
   return true;
 });
