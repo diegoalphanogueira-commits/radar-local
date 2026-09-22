@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.0",
-  "description": "Radar Local V1 RC11: coleta resiliente, memória por mercado, sincronização geográfica automática e priorização comercial.",
+  "version": "1.4.1",
+  "description": "Radar Local V1 RC12: sessões de busca isoladas, geocodificação fresca por região, memória V2 segura e coleta resiliente.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -24,7 +24,7 @@
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
       "css": ["radar-v1-priority-local.css"],
-      "js": ["radar-bridge-v2.js", "radar-v1-geo-sync-local.js", "radar-v1-search-memory-local.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
+      "js": ["radar-bridge-v3.js", "radar-v1-search-memory-v2-local.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
       "run_at": "document_start"
     }
   ]
