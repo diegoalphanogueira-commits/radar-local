@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radar Maps Collector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup-shell">
+    <header>
+      <div class="brand-mark"><span></span><span></span><span></span><span></span></div>
+      <div>
+        <strong>Radar Maps Collector</strong>
+        <small>Google Maps → Radar Local</small>
+      </div>
+    </header>
+
+    <section class="status-card">
+      <span class="status-dot" id="statusDot"></span>
+      <div>
+        <strong id="statusTitle">Verificando página...</strong>
+        <small id="statusText">Abra uma busca no Google Maps.</small>
+      </div>
+    </section>
+
+    <section class="metric-grid">
+      <article><span>Coletados</span><strong id="leadCount">0</strong></article>
+      <article><span>Com detalhes</span><strong id="detailCount">0</strong></article>
+    </section>
+
+    <section class="actions">
+      <button id="scanVisible" class="primary">Capturar resultados carregados</button>
+      <button id="scanScroll">Rolar e capturar mais resultados</button>
+      <button id="enrichDetails">Abrir fichas e completar detalhes</button>
+    </section>
+
+    <section class="export-actions">
+      <button id="exportJson">Exportar JSON</button>
+      <button id="exportCsv">Exportar CSV</button>
+      <button id="clearData" class="danger">Limpar</button>
+    </section>
+
+    <p class="note">O coletor roda dentro da sua sessão do navegador. Não usa Google Places API nem servidor externo.</p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
