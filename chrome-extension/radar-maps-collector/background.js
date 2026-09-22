@@ -171,7 +171,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.cmd === "RUN_SEARCH") {
-      const leads = await runSearch(message.query, Number(message.maxScrolls) || 45);
+      if (message.replace !== false) await setLeads([]);
+      let leads = await runSearch(message.query, Number(message.maxScrolls) || 45);
+      if (message.enrich !== false && leads.length) {
+        broadcast({ event: "SEARCH_PROGRESS", stage: "enriching", text: "Completando telefone, site e horário das empresas..." });
+        leads = await enrichAll(Number(message.enrichLimit) || 60);
+      }
       sendResponse({ ok: true, leads });
       return;
     }
