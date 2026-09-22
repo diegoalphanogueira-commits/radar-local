@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.2.2",
-  "description": "Coleta negócios do Google Maps, executa buscas regionais completas e envia os dados ao Radar Local.",
+  "version": "1.2.3",
+  "description": "Coleta negócios do Google Maps, executa buscas regionais completas e sincroniza os dados em tempo real com o Radar Local.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "https://www.google.com/maps/*",
