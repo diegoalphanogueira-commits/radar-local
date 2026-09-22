@@ -3,7 +3,7 @@
 
   const SOURCE = "RADAR_LOCAL_WEB";
   const TARGET = "RADAR_MAPS_COLLECTOR";
-  const ASSET_VERSION = "20260922-9";
+  const ASSET_VERSION = "20260922-10";
   const META_KEY = "radarMapsImportedMetaV2";
   const LEADS_KEY = "radarMapsImportedLeadsV2";
 
@@ -181,6 +181,19 @@
         post("ENRICH_RESULT", { requestId: message.requestId || "", response });
       }).catch(error => {
         post("ENRICH_RESULT", { requestId: message.requestId || "", response: { ok: false, error: error.message } });
+      });
+      return;
+    }
+
+    if (message.type === "SITE_ENRICH") {
+      chrome.runtime.sendMessage({
+        cmd: "SITE_ENRICH_ONE",
+        website: String(message.website || "").trim(),
+        force: !!message.force
+      }).then(response => {
+        post("SITE_ENRICH_RESULT", { requestId: message.requestId || "", response });
+      }).catch(error => {
+        post("SITE_ENRICH_RESULT", { requestId: message.requestId || "", response: { ok: false, error: error.message } });
       });
       return;
     }
