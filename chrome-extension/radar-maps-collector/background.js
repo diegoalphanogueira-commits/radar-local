@@ -4,6 +4,8 @@ const CURRENT_SEARCH_KEY = "radarMapsCollectorCurrentSearchV1";
 const SEARCH_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const SEARCH_CACHE_MAX = 12;
 const SEARCH_CACHE_MAX_LEADS = 400;
+const DISCOVERY_MIN_PASSES = 2;
+const DISCOVERY_MAX_PASSES = 3;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function normalizeText(value) {
@@ -154,40 +156,99 @@ async function sendToTabWithRetry(tabId, message, attempts = 5) {
   throw lastError || new Error("CONTENT_SCRIPT_UNAVAILABLE");
 }
 
-async function runSearch(query, maxScrolls = 45) {
+async function runSearch(query, maxScrolls = 75, pass = 1, totalPasses = DISCOVERY_MAX_PASSES) {
   const cleanQuery = String(query || "").trim();
   if (!cleanQuery) throw new Error("Informe segmento e região.");
 
-  broadcast({ event: "SEARCH_PROGRESS", stage: "opening", text: "Abrindo a busca no Google Maps...", query: cleanQuery });
+  broadcast({
+    event: "SEARCH_PROGRESS",
+    stage: "opening",
+    text: `Abrindo busca no Google Maps · passagem ${pass}/${totalPasses}...`,
+    query: cleanQuery,
+    pass,
+    totalPasses
+  });
   const url = `https://www.google.com/maps/search/${encodeURIComponent(cleanQuery)}`;
   const tab = await chrome.tabs.create({ url, active: false });
 
   try {
-    await waitForTabComplete(tab.id, 35000).catch(() => {});
-    await sleep(2200);
-    broadcast({ event: "SEARCH_PROGRESS", stage: "scanning", text: "Percorrendo os resultados da região...", query: cleanQuery });
+    await waitForTabComplete(tab.id, 40000).catch(() => {});
+    await sleep(2600 + Math.round(Math.random() * 700));
+    broadcast({
+      event: "SEARCH_PROGRESS",
+      stage: "scanning",
+      text: `Varrendo resultados até estabilizar · passagem ${pass}/${totalPasses}...`,
+      query: cleanQuery,
+      pass,
+      totalPasses
+    });
 
     const response = await sendToTabWithRetry(tab.id, { cmd: "SCAN_SCROLL", maxScrolls }, 6);
     if (!response?.ok) throw new Error(response?.error || "Falha ao ler os resultados do Maps.");
 
     const existing = await getLeads();
-    const leads = mergeLeads(existing, Array.isArray(response.leads) ? response.leads : []);
+    const before = existing.length;
+    const found = Array.isArray(response.leads) ? response.leads : [];
+    const leads = mergeLeads(existing, found);
+    const added = Math.max(0, leads.length - before);
     await setLeads(leads);
 
     broadcast({
       event: "SEARCH_PROGRESS",
       stage: "done",
-      text: `${response.leads?.length || 0} negócios encontrados nesta busca.`,
+      text: `${found.length} vistos nesta passagem · ${added} novos adicionados · ${leads.length} únicos acumulados.`,
       query: cleanQuery,
-      count: response.leads?.length || 0
+      count: found.length,
+      added,
+      accumulated: leads.length,
+      pass,
+      totalPasses
     });
-    return leads;
+    return { leads, found, added };
   } finally {
     await chrome.tabs.remove(tab.id).catch(() => {});
   }
 }
 
-async function runBatchSearch(rawQueries, maxScrolls = 32, replace = true) {
+async function runQueryExhaustive(query, maxScrolls, queryIndex, queryTotal) {
+  let result = { leads: await getLeads(), found: [], added: 0 };
+  let pass = 0;
+  while (pass < DISCOVERY_MAX_PASSES) {
+    pass += 1;
+    broadcast({
+      event: "BATCH_PROGRESS",
+      stage: "searching",
+      current: queryIndex + 1,
+      total: queryTotal,
+      pass,
+      totalPasses: DISCOVERY_MAX_PASSES,
+      query,
+      text: `Busca ${queryIndex + 1}/${queryTotal} · passagem ${pass}/${DISCOVERY_MAX_PASSES}: ${query}`
+    });
+
+    result = await runSearch(query, maxScrolls, pass, DISCOVERY_MAX_PASSES);
+
+    broadcast({
+      event: "BATCH_PROGRESS",
+      stage: "pass_done",
+      current: queryIndex + 1,
+      total: queryTotal,
+      pass,
+      totalPasses: DISCOVERY_MAX_PASSES,
+      query,
+      added: result.added,
+      accumulated: result.leads.length,
+      text: `Passagem ${pass}: ${result.added} empresas novas · ${result.leads.length} únicas acumuladas.`
+    });
+
+    if (pass >= DISCOVERY_MIN_PASSES && result.added === 0) break;
+    if (pass >= DISCOVERY_MIN_PASSES && result.added <= 1) break;
+    if (pass < DISCOVERY_MAX_PASSES) await sleep(1600 + Math.round(Math.random() * 1100));
+  }
+  return result;
+}
+
+async function runBatchSearch(rawQueries, maxScrolls = 75, replace = true) {
   const queries = [...new Set((Array.isArray(rawQueries) ? rawQueries : [])
     .map(query => String(query || "").trim())
     .filter(Boolean))].slice(0, 12);
@@ -200,23 +261,17 @@ async function runBatchSearch(rawQueries, maxScrolls = 32, replace = true) {
   if (replace) await setLeads([]);
 
   const errors = [];
+  const scrollBudget = Math.max(65, Math.min(Number(maxScrolls) || 75, 100));
+
   for (let index = 0; index < queries.length; index += 1) {
     const query = queries[index];
-    broadcast({
-      event: "BATCH_PROGRESS",
-      stage: "searching",
-      current: index + 1,
-      total: queries.length,
-      query,
-      text: `Busca ${index + 1} de ${queries.length}: ${query}`
-    });
     try {
-      await runSearch(query, Math.max(10, Math.min(Number(maxScrolls) || 32, 60)));
+      await runQueryExhaustive(query, scrollBudget, index, queries.length);
     } catch (error) {
       errors.push({ query, error: error?.message || "SEARCH_FAILED" });
       console.warn("[RadarMapsCollector] batch", query, error);
     }
-    await sleep(800 + Math.round(Math.random() * 600));
+    await sleep(1100 + Math.round(Math.random() * 900));
   }
 
   const freshLeads = await getLeads();
@@ -231,8 +286,8 @@ async function runBatchSearch(rawQueries, maxScrolls = 32, replace = true) {
     current: queries.length,
     total: queries.length,
     text: restoredCount
-      ? `${leads.length} negócios na busca · ${freshLeads.length} vistos agora · ${restoredCount} recuperados da memória desta busca.`
-      : `${leads.length} negócios únicos acumulados.`
+      ? `${leads.length} negócios consolidados · ${freshLeads.length} vistos agora · ${restoredCount} recuperados da memória desta busca.`
+      : `${leads.length} negócios únicos consolidados após cobertura máxima.`
   });
   return { leads, errors, queries, freshCount: freshLeads.length, restoredCount, cacheHit: previousLeads.length > 0 };
 }
@@ -336,7 +391,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message?.cmd === "RUN_SEARCH") {
       if (message.replace !== false) await setLeads([]);
-      let leads = await runSearch(message.query, Number(message.maxScrolls) || 45);
+      const searchResult = await runSearch(message.query, Number(message.maxScrolls) || 75, 1, 1);
+      let leads = searchResult.leads;
       if (leads.length) {
         broadcast({ event: "SEARCH_PROGRESS", stage: "enriching", text: "Completando telefone, site e horário das empresas..." });
         leads = await enrichAll(Number(message.enrichLimit) || 60, 3);
@@ -346,7 +402,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.cmd === "RUN_BATCH_SEARCH") {
-      const result = await runBatchSearch(message.queries, Number(message.maxScrolls) || 32, message.replace !== false);
+      const result = await runBatchSearch(message.queries, Number(message.maxScrolls) || 75, message.replace !== false);
       sendResponse({ ok: true, ...result });
       return;
     }
