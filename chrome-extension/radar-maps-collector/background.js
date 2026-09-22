@@ -1,5 +1,20 @@
 const STORAGE_KEY = "radarMapsCollectorLeadsV1";
+const SEARCH_CACHE_KEY = "radarMapsCollectorSearchSnapshotsV1";
+const CURRENT_SEARCH_KEY = "radarMapsCollectorCurrentSearchV1";
+const SEARCH_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const SEARCH_CACHE_MAX = 12;
+const SEARCH_CACHE_MAX_LEADS = 400;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 async function getLeads() {
   const data = await chrome.storage.local.get(STORAGE_KEY);
@@ -29,6 +44,75 @@ function mergeLeads(existing, incoming) {
     map.set(key, merged);
   });
   return [...map.values()];
+}
+
+function searchFingerprint(queries) {
+  return [...new Set((Array.isArray(queries) ? queries : []).map(normalizeText).filter(Boolean))]
+    .sort()
+    .join("||");
+}
+
+async function loadSearchCache() {
+  const data = await chrome.storage.local.get(SEARCH_CACHE_KEY);
+  const raw = data[SEARCH_CACHE_KEY];
+  return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+}
+
+async function saveSearchCache(cache) {
+  const now = Date.now();
+  const entries = Object.entries(cache || {})
+    .filter(([, entry]) => entry && Number(entry.updatedAt || 0) >= now - SEARCH_CACHE_TTL_MS)
+    .sort((a, b) => Number(b[1]?.updatedAt || 0) - Number(a[1]?.updatedAt || 0))
+    .slice(0, SEARCH_CACHE_MAX);
+  await chrome.storage.local.set({ [SEARCH_CACHE_KEY]: Object.fromEntries(entries) });
+}
+
+async function getSearchSnapshot(fingerprint) {
+  if (!fingerprint) return null;
+  const cache = await loadSearchCache();
+  const entry = cache[fingerprint];
+  if (!entry) return null;
+  if (Number(entry.updatedAt || 0) < Date.now() - SEARCH_CACHE_TTL_MS) {
+    delete cache[fingerprint];
+    await saveSearchCache(cache);
+    return null;
+  }
+  return entry;
+}
+
+async function putSearchSnapshot(fingerprint, queries, leads) {
+  if (!fingerprint) return;
+  const cache = await loadSearchCache();
+  cache[fingerprint] = {
+    fingerprint,
+    queries: Array.isArray(queries) ? queries : [],
+    updatedAt: Date.now(),
+    leads: mergeLeads([], Array.isArray(leads) ? leads : []).slice(0, SEARCH_CACHE_MAX_LEADS)
+  };
+  await saveSearchCache(cache);
+}
+
+async function setCurrentSearch(fingerprint, queries) {
+  await chrome.storage.local.set({
+    [CURRENT_SEARCH_KEY]: {
+      fingerprint: fingerprint || "",
+      queries: Array.isArray(queries) ? queries : [],
+      updatedAt: Date.now()
+    }
+  });
+}
+
+async function getCurrentSearch() {
+  const data = await chrome.storage.local.get(CURRENT_SEARCH_KEY);
+  return data[CURRENT_SEARCH_KEY] || null;
+}
+
+async function refreshCurrentSnapshot(leads) {
+  const current = await getCurrentSearch();
+  if (!current?.fingerprint) return;
+  const existing = await getSearchSnapshot(current.fingerprint);
+  const merged = mergeLeads(existing?.leads || [], Array.isArray(leads) ? leads : []);
+  await putSearchSnapshot(current.fingerprint, current.queries || [], merged);
 }
 
 function broadcast(message) {
@@ -108,6 +192,11 @@ async function runBatchSearch(rawQueries, maxScrolls = 32, replace = true) {
     .map(query => String(query || "").trim())
     .filter(Boolean))].slice(0, 12);
   if (!queries.length) throw new Error("Nenhuma busca válida foi informada.");
+
+  const fingerprint = searchFingerprint(queries);
+  const previousSnapshot = await getSearchSnapshot(fingerprint);
+  const previousLeads = Array.isArray(previousSnapshot?.leads) ? previousSnapshot.leads : [];
+  await setCurrentSearch(fingerprint, queries);
   if (replace) await setLeads([]);
 
   const errors = [];
@@ -130,15 +219,22 @@ async function runBatchSearch(rawQueries, maxScrolls = 32, replace = true) {
     await sleep(800 + Math.round(Math.random() * 600));
   }
 
-  const leads = await getLeads();
+  const freshLeads = await getLeads();
+  const leads = mergeLeads(previousLeads, freshLeads);
+  const restoredCount = Math.max(0, leads.length - freshLeads.length);
+  await setLeads(leads);
+  await putSearchSnapshot(fingerprint, queries, leads);
+
   broadcast({
     event: "BATCH_PROGRESS",
     stage: "done",
     current: queries.length,
     total: queries.length,
-    text: `${leads.length} negócios únicos acumulados.`
+    text: restoredCount
+      ? `${leads.length} negócios na busca · ${freshLeads.length} vistos agora · ${restoredCount} recuperados da memória desta busca.`
+      : `${leads.length} negócios únicos acumulados.`
   });
-  return { leads, errors, queries };
+  return { leads, errors, queries, freshCount: freshLeads.length, restoredCount, cacheHit: previousLeads.length > 0 };
 }
 
 async function enrichOne(lead) {
@@ -173,7 +269,10 @@ async function enrichAll(limit = 60, concurrency = 3) {
     .sort((a, b) => b.priority - a.priority)
     .slice(0, max);
 
-  if (!indexes.length) return leads;
+  if (!indexes.length) {
+    await refreshCurrentSnapshot(leads);
+    return leads;
+  }
 
   let cursor = 0;
   let completed = 0;
@@ -203,6 +302,7 @@ async function enrichAll(limit = 60, concurrency = 3) {
   }
 
   await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  await refreshCurrentSnapshot(leads);
   return leads;
 }
 
@@ -255,6 +355,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const existing = await getLeads();
       const leads = mergeLeads(existing, Array.isArray(message.leads) ? message.leads : []);
       await setLeads(leads);
+      await refreshCurrentSnapshot(leads);
       sendResponse({ ok: true, leads });
       return;
     }
