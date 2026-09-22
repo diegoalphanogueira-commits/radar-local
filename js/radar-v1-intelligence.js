@@ -1,6 +1,8 @@
 /* =========================================================
-   RADAR LOCAL V1 — INTELIGÊNCIA DE DECISOR 3A
-   Match QSA em camadas: seguro / provável / não identificado.
+   RADAR LOCAL V1 — INTELIGÊNCIA EMPRESARIAL / DECISOR 4
+   Empresa e decisor são camadas independentes:
+   CNPJ pode ser identificado mesmo quando o QSA não entrega
+   um tomador de decisão utilizável.
 ========================================================= */
 (() => {
   "use strict";
@@ -12,7 +14,7 @@
   const META_KEY = "radarMapsImportedMetaV2";
   const MY_RECEITA_BASE = "https://minhareceita.org";
   const IBGE_BASE = "https://servicodados.ibge.gov.br/api/v1/localidades/estados";
-  const RUN_KEY = "radarV1DecisionMatchRun";
+  const RUN_KEY = "radarV1DecisionMatchRunV4";
 
   const SEGMENT_CNAES = [
     { re: /odont|dentist|dental/, cnaes: ["8630504"] },
@@ -52,8 +54,8 @@
   }
 
   function saveLeads(leads) {
-    localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
-    window.dispatchEvent(new CustomEvent("radar:maps-data-updated", { detail: { count: leads.length, source: "decision-v1" } }));
+    try { localStorage.setItem(LEADS_KEY, JSON.stringify(leads)); } catch {}
+    window.dispatchEvent(new CustomEvent("radar:maps-data-updated", { detail: { count: leads.length, source: "company-decision-v1" } }));
   }
 
   function loadMeta() {
@@ -93,6 +95,11 @@
     return phone;
   }
 
+  function normalizeCnpj(value) {
+    const raw = digits(value);
+    return raw.length === 14 ? raw : "";
+  }
+
   function extractCep(value) {
     const match = String(value || "").match(/\b(\d{5})[-\s]?(\d{3})\b/);
     return match ? `${match[1]}${match[2]}` : "";
@@ -115,7 +122,7 @@
     );
     const addressText = [company?.logradouro, company?.numero, company?.bairro].filter(Boolean).join(" ");
     const address = overlapScore(lead.address, addressText);
-    const leadPhone = normalizePhone(lead.phone || lead.companyPhone);
+    const leadPhone = normalizePhone(lead.phone || lead.companyPhone || lead.publicPhone);
     const phone = !!leadPhone && companyPhones(company).some(item => item.slice(-8) === leadPhone.slice(-8));
     const leadCep = extractCep(lead.address || lead.cep);
     const companyCep = digits(company?.cep || "").slice(-8);
@@ -124,21 +131,27 @@
     const companyNumber = digits(company?.numero || "");
     const number = !!leadNumber && !!companyNumber && leadNumber === companyNumber;
     const bairro = !!company?.bairro && normalize(lead.address).includes(normalize(company.bairro));
+    const leadCnpj = normalizeCnpj(lead.cnpj);
+    const companyCnpj = normalizeCnpj(company?.cnpj);
+    const exactCnpj = !!leadCnpj && !!companyCnpj && leadCnpj === companyCnpj;
 
     let score = name * 0.58 + address * 0.16;
     if (phone) score += 0.64;
     if (cep) score += 0.30;
     if (number) score += 0.12;
     if (bairro) score += 0.10;
+    if (exactCnpj) score = 1;
     score = Math.min(1, score);
 
-    return { name, address, phone, cep, number, bairro, score };
+    return { name, address, phone, cep, number, bairro, exactCnpj, score };
   }
 
   function classify(best, second) {
-    if (!best) return { level: "none", label: "Não identificado" };
+    if (!best) return { level: "none", label: "Não identificado", gap: 0 };
     const gap = best.score - Number(second?.score || 0);
     const s = best.signals;
+
+    if (s.exactCnpj) return { level: "safe", label: "CNPJ confirmado", gap: 1 };
 
     const safe = s.phone ||
       (s.cep && s.name >= 0.35) ||
@@ -187,10 +200,12 @@
     return rows.find(item => normalize(item.nome) === wanted) || rows.find(item => normalize(item.nome).startsWith(wanted)) || null;
   }
 
-  function attach(lead, candidate, classification) {
+  function attachCompany(lead, candidate, classification) {
     const company = candidate.company;
     const dm = decisionMaker(company);
-    if (!dm) return lead;
+    const qsa = Array.isArray(company.qsa) ? company.qsa : [];
+    const hasDecision = !!dm?.name;
+
     return {
       ...lead,
       cnpj: company.cnpj || lead.cnpj || "",
@@ -198,66 +213,133 @@
       tradeName: company.nome_fantasia || lead.tradeName || "",
       companyEmail: company.email || lead.companyEmail || "",
       companyPhone: company.ddd_telefone_1 || lead.companyPhone || "",
-      qsa: Array.isArray(company.qsa) ? company.qsa : (lead.qsa || []),
-      decisionMaker: dm,
+      qsa,
+      decisionMaker: hasDecision ? dm : (lead.decisionMaker || null),
       cnae: company.cnae_fiscal || lead.cnae || "",
       cnaeDescription: company.cnae_fiscal_descricao || lead.cnaeDescription || "",
       revenueMatchScore: candidate.score,
       revenueStatus: classification.level === "safe" ? "matched" : "probable",
-      decisionConfidence: classification.level,
-      decisionConfidenceLabel: classification.label,
-      decisionMatchSignals: candidate.signals,
-      decisionMatchedAt: new Date().toISOString()
+      companyConfidence: classification.level,
+      companyConfidenceLabel: classification.label,
+      companyMatchSignals: candidate.signals,
+      companyMatchedAt: new Date().toISOString(),
+      decisionConfidence: hasDecision ? classification.level : "none",
+      decisionConfidenceLabel: hasDecision ? classification.label : "Sem QSA utilizável",
+      decisionMatchSignals: hasDecision ? candidate.signals : null,
+      decisionMatchedAt: hasDecision ? new Date().toISOString() : (lead.decisionMatchedAt || ""),
+      qsaStatus: hasDecision ? "identified" : (qsa.length ? "without_priority_role" : "not_available")
     };
+  }
+
+  function findLeadForCard(card, leads) {
+    const name = card.querySelector("h3")?.textContent?.trim() || "";
+    const address = card.querySelector(".v4-card-head p")?.textContent?.trim() || "";
+    return leads.find(item => normalize(item.name) === normalize(name) && normalize(item.address) === normalize(address)) ||
+      leads.find(item => normalize(item.name) === normalize(name)) || null;
   }
 
   function updateCardLabels() {
     const leads = loadLeads();
     document.querySelectorAll(".v4-lead-card").forEach(card => {
-      const name = card.querySelector("h3")?.textContent?.trim() || "";
-      const address = card.querySelector(".v4-card-head p")?.textContent?.trim() || "";
-      const lead = leads.find(item => normalize(item.name) === normalize(name) && normalize(item.address) === normalize(address)) ||
-        leads.find(item => normalize(item.name) === normalize(name));
+      const lead = findLeadForCard(card, leads);
       if (!lead) return;
 
       const source = card.querySelector(".li-source");
-      if (source && lead.decisionMaker?.name) {
+      if (source) {
         const pct = Math.round(Number(lead.revenueMatchScore || 0) * 100);
-        if (lead.decisionConfidence === "probable") {
-          source.textContent = `QSA provável · match ${pct}%`;
-          source.classList.add("v1-probable");
-          source.title = "O CNPJ/QSA tem bons sinais de correspondência, mas o Radar não trata este vínculo como confirmação absoluta.";
-        } else {
-          source.textContent = `QSA identificado · match ${pct}%`;
-          source.classList.remove("v1-probable");
-          source.title = "Correspondência forte entre a empresa do mapa e o cadastro empresarial.";
+        source.classList.remove("v1-probable", "v1-company-only");
+        if (lead.decisionMaker?.name) {
+          if (lead.decisionConfidence === "probable") {
+            source.textContent = `QSA provável · match ${pct}%`;
+            source.classList.add("v1-probable");
+            source.title = "Há bons sinais de correspondência, mas o Radar não trata este vínculo como confirmação absoluta.";
+          } else {
+            source.textContent = `QSA identificado · match ${pct}%`;
+            source.title = "Correspondência forte entre a empresa do mapa, o CNPJ e o quadro societário.";
+          }
+        } else if (lead.cnpj) {
+          source.textContent = lead.companyConfidence === "probable" ? `Empresa provável · match ${pct}%` : "Empresa identificada · sem QSA";
+          if (lead.companyConfidence === "probable") source.classList.add("v1-probable");
+          else source.classList.add("v1-company-only");
+          source.title = lead.qsaStatus === "not_available"
+            ? "O CNPJ foi identificado, mas a fonte não trouxe QSA utilizável."
+            : "A empresa foi identificada, mas não há um tomador de decisão seguro para exibir.";
         }
       }
 
       const dmBox = card.querySelector(".v4-data-grid > div:nth-child(3) strong");
       if (dmBox && lead.decisionMaker?.name) dmBox.textContent = lead.decisionMaker.name;
     });
+    renderSummary(leads);
   }
 
-  async function run() {
+  function ensureSummary() {
+    let summary = document.querySelector("#v1CompanySummary");
+    if (summary) return summary;
+    const revenue = document.querySelector(".v4-revenue-details");
+    if (!revenue?.parentNode) return null;
+    summary = document.createElement("section");
+    summary.id = "v1CompanySummary";
+    summary.className = "v1-company-summary";
+    summary.innerHTML = `
+      <div class="v1-company-summary-head"><div><span>INTELIGÊNCIA EMPRESARIAL</span><strong>CNPJ & QSA da coleta</strong></div><small>qualidade do enriquecimento</small></div>
+      <div class="v1-company-summary-grid">
+        <div><span>CNPJ identificado</span><strong data-company-cnpj>0</strong></div>
+        <div><span>QSA seguro</span><strong data-company-safe>0</strong></div>
+        <div><span>QSA provável</span><strong data-company-probable>0</strong></div>
+        <div><span>Sem decisor</span><strong data-company-none>0</strong></div>
+      </div>`;
+    revenue.parentNode.insertBefore(summary, revenue);
+    return summary;
+  }
+
+  function renderSummary(leads = loadLeads()) {
+    const summary = ensureSummary();
+    if (!summary) return;
+    const total = leads.length;
+    const cnpj = leads.filter(lead => !!normalizeCnpj(lead.cnpj)).length;
+    const safe = leads.filter(lead => lead.decisionMaker?.name && lead.decisionConfidence !== "probable").length;
+    const probable = leads.filter(lead => lead.decisionMaker?.name && lead.decisionConfidence === "probable").length;
+    const none = Math.max(0, total - safe - probable);
+    summary.querySelector("[data-company-cnpj]").textContent = `${cnpj}/${total}`;
+    summary.querySelector("[data-company-safe]").textContent = String(safe);
+    summary.querySelector("[data-company-probable]").textContent = String(probable);
+    summary.querySelector("[data-company-none]").textContent = String(none);
+  }
+
+  function fingerprintFor(term, region, leads) {
+    return `${normalize(term)}|${normalize(region)}|${leads.map(item => [
+      item.mapsUrl || item.name,
+      normalizePhone(item.phone || item.companyPhone || item.publicPhone),
+      normalizeCnpj(item.cnpj),
+      item.siteEnrichedAt || ""
+    ].join("#")).join("~")}`;
+  }
+
+  async function run(force = false) {
     if (busy) return;
     const leads = loadLeads();
     const meta = loadMeta();
     const term = meta.term || document.querySelector("#mapsSearchTerm")?.value || "";
     const region = meta.region || document.querySelector("#mapsSearchCity")?.value || "";
     const cnaes = inferCnaes(term);
+    renderSummary(leads);
     if (!leads.length || !region || !cnaes.length) return;
 
-    const unresolved = leads.filter(lead => !lead.decisionMaker?.name || !lead.cnpj);
+    const unresolved = leads.filter(lead =>
+      !lead.cnpj ||
+      !lead.companyConfidence ||
+      !lead.decisionMaker?.name ||
+      lead.decisionConfidence === "probable"
+    );
     if (!unresolved.length) {
       updateCardLabels();
       return;
     }
 
-    const fingerprint = `${normalize(term)}|${normalize(region)}|${leads.map(item => item.mapsUrl || item.name).join("~")}`;
-    if (fingerprint === lastFingerprint) return;
-    const savedRun = sessionStorage.getItem(RUN_KEY);
-    if (savedRun === fingerprint) return;
+    const fingerprint = fingerprintFor(term, region, leads);
+    if (!force && fingerprint === lastFingerprint) return;
+    if (!force && sessionStorage.getItem(RUN_KEY) === fingerprint) return;
 
     lastFingerprint = fingerprint;
     busy = true;
@@ -279,29 +361,37 @@
       });
       if (!companies.length) return;
 
+      const byCnpj = new Map(companies.map(company => [normalizeCnpj(company.cnpj), company]).filter(([key]) => key));
       let changed = false;
       const next = leads.map(lead => {
-        if (lead.decisionMaker?.name && lead.cnpj && lead.decisionConfidence !== "probable") return lead;
+        if (lead.cnpj && lead.companyConfidence === "safe" && lead.decisionMaker?.name && lead.decisionConfidence === "safe") return lead;
 
-        const ranked = companies
-          .map(company => {
-            const signals = candidateSignals(lead, company);
-            return { company, score: signals.score, signals };
-          })
-          .sort((a, b) => b.score - a.score);
+        let ranked;
+        const exact = normalizeCnpj(lead.cnpj) ? byCnpj.get(normalizeCnpj(lead.cnpj)) : null;
+        if (exact) {
+          const signals = candidateSignals(lead, exact);
+          ranked = [{ company: exact, score: 1, signals: { ...signals, exactCnpj: true, score: 1 } }];
+        } else {
+          ranked = companies
+            .map(company => {
+              const signals = candidateSignals(lead, company);
+              return { company, score: signals.score, signals };
+            })
+            .sort((a, b) => b.score - a.score);
+        }
 
         const best = ranked[0];
         const second = ranked[1];
         const classification = classify(best, second);
         if (classification.level === "none") return lead;
 
-        const enriched = attach(lead, best, classification);
-        if (enriched !== lead) changed = true;
+        const enriched = attachCompany(lead, best, classification);
+        if (JSON.stringify(enriched) !== JSON.stringify(lead)) changed = true;
         return enriched;
       });
 
       if (changed) saveLeads(next);
-      sessionStorage.setItem(RUN_KEY, fingerprint);
+      sessionStorage.setItem(RUN_KEY, fingerprintFor(term, region, changed ? next : leads));
       setTimeout(updateCardLabels, 250);
     } catch (error) {
       console.warn("[Radar V1 Intelligence]", error);
@@ -311,17 +401,30 @@
   }
 
   const style = document.createElement("style");
+  style.id = "radar-v1-intelligence-style";
   style.textContent = `
     .li-source.v1-probable{background:#fff7e8!important;color:#996515!important;border:1px solid #f1ddb6}
+    .li-source.v1-company-only{background:#eef7ff!important;color:#2563a7!important;border:1px solid #d7e9fb}
+    .v1-company-summary{margin:18px 0 12px;padding:14px 16px;border:1px solid #dfe8f3;border-radius:18px;background:linear-gradient(180deg,#fff,#f8fbff);box-shadow:0 10px 30px rgba(44,73,110,.045)}
+    .v1-company-summary-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:11px}
+    .v1-company-summary-head div{display:flex;align-items:baseline;gap:9px;min-width:0}.v1-company-summary-head span{font-size:.61rem;font-weight:850;letter-spacing:.07em;color:#2474ee}.v1-company-summary-head strong{font-size:.82rem;color:#233851}.v1-company-summary-head small{font-size:.61rem;color:#8a98aa;white-space:nowrap}
+    .v1-company-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.v1-company-summary-grid>div{padding:9px 11px;border:1px solid #edf2f7;border-radius:12px;background:#fff}.v1-company-summary-grid span{display:block;font-size:.58rem;color:#8896a7}.v1-company-summary-grid strong{display:block;margin-top:3px;font-size:.92rem;color:#20364d}
+    @media(max-width:760px){.v1-company-summary-grid{grid-template-columns:1fr 1fr}.v1-company-summary-head small{display:none}.v1-company-summary-head div{display:block}.v1-company-summary-head strong{display:block;margin-top:3px}}
   `;
   document.head.appendChild(style);
 
-  window.addEventListener("radar:maps-data-updated", () => setTimeout(run, 220));
+  window.addEventListener("radar:maps-data-updated", () => setTimeout(() => run(false), 220));
+  document.addEventListener("click", event => {
+    if (!event.target.closest("[data-li-refresh]")) return;
+    setTimeout(() => run(true), 180);
+  }, true);
+
   const observer = new MutationObserver(() => { updateCardLabels(); });
   observer.observe(document.documentElement, { childList: true, subtree: true });
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { run(); updateCardLabels(); }, { once: true });
-  else { run(); updateCardLabels(); }
-  setTimeout(run, 1200);
-  setInterval(() => { run(); updateCardLabels(); }, 4000);
+  const boot = () => { run(false); updateCardLabels(); renderSummary(); };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
+  else boot();
+  setTimeout(() => run(false), 1200);
+  setInterval(() => { run(false); updateCardLabels(); }, 4500);
 })();
