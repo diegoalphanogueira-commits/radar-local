@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.3.3",
-  "description": "Radar Local V1 RC4: cobertura espacial, mapa validado, decisores em camadas de confiança e presença pública pelo site oficial.",
+  "version": "1.3.4",
+  "description": "Radar Local V1 RC5: cobertura espacial, mapa validado, presença pública e inteligência empresarial com CNPJ/QSA em camadas independentes.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
