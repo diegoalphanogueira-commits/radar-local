@@ -1,0 +1,7 @@
+Radar Maps Collector 1.2.5
+
+Instale via chrome://extensions > Modo do desenvolvedor > Carregar sem compactação.
+Use a pasta que contém manifest.json.
+Depois recarregue o Radar Local com Ctrl + F5.
+
+Esta versão prioriza cobertura máxima antes de enriquecer telefone, site e horário.
