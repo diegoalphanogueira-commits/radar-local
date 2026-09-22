@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f8fc">
   <title>Radar Local | Prospecção</title>
-  <meta name="description" content="Encontre empresas por CNAE e cidade usando dados públicos do CNPJ e identifique decisores pelo QSA.">
+  <meta name="description" content="Encontre empresas por CNAE e cidade, identifique sócios e organize sua lista de prospecção sem Google Places.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/prospeccao.css?v=20260922-1">
+  <link rel="stylesheet" href="css/prospeccao.css?v=20260922-2">
 </head>
 <body>
   <div class="app-shell">
@@ -20,26 +20,30 @@
         </div>
         <div class="brand-copy">
           <strong>Radar Local</strong>
-          <span>Prospecção por dados públicos</span>
+          <span>Inteligência comercial local</span>
         </div>
       </a>
       <nav class="mode-nav" aria-label="Modos do Radar">
         <a href="./">Diagnóstico</a>
         <a href="prospeccao.html" class="active" aria-current="page">Prospecção</a>
       </nav>
+      <div class="source-status" id="sourceStatus"><span></span><b>Conectando à base...</b></div>
     </header>
 
     <main>
       <section class="hero">
-        <div>
-          <span class="eyebrow">MODO PROSPECÇÃO</span>
-          <h1>Encontre empresas e chegue em quem decide.</h1>
-          <p>Pesquise empresas por CNAE e cidade usando dados públicos de CNPJ. Veja QSA, contatos cadastrais, filtre oportunidades e envie um prospect direto para o diagnóstico do Radar.</p>
+        <div class="hero-copy">
+          <span class="eyebrow">RADAR PROSPECÇÃO</span>
+          <h1>Encontre empresas, identifique quem decide e transforme dados públicos em <em>oportunidades de abordagem.</em></h1>
+          <p>Pesquise por CNAE e cidade usando dados públicos do CNPJ. O modo Prospecção funciona separado do diagnóstico atual e não usa Google Places.</p>
+          <div class="hero-pills">
+            <span>Receita / CNPJ</span><span>QSA e administradores</span><span>Sem Google Places</span><span>Lista + CSV</span>
+          </div>
         </div>
-        <div class="hero-card" aria-label="Fontes de dados">
-          <span class="hero-card-label">SEM GOOGLE PLACES</span>
-          <strong>Receita + IBGE</strong>
-          <small>Descoberta por CNAE, município e dados cadastrais.</small>
+        <div class="hero-metrics">
+          <article><span>Encontradas</span><strong id="heroFound">0</strong><small>última busca</small></article>
+          <article><span>Com decisor</span><strong id="heroQsa">0</strong><small>QSA identificado</small></article>
+          <article><span>Salvas</span><strong id="heroSaved">0</strong><small>na sua lista</small></article>
         </div>
       </section>
 
@@ -50,7 +54,7 @@
             <h2>Monte sua lista de prospecção.</h2>
             <p>Use segmento + cidade para descobrir empresas ou consulte um CNPJ específico.</p>
           </div>
-          <span class="status-pill"><span></span>Dados públicos</span>
+          <span class="status-pill"><span></span>0 Google Places</span>
         </div>
 
         <div class="search-tabs" role="tablist" aria-label="Tipo de busca">
@@ -67,6 +71,7 @@
                 <option value="9602502" data-label="Estética e cuidados com a beleza">Estética e cuidados com a beleza — 9602-5/02</option>
                 <option value="9602501" data-label="Cabeleireiros, manicure e pedicure">Cabeleireiros, manicure e pedicure — 9602-5/01</option>
                 <option value="8630504" data-label="Clínica odontológica">Clínica odontológica — 8630-5/04</option>
+                <option value="8630503" data-label="Atividade médica ambulatorial">Atividade médica ambulatorial — 8630-5/03</option>
                 <option value="6622300" data-label="Corretores e agentes de seguros">Corretores e agentes de seguros — 6622-3/00</option>
                 <option value="6911701" data-label="Serviços advocatícios">Serviços advocatícios — 6911-7/01</option>
                 <option value="6920601" data-label="Contabilidade">Contabilidade — 6920-6/01</option>
@@ -74,8 +79,12 @@
                 <option value="9313100" data-label="Academias">Academias — 9313-1/00</option>
                 <option value="7500100" data-label="Atividades veterinárias">Atividades veterinárias — 7500-1/00</option>
                 <option value="5611201" data-label="Restaurantes">Restaurantes — 5611-2/01</option>
+                <option value="4721102" data-label="Padarias e confeitarias">Padarias e confeitarias — 4721-1/02</option>
+                <option value="4520001" data-label="Oficinas mecânicas">Oficinas mecânicas — 4520-0/01</option>
+                <option value="4744099" data-label="Materiais de construção">Materiais de construção — 4744-0/99</option>
+                <option value="8121400" data-label="Limpeza em prédios e domicílios">Limpeza em prédios e domicílios — 8121-4/00</option>
               </select>
-              <small>Para qualquer outro segmento, informe um ou mais CNAEs separados por vírgula.</small>
+              <small>Para outro segmento, informe um ou mais CNAEs separados por vírgula.</small>
             </div>
             <div class="field">
               <label for="cnaeInput">CNAE manual</label>
@@ -100,41 +109,16 @@
           <details class="advanced-filters">
             <summary>Filtros adicionais</summary>
             <div class="form-grid four">
-              <div class="field">
-                <label for="neighborhood">Bairro contém</label>
-                <input id="neighborhood" name="neighborhood" type="text" placeholder="Ex.: Centro">
-              </div>
-              <div class="field">
-                <label for="companySize">Porte</label>
-                <select id="companySize" name="companySize">
-                  <option value="">Todos</option>
-                  <option value="MICRO EMPRESA">Microempresa</option>
-                  <option value="EMPRESA DE PEQUENO PORTE">Empresa de pequeno porte</option>
-                  <option value="DEMAIS">Demais</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="qsaOnly">Decisor identificado</label>
-                <select id="qsaOnly" name="qsaOnly">
-                  <option value="">Todos</option>
-                  <option value="yes">Somente com QSA</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="limit">Resultados por lote</label>
-                <select id="limit" name="limit">
-                  <option value="50">50</option>
-                  <option value="100" selected>100</option>
-                  <option value="250">250</option>
-                  <option value="500">500</option>
-                </select>
-              </div>
+              <div class="field"><label for="neighborhood">Bairro contém</label><input id="neighborhood" name="neighborhood" type="text" placeholder="Ex.: Centro"></div>
+              <div class="field"><label for="companySize">Porte</label><select id="companySize" name="companySize"><option value="">Todos</option><option value="MICRO EMPRESA">Microempresa</option><option value="EMPRESA DE PEQUENO PORTE">Empresa de pequeno porte</option><option value="DEMAIS">Demais</option></select></div>
+              <div class="field"><label for="qsaOnly">Decisor identificado</label><select id="qsaOnly" name="qsaOnly"><option value="">Todos</option><option value="yes">Somente com QSA</option></select></div>
+              <div class="field"><label for="limit">Resultados por CNAE</label><select id="limit" name="limit"><option value="25">25</option><option value="50">50</option><option value="100" selected>100</option><option value="250">250</option><option value="500">500</option></select></div>
             </div>
           </details>
 
           <div class="form-footer">
             <button type="submit" class="primary-button" id="searchButton">Buscar empresas <span>→</span></button>
-            <span class="helper">Sem Google Places. A consulta usa CNAE + município.</span>
+            <span class="helper">Consulta por CNAE + município. CNPJ inativo é ocultado.</span>
           </div>
         </form>
 
@@ -142,57 +126,55 @@
           <div class="form-grid two">
             <div class="field">
               <label for="cnpjDirect">CNPJ</label>
-              <input id="cnpjDirect" name="cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0001-00" maxlength="18" required>
-              <small>Consulta direta dos dados cadastrais e do QSA.</small>
+              <input id="cnpjDirect" name="cnpj" type="text" autocapitalize="characters" placeholder="00.000.000/0001-00" maxlength="18" required>
+              <small>Compatível com CNPJ numérico e com o novo formato alfanumérico.</small>
             </div>
-            <div class="field field-action">
-              <button type="submit" class="primary-button">Consultar CNPJ <span>→</span></button>
-            </div>
+            <div class="field field-action"><button type="submit" class="primary-button">Consultar CNPJ <span>→</span></button></div>
           </div>
         </form>
       </section>
 
-      <section id="loadingPanel" class="panel loading-panel hidden" aria-live="polite">
-        <div class="spinner" aria-hidden="true"></div>
-        <div>
-          <strong id="loadingTitle">Consultando dados públicos...</strong>
-          <span id="loadingText">Resolvendo município e buscando empresas.</span>
-        </div>
-      </section>
-
-      <section id="errorPanel" class="panel error-panel hidden" role="alert">
-        <strong>Não foi possível concluir a busca.</strong>
-        <p id="errorText"></p>
-      </section>
+      <section id="loadingPanel" class="panel loading-panel hidden" aria-live="polite"><div class="spinner" aria-hidden="true"></div><div><strong id="loadingTitle">Consultando dados públicos...</strong><span id="loadingText">Resolvendo município e buscando empresas.</span></div></section>
+      <section id="errorPanel" class="panel error-panel hidden" role="alert"><strong>Não foi possível concluir a busca.</strong><p id="errorText"></p></section>
 
       <section id="resultsSection" class="results-section hidden">
         <div class="results-toolbar panel">
-          <div>
-            <span class="section-kicker">RESULTADOS</span>
-            <h2 id="resultsTitle">Empresas encontradas</h2>
-            <p id="resultsMeta">—</p>
-          </div>
-          <div class="toolbar-actions">
-            <label class="quick-filter">
-              <span class="sr-only">Filtrar empresas por nome</span>
-              <input id="quickFilter" type="search" placeholder="Filtrar por nome, CNPJ ou bairro">
-            </label>
-            <button type="button" id="exportCsvBtn" class="secondary-button">Exportar CSV</button>
-          </div>
+          <div><span class="section-kicker">RESULTADOS</span><h2 id="resultsTitle">Empresas encontradas</h2><p id="resultsMeta">—</p></div>
+          <div class="toolbar-actions"><label class="quick-filter"><span class="sr-only">Filtrar empresas</span><input id="quickFilter" type="search" placeholder="Nome, CNPJ, bairro ou decisor"></label><button type="button" id="saveVisibleBtn" class="secondary-button">Salvar visíveis</button><button type="button" id="exportCsvBtn" class="secondary-button">Exportar resultados</button></div>
         </div>
-
         <div class="summary-grid">
           <article class="summary-card"><span>Empresas carregadas</span><strong id="summaryTotal">0</strong></article>
           <article class="summary-card"><span>Com QSA</span><strong id="summaryQsa">0</strong></article>
           <article class="summary-card"><span>Com telefone cadastral</span><strong id="summaryPhone">0</strong></article>
           <article class="summary-card"><span>Com e-mail cadastral</span><strong id="summaryEmail">0</strong></article>
         </div>
-
         <div id="companiesList" class="companies-list"></div>
+        <div class="load-more-wrap"><button type="button" id="loadMoreBtn" class="secondary-button hidden">Carregar mais empresas</button></div>
+      </section>
 
-        <div class="load-more-wrap">
-          <button type="button" id="loadMoreBtn" class="secondary-button hidden">Carregar mais empresas</button>
+      <section class="saved-section panel" id="savedSection">
+        <div class="saved-head">
+          <div><span class="section-kicker">MINHA LISTA</span><h2>Prospects salvos</h2><p>A lista fica salva no Radar deste navegador e pode ser exportada a qualquer momento.</p></div>
+          <div class="toolbar-actions"><button id="exportSavedBtn" class="secondary-button" type="button">Exportar lista</button><button id="clearSavedBtn" class="danger-button" type="button">Limpar lista</button></div>
         </div>
+        <div class="summary-grid saved-summary">
+          <article class="summary-card"><span>Total</span><strong id="savedTotal">0</strong></article>
+          <article class="summary-card"><span>Com decisor</span><strong id="savedQsa">0</strong></article>
+          <article class="summary-card"><span>Com telefone</span><strong id="savedPhone">0</strong></article>
+          <article class="summary-card"><span>Com e-mail</span><strong id="savedEmail">0</strong></article>
+        </div>
+        <div id="savedEmpty" class="saved-empty">Nenhum prospect salvo ainda.</div>
+        <div id="savedTableWrap" class="saved-table-wrap hidden">
+          <table class="saved-table">
+            <thead><tr><th>Empresa</th><th>Decisor</th><th>Contato cadastral</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="savedTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="data-source-card panel">
+        <div><span class="section-kicker">ORIGEM DOS DADOS</span><h3>Prospecção sem Google Places.</h3></div>
+        <p>Dados empresariais e QSA são derivados da base pública do CNPJ da Receita Federal. Telefones e e-mails exibidos são contatos cadastrais do estabelecimento; não são apresentados como telefone pessoal do sócio. Um provedor de enriquecimento pode ser conectado depois sem alterar esta estrutura.</p>
       </section>
     </main>
   </div>
@@ -200,35 +182,20 @@
   <template id="companyCardTemplate">
     <article class="company-card">
       <div class="company-card-main">
-        <div class="company-head">
-          <div>
-            <span class="company-kicker">EMPRESA ATIVA</span>
-            <h3 data-company-name></h3>
-            <p data-legal-name></p>
-          </div>
-          <span class="opportunity-badge" data-company-size></span>
-        </div>
-        <div class="company-meta">
-          <span><b>CNPJ</b><em data-cnpj></em></span>
-          <span><b>CNAE</b><em data-cnae></em></span>
-          <span><b>Local</b><em data-location></em></span>
-        </div>
+        <div class="company-head"><div><span class="company-kicker">EMPRESA ATIVA</span><h3 data-company-name></h3><p data-legal-name></p></div><span class="opportunity-badge" data-company-size></span></div>
+        <div class="company-meta"><span><b>CNPJ</b><em data-cnpj></em></span><span><b>CNAE</b><em data-cnae></em></span><span><b>Local</b><em data-location></em></span></div>
         <div class="decision-maker" data-decision-maker></div>
       </div>
       <aside class="company-contact">
-        <span class="contact-title">Contato cadastral</span>
-        <div class="contact-row" data-phone></div>
-        <div class="contact-row" data-email></div>
-        <small>Telefone/e-mail são os dados cadastrais do estabelecimento. Não são apresentados como contato pessoal do sócio.</small>
-        <div class="card-actions">
-          <button type="button" class="ghost-button" data-diagnose>Gerar diagnóstico</button>
-          <button type="button" class="ghost-button" data-copy>Copiar dados</button>
-        </div>
+        <span class="contact-title">Contato cadastral</span><div class="contact-row" data-phone></div><div class="contact-row" data-email></div>
+        <small>Telefone/e-mail são os dados cadastrais do estabelecimento. O link de WhatsApp apenas abre o número; não confirma que ele possui conta ativa.</small>
+        <div class="card-actions"><button type="button" class="ghost-button" data-save>Salvar prospect</button><button type="button" class="ghost-button" data-diagnose>Gerar diagnóstico</button><button type="button" class="ghost-button" data-copy>Copiar</button></div>
       </aside>
     </article>
   </template>
 
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="js/radar-auth.js?v=20260922-1"></script>
-  <script src="js/prospeccao.js?v=20260922-1"></script>
+  <script src="js/prospeccao.js?v=20260922-2"></script>
 </body>
 </html>
