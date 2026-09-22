@@ -154,7 +154,9 @@
     ["instagram", "facebook", "linkedin", "tiktok", "email", "phone", "whatsapp"].forEach(key => {
       if (!out[key] && extra?.[key]) out[key] = extra[key];
     });
+    if (!out.title && extra?.title) out.title = extra.title;
     out.sameAs = [...new Set([...(out.sameAs || []), ...(extra?.sameAs || [])])].slice(0, 20);
+    out.candidatePages = [...new Set([...(out.candidatePages || []), ...(extra?.candidatePages || [])])].slice(0, 8);
     out.pagesScanned = [...new Set([...(out.pagesScanned || []), extra?.url].filter(Boolean))];
     return out;
   }
