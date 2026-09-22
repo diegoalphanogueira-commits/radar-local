@@ -1,0 +1,1 @@
+Radar Maps Collector 1.2.5: coverage-first discovery, repeated passes per query, then enrichment.
