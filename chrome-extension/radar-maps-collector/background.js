@@ -48,10 +48,16 @@ function mergeLeads(existing, incoming) {
   return [...map.values()];
 }
 
-function searchFingerprint(queries) {
-  return [...new Set((Array.isArray(queries) ? queries : []).map(normalizeText).filter(Boolean))]
+function searchFingerprint(queries, context = {}) {
+  const queryPart = [...new Set((Array.isArray(queries) ? queries : []).map(normalizeText).filter(Boolean))]
     .sort()
     .join("||");
+  const region = normalizeText(context.region || "");
+  const center = context.center && Number.isFinite(Number(context.center.lat)) && Number.isFinite(Number(context.center.lng))
+    ? `${Number(context.center.lat).toFixed(4)},${Number(context.center.lng).toFixed(4)}`
+    : "";
+  const radius = Number(context.radiusKm || 0) || 0;
+  return `${region}|${center}|${radius}|${queryPart}`;
 }
 
 async function loadSearchCache() {
@@ -156,28 +162,119 @@ async function sendToTabWithRetry(tabId, message, attempts = 5) {
   throw lastError || new Error("CONTENT_SCRIPT_UNAVAILABLE");
 }
 
-async function runSearch(query, maxScrolls = 75, pass = 1, totalPasses = DISCOVERY_MAX_PASSES) {
+async function geocodeRegion(region) {
+  const query = String(region || "").trim();
+  if (!query) return null;
+  const expanded = /brasil/i.test(query) ? query : `${query}, São Paulo, Brasil`;
+  try {
+    const params = new URLSearchParams({
+      q: expanded,
+      format: "jsonv2",
+      limit: "5",
+      countrycodes: "br",
+      addressdetails: "1"
+    });
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) return null;
+    const rows = await response.json();
+    const normalized = normalizeText(query);
+    const tokens = normalized.split(" ").filter(token => token.length >= 3 && !["jardim","jd","vila","bairro","sp","sao"].includes(token));
+    const ranked = (Array.isArray(rows) ? rows : []).map(row => {
+      const hay = normalizeText(row?.display_name || "");
+      const score = tokens.reduce((sum, token) => sum + (hay.includes(token) ? 1 : 0), 0);
+      return { row, score };
+    }).sort((a, b) => b.score - a.score);
+    const best = ranked[0]?.row;
+    const lat = Number(best?.lat);
+    const lng = Number(best?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng, displayName: best.display_name || query };
+  } catch (error) {
+    console.warn("[RadarMapsCollector] geocode", error);
+    return null;
+  }
+}
+
+function zoomForRadius(radiusKm) {
+  const radius = Number(radiusKm || 5) || 5;
+  if (radius <= 2) return 15;
+  if (radius <= 5) return 14;
+  if (radius <= 9) return 13;
+  return 12;
+}
+
+function offsetPoint(center, eastKm = 0, northKm = 0) {
+  if (!center) return null;
+  const lat = Number(center.lat);
+  const lng = Number(center.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const dLat = northKm / 110.574;
+  const cos = Math.max(0.25, Math.cos(lat * Math.PI / 180));
+  const dLng = eastKm / (111.320 * cos);
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+
+function coverageAnchors(center, radiusKm) {
+  if (!center) return [null];
+  const radius = Math.max(1, Number(radiusKm || 5) || 5);
+  const offset = Math.min(3.2, Math.max(0.9, radius * 0.45));
+  return [
+    { ...center, label: "centro" },
+    { ...offsetPoint(center, offset, offset), label: "nordeste" },
+    { ...offsetPoint(center, -offset, -offset), label: "sudoeste" },
+    { ...offsetPoint(center, -offset, offset), label: "noroeste" },
+    { ...offsetPoint(center, offset, -offset), label: "sudeste" }
+  ];
+}
+
+function stripRegionFromQuery(query, region) {
+  const raw = String(query || "").trim();
+  const place = String(region || "").trim();
+  if (!place) return raw;
+  const lowerRaw = raw.toLocaleLowerCase("pt-BR");
+  const lowerPlace = place.toLocaleLowerCase("pt-BR");
+  if (lowerRaw.endsWith(lowerPlace)) return raw.slice(0, raw.length - place.length).trim();
+  const first = place.split(",")[0]?.trim();
+  if (first && lowerRaw.endsWith(first.toLocaleLowerCase("pt-BR"))) return raw.slice(0, raw.length - first.length).trim();
+  return raw;
+}
+
+function buildMapsUrl(query, context = {}, anchor = null) {
+  const cleanQuery = String(query || "").trim();
+  const center = anchor || context.center;
+  if (center && Number.isFinite(Number(center.lat)) && Number.isFinite(Number(center.lng))) {
+    const searchTerm = stripRegionFromQuery(cleanQuery, context.region) || cleanQuery;
+    const zoom = zoomForRadius(context.radiusKm);
+    return `https://www.google.com/maps/search/${encodeURIComponent(searchTerm)}/@${Number(center.lat)},${Number(center.lng)},${zoom}z`;
+  }
+  return `https://www.google.com/maps/search/${encodeURIComponent(cleanQuery)}`;
+}
+
+async function runSearch(query, maxScrolls = 75, pass = 1, totalPasses = DISCOVERY_MAX_PASSES, context = {}, anchor = null) {
   const cleanQuery = String(query || "").trim();
   if (!cleanQuery) throw new Error("Informe segmento e região.");
 
+  const anchorLabel = anchor?.label ? ` · área ${anchor.label}` : "";
   broadcast({
     event: "SEARCH_PROGRESS",
     stage: "opening",
-    text: `Abrindo busca no Google Maps · passagem ${pass}/${totalPasses}...`,
+    text: `Abrindo busca no Google Maps · passagem ${pass}/${totalPasses}${anchorLabel}...`,
     query: cleanQuery,
     pass,
     totalPasses
   });
-  const url = `https://www.google.com/maps/search/${encodeURIComponent(cleanQuery)}`;
+  const url = buildMapsUrl(cleanQuery, context, anchor);
   const tab = await chrome.tabs.create({ url, active: false });
 
   try {
     await waitForTabComplete(tab.id, 40000).catch(() => {});
-    await sleep(2600 + Math.round(Math.random() * 700));
+    await sleep(2800 + Math.round(Math.random() * 900));
     broadcast({
       event: "SEARCH_PROGRESS",
       stage: "scanning",
-      text: `Varrendo resultados até estabilizar · passagem ${pass}/${totalPasses}...`,
+      text: `Varrendo resultados até estabilizar · passagem ${pass}/${totalPasses}${anchorLabel}...`,
       query: cleanQuery,
       pass,
       totalPasses
@@ -210,11 +307,13 @@ async function runSearch(query, maxScrolls = 75, pass = 1, totalPasses = DISCOVE
   }
 }
 
-async function runQueryExhaustive(query, maxScrolls, queryIndex, queryTotal) {
+async function runQueryExhaustive(query, maxScrolls, queryIndex, queryTotal, context = {}) {
   let result = { leads: await getLeads(), found: [], added: 0 };
   let pass = 0;
+  const anchors = coverageAnchors(context.center, context.radiusKm);
   while (pass < DISCOVERY_MAX_PASSES) {
     pass += 1;
+    const anchor = anchors[(queryIndex + pass - 1) % anchors.length] || context.center || null;
     broadcast({
       event: "BATCH_PROGRESS",
       stage: "searching",
@@ -223,10 +322,10 @@ async function runQueryExhaustive(query, maxScrolls, queryIndex, queryTotal) {
       pass,
       totalPasses: DISCOVERY_MAX_PASSES,
       query,
-      text: `Busca ${queryIndex + 1}/${queryTotal} · passagem ${pass}/${DISCOVERY_MAX_PASSES}: ${query}`
+      text: `Busca ${queryIndex + 1}/${queryTotal} · passagem ${pass}/${DISCOVERY_MAX_PASSES}${anchor?.label ? ` · ${anchor.label}` : ""}: ${query}`
     });
 
-    result = await runSearch(query, maxScrolls, pass, DISCOVERY_MAX_PASSES);
+    result = await runSearch(query, maxScrolls, pass, DISCOVERY_MAX_PASSES, context, anchor);
 
     broadcast({
       event: "BATCH_PROGRESS",
@@ -242,36 +341,54 @@ async function runQueryExhaustive(query, maxScrolls, queryIndex, queryTotal) {
     });
 
     if (pass >= DISCOVERY_MIN_PASSES && result.added === 0) break;
-    if (pass >= DISCOVERY_MIN_PASSES && result.added <= 1) break;
-    if (pass < DISCOVERY_MAX_PASSES) await sleep(1600 + Math.round(Math.random() * 1100));
+    if (pass < DISCOVERY_MAX_PASSES) await sleep(1700 + Math.round(Math.random() * 1200));
   }
   return result;
 }
 
-async function runBatchSearch(rawQueries, maxScrolls = 75, replace = true) {
+async function runBatchSearch(rawQueries, maxScrolls = 75, replace = true, rawContext = {}) {
   const queries = [...new Set((Array.isArray(rawQueries) ? rawQueries : [])
     .map(query => String(query || "").trim())
     .filter(Boolean))].slice(0, 12);
   if (!queries.length) throw new Error("Nenhuma busca válida foi informada.");
 
-  const fingerprint = searchFingerprint(queries);
+  const context = {
+    region: String(rawContext.region || "").trim(),
+    radiusKm: Math.max(1, Number(rawContext.radiusKm || 5) || 5),
+    center: rawContext.center && Number.isFinite(Number(rawContext.center.lat)) && Number.isFinite(Number(rawContext.center.lng))
+      ? { lat: Number(rawContext.center.lat), lng: Number(rawContext.center.lng) }
+      : null
+  };
+  if (!context.center && context.region) context.center = await geocodeRegion(context.region);
+
+  const fingerprint = searchFingerprint(queries, context);
   const previousSnapshot = await getSearchSnapshot(fingerprint);
   const previousLeads = Array.isArray(previousSnapshot?.leads) ? previousSnapshot.leads : [];
   await setCurrentSearch(fingerprint, queries);
   if (replace) await setLeads([]);
 
   const errors = [];
-  const scrollBudget = Math.max(65, Math.min(Number(maxScrolls) || 75, 100));
+  const scrollBudget = Math.max(75, Math.min(Number(maxScrolls) || 85, 110));
+
+  broadcast({
+    event: "BATCH_PROGRESS",
+    stage: "coverage_start",
+    current: 0,
+    total: queries.length,
+    text: context.center
+      ? `Cobertura espacial ativada em ${context.region || "região"} · raio ${context.radiusKm} km.`
+      : `Cobertura por texto ativada · não foi possível obter o centro da região.`
+  });
 
   for (let index = 0; index < queries.length; index += 1) {
     const query = queries[index];
     try {
-      await runQueryExhaustive(query, scrollBudget, index, queries.length);
+      await runQueryExhaustive(query, scrollBudget, index, queries.length, context);
     } catch (error) {
       errors.push({ query, error: error?.message || "SEARCH_FAILED" });
       console.warn("[RadarMapsCollector] batch", query, error);
     }
-    await sleep(1100 + Math.round(Math.random() * 900));
+    await sleep(1200 + Math.round(Math.random() * 1000));
   }
 
   const freshLeads = await getLeads();
@@ -287,9 +404,9 @@ async function runBatchSearch(rawQueries, maxScrolls = 75, replace = true) {
     total: queries.length,
     text: restoredCount
       ? `${leads.length} negócios consolidados · ${freshLeads.length} vistos agora · ${restoredCount} recuperados da memória desta busca.`
-      : `${leads.length} negócios únicos consolidados após cobertura máxima.`
+      : `${leads.length} negócios únicos consolidados após cobertura espacial.`
   });
-  return { leads, errors, queries, freshCount: freshLeads.length, restoredCount, cacheHit: previousLeads.length > 0 };
+  return { leads, errors, queries, freshCount: freshLeads.length, restoredCount, cacheHit: previousLeads.length > 0, context };
 }
 
 async function enrichOne(lead) {
@@ -391,7 +508,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message?.cmd === "RUN_SEARCH") {
       if (message.replace !== false) await setLeads([]);
-      const searchResult = await runSearch(message.query, Number(message.maxScrolls) || 75, 1, 1);
+      const searchResult = await runSearch(message.query, Number(message.maxScrolls) || 75, 1, 1, {
+        region: String(message.region || "").trim(),
+        radiusKm: Number(message.radiusKm || 5) || 5,
+        center: message.center || null
+      });
       let leads = searchResult.leads;
       if (leads.length) {
         broadcast({ event: "SEARCH_PROGRESS", stage: "enriching", text: "Completando telefone, site e horário das empresas..." });
@@ -402,7 +523,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.cmd === "RUN_BATCH_SEARCH") {
-      const result = await runBatchSearch(message.queries, Number(message.maxScrolls) || 75, message.replace !== false);
+      const result = await runBatchSearch(
+        message.queries,
+        Number(message.maxScrolls) || 85,
+        message.replace !== false,
+        {
+          region: message.region,
+          radiusKm: message.radiusKm,
+          center: message.center
+        }
+      );
       sendResponse({ ok: true, ...result });
       return;
     }
