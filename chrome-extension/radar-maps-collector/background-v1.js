@@ -1,5 +1,5 @@
 /* Radar Maps Collector — V1 coverage wrapper */
-importScripts("background.js");
+importScripts("background.js", "site-enrichment.js");
 
 (() => {
   "use strict";
