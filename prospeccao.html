@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f8fc">
+  <title>Radar Local | Prospecção</title>
+  <meta name="description" content="Encontre empresas por CNAE e cidade usando dados públicos do CNPJ e identifique decisores pelo QSA.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/prospeccao.css?v=20260922-1">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a href="./" class="brand" aria-label="Radar Local">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="dot blue"></span><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        </div>
+        <div class="brand-copy">
+          <strong>Radar Local</strong>
+          <span>Prospecção por dados públicos</span>
+        </div>
+      </a>
+      <nav class="mode-nav" aria-label="Modos do Radar">
+        <a href="./">Diagnóstico</a>
+        <a href="prospeccao.html" class="active" aria-current="page">Prospecção</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <span class="eyebrow">MODO PROSPECÇÃO</span>
+          <h1>Encontre empresas e chegue em quem decide.</h1>
+          <p>Pesquise empresas por CNAE e cidade usando dados públicos de CNPJ. Veja QSA, contatos cadastrais, filtre oportunidades e envie um prospect direto para o diagnóstico do Radar.</p>
+        </div>
+        <div class="hero-card" aria-label="Fontes de dados">
+          <span class="hero-card-label">SEM GOOGLE PLACES</span>
+          <strong>Receita + IBGE</strong>
+          <small>Descoberta por CNAE, município e dados cadastrais.</small>
+        </div>
+      </section>
+
+      <section class="panel search-panel">
+        <div class="panel-head">
+          <div>
+            <span class="section-kicker">NOVA BUSCA</span>
+            <h2>Monte sua lista de prospecção.</h2>
+            <p>Use segmento + cidade para descobrir empresas ou consulte um CNPJ específico.</p>
+          </div>
+          <span class="status-pill"><span></span>Dados públicos</span>
+        </div>
+
+        <div class="search-tabs" role="tablist" aria-label="Tipo de busca">
+          <button type="button" class="search-tab active" data-search-tab="segment" role="tab" aria-selected="true">Segmento + cidade</button>
+          <button type="button" class="search-tab" data-search-tab="cnpj" role="tab" aria-selected="false">Consultar CNPJ</button>
+        </div>
+
+        <form id="segmentSearchForm" class="search-form" data-search-panel="segment">
+          <div class="form-grid three">
+            <div class="field span-two">
+              <label for="segmentPreset">Segmento / CNAE</label>
+              <select id="segmentPreset" name="segmentPreset">
+                <option value="">Selecione um segmento ou informe o CNAE abaixo</option>
+                <option value="9602502" data-label="Estética e cuidados com a beleza">Estética e cuidados com a beleza — 9602-5/02</option>
+                <option value="9602501" data-label="Cabeleireiros, manicure e pedicure">Cabeleireiros, manicure e pedicure — 9602-5/01</option>
+                <option value="8630504" data-label="Clínica odontológica">Clínica odontológica — 8630-5/04</option>
+                <option value="6622300" data-label="Corretores e agentes de seguros">Corretores e agentes de seguros — 6622-3/00</option>
+                <option value="6911701" data-label="Serviços advocatícios">Serviços advocatícios — 6911-7/01</option>
+                <option value="6920601" data-label="Contabilidade">Contabilidade — 6920-6/01</option>
+                <option value="6821801" data-label="Corretagem de imóveis">Corretagem de imóveis — 6821-8/01</option>
+                <option value="9313100" data-label="Academias">Academias — 9313-1/00</option>
+                <option value="7500100" data-label="Atividades veterinárias">Atividades veterinárias — 7500-1/00</option>
+                <option value="5611201" data-label="Restaurantes">Restaurantes — 5611-2/01</option>
+              </select>
+              <small>Para qualquer outro segmento, informe um ou mais CNAEs separados por vírgula.</small>
+            </div>
+            <div class="field">
+              <label for="cnaeInput">CNAE manual</label>
+              <input id="cnaeInput" name="cnae" type="text" inputmode="numeric" placeholder="Ex.: 9602502">
+            </div>
+          </div>
+
+          <div class="form-grid three">
+            <div class="field">
+              <label for="uf">UF</label>
+              <select id="uf" name="uf" required>
+                <option value="SP" selected>SP</option><option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option><option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option><option value="SE">SE</option><option value="TO">TO</option>
+              </select>
+            </div>
+            <div class="field span-two">
+              <label for="city">Cidade</label>
+              <input id="city" name="city" type="text" placeholder="Ex.: Guarulhos" autocomplete="address-level2" required>
+              <small id="cityHint">O município será resolvido pelo IBGE antes da consulta.</small>
+            </div>
+          </div>
+
+          <details class="advanced-filters">
+            <summary>Filtros adicionais</summary>
+            <div class="form-grid four">
+              <div class="field">
+                <label for="neighborhood">Bairro contém</label>
+                <input id="neighborhood" name="neighborhood" type="text" placeholder="Ex.: Centro">
+              </div>
+              <div class="field">
+                <label for="companySize">Porte</label>
+                <select id="companySize" name="companySize">
+                  <option value="">Todos</option>
+                  <option value="MICRO EMPRESA">Microempresa</option>
+                  <option value="EMPRESA DE PEQUENO PORTE">Empresa de pequeno porte</option>
+                  <option value="DEMAIS">Demais</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="qsaOnly">Decisor identificado</label>
+                <select id="qsaOnly" name="qsaOnly">
+                  <option value="">Todos</option>
+                  <option value="yes">Somente com QSA</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="limit">Resultados por lote</label>
+                <select id="limit" name="limit">
+                  <option value="50">50</option>
+                  <option value="100" selected>100</option>
+                  <option value="250">250</option>
+                  <option value="500">500</option>
+                </select>
+              </div>
+            </div>
+          </details>
+
+          <div class="form-footer">
+            <button type="submit" class="primary-button" id="searchButton">Buscar empresas <span>→</span></button>
+            <span class="helper">Sem Google Places. A consulta usa CNAE + município.</span>
+          </div>
+        </form>
+
+        <form id="cnpjSearchForm" class="search-form hidden" data-search-panel="cnpj">
+          <div class="form-grid two">
+            <div class="field">
+              <label for="cnpjDirect">CNPJ</label>
+              <input id="cnpjDirect" name="cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0001-00" maxlength="18" required>
+              <small>Consulta direta dos dados cadastrais e do QSA.</small>
+            </div>
+            <div class="field field-action">
+              <button type="submit" class="primary-button">Consultar CNPJ <span>→</span></button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="loadingPanel" class="panel loading-panel hidden" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <strong id="loadingTitle">Consultando dados públicos...</strong>
+          <span id="loadingText">Resolvendo município e buscando empresas.</span>
+        </div>
+      </section>
+
+      <section id="errorPanel" class="panel error-panel hidden" role="alert">
+        <strong>Não foi possível concluir a busca.</strong>
+        <p id="errorText"></p>
+      </section>
+
+      <section id="resultsSection" class="results-section hidden">
+        <div class="results-toolbar panel">
+          <div>
+            <span class="section-kicker">RESULTADOS</span>
+            <h2 id="resultsTitle">Empresas encontradas</h2>
+            <p id="resultsMeta">—</p>
+          </div>
+          <div class="toolbar-actions">
+            <label class="quick-filter">
+              <span class="sr-only">Filtrar empresas por nome</span>
+              <input id="quickFilter" type="search" placeholder="Filtrar por nome, CNPJ ou bairro">
+            </label>
+            <button type="button" id="exportCsvBtn" class="secondary-button">Exportar CSV</button>
+          </div>
+        </div>
+
+        <div class="summary-grid">
+          <article class="summary-card"><span>Empresas carregadas</span><strong id="summaryTotal">0</strong></article>
+          <article class="summary-card"><span>Com QSA</span><strong id="summaryQsa">0</strong></article>
+          <article class="summary-card"><span>Com telefone cadastral</span><strong id="summaryPhone">0</strong></article>
+          <article class="summary-card"><span>Com e-mail cadastral</span><strong id="summaryEmail">0</strong></article>
+        </div>
+
+        <div id="companiesList" class="companies-list"></div>
+
+        <div class="load-more-wrap">
+          <button type="button" id="loadMoreBtn" class="secondary-button hidden">Carregar mais empresas</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="companyCardTemplate">
+    <article class="company-card">
+      <div class="company-card-main">
+        <div class="company-head">
+          <div>
+            <span class="company-kicker">EMPRESA ATIVA</span>
+            <h3 data-company-name></h3>
+            <p data-legal-name></p>
+          </div>
+          <span class="opportunity-badge" data-company-size></span>
+        </div>
+        <div class="company-meta">
+          <span><b>CNPJ</b><em data-cnpj></em></span>
+          <span><b>CNAE</b><em data-cnae></em></span>
+          <span><b>Local</b><em data-location></em></span>
+        </div>
+        <div class="decision-maker" data-decision-maker></div>
+      </div>
+      <aside class="company-contact">
+        <span class="contact-title">Contato cadastral</span>
+        <div class="contact-row" data-phone></div>
+        <div class="contact-row" data-email></div>
+        <small>Telefone/e-mail são os dados cadastrais do estabelecimento. Não são apresentados como contato pessoal do sócio.</small>
+        <div class="card-actions">
+          <button type="button" class="ghost-button" data-diagnose>Gerar diagnóstico</button>
+          <button type="button" class="ghost-button" data-copy>Copiar dados</button>
+        </div>
+      </aside>
+    </article>
+  </template>
+
+  <script src="js/radar-auth.js?v=20260922-1"></script>
+  <script src="js/prospeccao.js?v=20260922-1"></script>
+</body>
+</html>
