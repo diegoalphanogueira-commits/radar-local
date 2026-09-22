@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f8fc">
   <title>Radar Local | Prospecção</title>
-  <meta name="description" content="Encontre empresas por CNAE e cidade, identifique sócios e organize sua lista de prospecção sem Google Places.">
+  <meta name="description" content="Encontre empresas por CNAE e cidade, identifique sócios e organize sua lista de prospecção sem Google Places pago.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -35,9 +35,9 @@
         <div class="hero-copy">
           <span class="eyebrow">RADAR PROSPECÇÃO</span>
           <h1>Encontre empresas, identifique quem decide e transforme dados públicos em <em>oportunidades de abordagem.</em></h1>
-          <p>Pesquise por CNAE e cidade usando dados públicos do CNPJ. O modo Prospecção funciona separado do diagnóstico atual e não usa Google Places.</p>
+          <p>Pesquise por CNAE e cidade usando dados públicos do CNPJ e cruze cada empresa com fontes abertas da web, sem depender de Google Places pago.</p>
           <div class="hero-pills">
-            <span>Receita / CNPJ</span><span>QSA e administradores</span><span>Sem Google Places</span><span>Lista + CSV</span>
+            <span>Receita / CNPJ</span><span>QSA e administradores</span><span>Web + redes públicas</span><span>Sem Google Places pago</span><span>Lista + CSV</span>
           </div>
         </div>
         <div class="hero-metrics">
@@ -54,7 +54,7 @@
             <h2>Monte sua lista de prospecção.</h2>
             <p>Use segmento + cidade para descobrir empresas ou consulte um CNPJ específico.</p>
           </div>
-          <span class="status-pill"><span></span>0 Google Places</span>
+          <span class="status-pill"><span></span>0 Google Places pago</span>
         </div>
 
         <div class="search-tabs" role="tablist" aria-label="Tipo de busca">
@@ -173,8 +173,8 @@
       </section>
 
       <section class="data-source-card panel">
-        <div><span class="section-kicker">ORIGEM DOS DADOS</span><h3>Prospecção sem Google Places.</h3></div>
-        <p>Dados empresariais e QSA são derivados da base pública do CNPJ da Receita Federal. Telefones e e-mails exibidos são contatos cadastrais do estabelecimento; não são apresentados como telefone pessoal do sócio. Um provedor de enriquecimento pode ser conectado depois sem alterar esta estrutura.</p>
+        <div><span class="section-kicker">ORIGEM DOS DADOS</span><h3>Receita + web pública, sem Google Places pago.</h3></div>
+        <p>Dados empresariais e QSA vêm da base pública do CNPJ da Receita Federal. O botão “Cruzar fontes grátis” procura informações empresariais públicas complementares em OpenStreetMap/Overpass e cria atalhos de descoberta para Google Maps, Google, Instagram, Facebook e LinkedIn. Telefones e e-mails continuam sendo exibidos como contatos cadastrais ou públicos — nunca como contato pessoal do sócio sem uma fonte específica de enriquecimento.</p>
       </section>
     </main>
   </div>
@@ -197,5 +197,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="js/radar-auth.js?v=20260922-1"></script>
   <script src="js/prospeccao.js?v=20260922-2"></script>
+  <script src="js/public-enrichment.js?v=20260922-1"></script>
 </body>
 </html>
