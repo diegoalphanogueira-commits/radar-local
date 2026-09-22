@@ -3,21 +3,28 @@
 
   if (!/\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname)) return;
   const origin = window.location.origin;
-  const version = "20260922-v1rc1";
+  const version = "20260922-v1rc2";
 
-  if (!document.getElementById("radarV1CoverageCss")) {
+  function injectCss(id, href) {
+    if (document.getElementById(id)) return;
     const link = document.createElement("link");
-    link.id = "radarV1CoverageCss";
+    link.id = id;
     link.rel = "stylesheet";
-    link.href = `${origin}/css/radar-v1-coverage.css?v=${version}`;
+    link.href = href;
     (document.head || document.documentElement).appendChild(link);
   }
 
-  if (!document.getElementById("radarV1CoverageScript")) {
+  function injectJs(id, src) {
+    if (document.getElementById(id)) return;
     const script = document.createElement("script");
-    script.id = "radarV1CoverageScript";
-    script.src = `${origin}/js/radar-v1-coverage.js?v=${version}`;
+    script.id = id;
+    script.src = src;
     script.defer = true;
     (document.head || document.documentElement).appendChild(script);
   }
+
+  injectCss("radarV1CoverageCss", `${origin}/css/radar-v1-coverage.css?v=${version}`);
+  injectCss("radarV1MapCss", `${origin}/css/radar-v1-map.css?v=${version}`);
+  injectJs("radarV1CoverageScript", `${origin}/js/radar-v1-coverage.js?v=${version}`);
+  injectJs("radarV1MapScript", `${origin}/js/radar-v1-map.js?v=${version}`);
 })();
