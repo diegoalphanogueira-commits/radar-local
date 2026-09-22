@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.3.0",
-  "description": "Radar Local V1 RC1: coleta negócios com cobertura espacial, preserva a melhor lista e mede a qualidade da varredura.",
+  "version": "1.3.1",
+  "description": "Radar Local V1 RC2: cobertura espacial, consistência geográfica, mapa visual e medição da qualidade da varredura.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "https://www.google.com/maps/*",
