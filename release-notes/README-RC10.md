@@ -1,0 +1,1 @@
+RC10 fecha a regressão de cobertura observada em buscas repetidas do mesmo nicho/região.
