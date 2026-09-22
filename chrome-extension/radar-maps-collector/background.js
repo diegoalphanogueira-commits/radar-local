@@ -155,29 +155,54 @@ async function enrichOne(lead) {
   }
 }
 
-async function enrichAll(limit = 60) {
-  let leads = await getLeads();
-  const indexes = leads
-    .map((lead, index) => ({ lead, index }))
-    .filter(item => item.lead?.mapsUrl)
-    .slice(0, Math.max(1, Math.min(Number(limit) || 60, 120)));
+function enrichmentPriority(lead) {
+  let score = 0;
+  if (!String(lead?.phone || "").trim()) score += 100;
+  if (!String(lead?.website || "").trim()) score += 35;
+  if (!String(lead?.hours || "").trim()) score += 10;
+  if (!String(lead?.address || "").trim()) score += 8;
+  return score;
+}
 
-  for (let position = 0; position < indexes.length; position += 1) {
-    const item = indexes[position];
-    try {
-      leads[item.index] = await enrichOne(item.lead);
-      await setLeads(leads);
-      broadcast({
-        event: "ENRICH_PROGRESS",
-        current: position + 1,
-        total: indexes.length,
-        lead: leads[item.index]
-      });
-      await sleep(650 + Math.round(Math.random() * 500));
-    } catch (error) {
-      console.warn("[RadarMapsCollector] detail", error);
+async function enrichAll(limit = 60, concurrency = 3) {
+  let leads = await getLeads();
+  const max = Math.max(1, Math.min(Number(limit) || 60, 120));
+  const indexes = leads
+    .map((lead, index) => ({ lead, index, priority: enrichmentPriority(lead) }))
+    .filter(item => item.lead?.mapsUrl && item.priority > 0)
+    .sort((a, b) => b.priority - a.priority)
+    .slice(0, max);
+
+  if (!indexes.length) return leads;
+
+  let cursor = 0;
+  let completed = 0;
+  const workerCount = Math.max(1, Math.min(Number(concurrency) || 3, 4, indexes.length));
+
+  async function worker() {
+    while (true) {
+      const position = cursor++;
+      if (position >= indexes.length) return;
+      const item = indexes[position];
+      try {
+        leads[item.index] = await enrichOne(item.lead);
+        await setLeads(leads);
+      } catch (error) {
+        console.warn("[RadarMapsCollector] detail", error);
+      } finally {
+        completed += 1;
+        broadcast({
+          event: "ENRICH_PROGRESS",
+          current: completed,
+          total: indexes.length,
+          lead: leads[item.index]
+        });
+        await sleep(400 + Math.round(Math.random() * 350));
+      }
     }
   }
+
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
   return leads;
 }
 
@@ -212,9 +237,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message?.cmd === "RUN_SEARCH") {
       if (message.replace !== false) await setLeads([]);
       let leads = await runSearch(message.query, Number(message.maxScrolls) || 45);
-      if (message.enrich !== false && leads.length) {
+      if (leads.length) {
         broadcast({ event: "SEARCH_PROGRESS", stage: "enriching", text: "Completando telefone, site e horário das empresas..." });
-        leads = await enrichAll(Number(message.enrichLimit) || 60);
+        leads = await enrichAll(Number(message.enrichLimit) || 60, 3);
       }
       sendResponse({ ok: true, leads });
       return;
@@ -241,7 +266,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.cmd === "ENRICH_ALL") {
-      const leads = await enrichAll(Number(message.limit) || 60);
+      const leads = await enrichAll(Number(message.limit) || 60, 3);
       sendResponse({ ok: true, leads });
       return;
     }
