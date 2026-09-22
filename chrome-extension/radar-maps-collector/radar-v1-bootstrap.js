@@ -3,7 +3,7 @@
 
   if (!/\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname)) return;
   const origin = window.location.origin;
-  const version = "20260922-v1rc3";
+  const version = "20260922-v1rc4";
 
   function injectCss(id, href) {
     if (document.getElementById(id)) return;
@@ -28,4 +28,5 @@
   injectJs("radarV1CoverageScript", `${origin}/js/radar-v1-coverage.js?v=${version}`);
   injectJs("radarV1MapScript", `${origin}/js/radar-v1-map.js?v=${version}`);
   injectJs("radarV1IntelligenceScript", `${origin}/js/radar-v1-intelligence.js?v=${version}`);
+  injectJs("radarV1PresenceScript", `${origin}/js/radar-v1-presence.js?v=${version}`);
 })();
