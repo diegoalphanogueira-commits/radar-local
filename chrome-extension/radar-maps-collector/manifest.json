@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.1",
-  "description": "Radar Local V1 RC12: sessões de busca isoladas, geocodificação fresca por região, memória V2 segura e coleta resiliente.",
+  "version": "1.4.2",
+  "description": "Radar Local V1 RC13: Discovery Engine V3, cobertura controlável, sessões isoladas e captura resiliente do Google Maps.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
   "background": {
-    "service_worker": "background-v2.js"
+    "service_worker": "background-v3.js"
   },
   "action": {
     "default_title": "Radar Maps Collector",
@@ -18,13 +18,13 @@
   "content_scripts": [
     {
       "matches": ["https://www.google.com/maps/*", "https://www.google.com.br/maps/*"],
-      "js": ["content-v2.js"],
+      "js": ["content-v3.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
-      "css": ["radar-v1-priority-local.css"],
-      "js": ["radar-bridge-v3.js", "radar-v1-search-memory-v2-local.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
+      "css": ["radar-v1-priority-local.css", "radar-coverage-target.css"],
+      "js": ["radar-bridge-v4.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
       "run_at": "document_start"
     }
   ]
