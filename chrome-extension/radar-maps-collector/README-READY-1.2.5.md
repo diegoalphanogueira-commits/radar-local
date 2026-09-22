@@ -1,0 +1,1 @@
+Collector 1.2.5 ready for packaging.
