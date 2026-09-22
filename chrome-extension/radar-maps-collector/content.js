@@ -90,24 +90,58 @@
     return leads;
   }
 
-  async function scanAndScroll(maxScrolls = 35) {
+  function mapsReachedEnd(feed) {
+    const hay = String(feed?.innerText || document.body?.innerText || "").toLowerCase();
+    return [
+      "você chegou ao final da lista",
+      "voce chegou ao final da lista",
+      "you've reached the end of the list",
+      "you have reached the end of the list"
+    ].some(marker => hay.includes(marker));
+  }
+
+  async function scanAndScroll(maxScrolls = 75) {
     const feed = document.querySelector('[role="feed"]');
     if (!feed) return scanFeed();
-    let previousCount = 0;
-    let stalls = 0;
-    const all = new Map();
 
-    for (let i = 0; i < maxScrolls; i += 1) {
-      scanFeed().forEach(lead => all.set(lead.mapsUrl || lead.name, lead));
-      feed.scrollTop = feed.scrollHeight;
-      await sleep(850 + Math.round(Math.random() * 500));
+    const all = new Map();
+    let previousCount = 0;
+    let stableRounds = 0;
+    let endSeenRounds = 0;
+    const rounds = Math.max(25, Math.min(Number(maxScrolls) || 75, 100));
+
+    for (let i = 0; i < rounds; i += 1) {
+      scanFeed().forEach(lead => all.set(lead.mapsUrl || `${lead.name}|${lead.address}`, lead));
+
+      const countBefore = all.size;
+      const step = Math.max(900, Math.round(feed.clientHeight * (i % 3 === 0 ? 1.8 : 1.25)));
+      feed.scrollBy({ top: step, behavior: "auto" });
+      await sleep(1050 + Math.round(Math.random() * 650));
+
+      scanFeed().forEach(lead => all.set(lead.mapsUrl || `${lead.name}|${lead.address}`, lead));
       const count = all.size;
-      if (count === previousCount) stalls += 1;
-      else stalls = 0;
+      const grew = count > Math.max(previousCount, countBefore);
+      stableRounds = grew ? 0 : stableRounds + 1;
       previousCount = count;
-      if (stalls >= 6) break;
+
+      if (mapsReachedEnd(feed)) endSeenRounds += 1;
+      else endSeenRounds = 0;
+
+      if (stableRounds > 0 && stableRounds % 4 === 0) {
+        feed.scrollBy({ top: -Math.max(320, Math.round(feed.clientHeight * 0.35)), behavior: "auto" });
+        await sleep(450);
+        feed.scrollTop = feed.scrollHeight;
+        await sleep(1450 + Math.round(Math.random() * 700));
+        scanFeed().forEach(lead => all.set(lead.mapsUrl || `${lead.name}|${lead.address}`, lead));
+      }
+
+      if (endSeenRounds >= 2 && stableRounds >= 4) break;
+      if (stableRounds >= 12) break;
     }
-    scanFeed().forEach(lead => all.set(lead.mapsUrl || lead.name, lead));
+
+    feed.scrollTop = feed.scrollHeight;
+    await sleep(1200);
+    scanFeed().forEach(lead => all.set(lead.mapsUrl || `${lead.name}|${lead.address}`, lead));
     return [...all.values()];
   }
 
@@ -195,7 +229,7 @@
       return;
     }
     if (message?.cmd === "SCAN_SCROLL") {
-      scanAndScroll(Number(message.maxScrolls) || 35)
+      scanAndScroll(Number(message.maxScrolls) || 75)
         .then(leads => sendResponse({ ok: true, leads }))
         .catch(error => sendResponse({ ok: false, error: error.message }));
       return true;
