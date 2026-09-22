@@ -3,7 +3,7 @@
 
   const SOURCE = "RADAR_LOCAL_WEB";
   const TARGET = "RADAR_MAPS_COLLECTOR";
-  const ASSET_VERSION = "20260922-6";
+  const ASSET_VERSION = "20260922-7";
 
   function isProspectingPage() {
     return /\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname);
@@ -34,6 +34,7 @@
     injectStylesheet("radarLiveProgressCss", `${origin}/css/radar-live-progress.css?v=${ASSET_VERSION}`);
     injectPageScript("radarProspectingWorkspaceScript", `${origin}/js/prospecting-workspace.js?v=${ASSET_VERSION}`);
     injectPageScript("radarSearchOrchestratorScript", `${origin}/js/radar-search-orchestrator-v2.js?v=${ASSET_VERSION}`);
+    injectPageScript("radarCenterRecoveryScript", `${origin}/js/radar-center-recovery.js?v=${ASSET_VERSION}`);
   }
 
   function post(type, payload = {}) {
