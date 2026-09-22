@@ -189,7 +189,11 @@
     summary.innerHTML = `<b>${counts.high}</b> altas <i>·</i> ${counts.medium} médias <i>·</i> ${counts.low} baixas`;
 
     const listCount = document.querySelector("#v4ListCount");
-    if (listCount && filterHighOnly) listCount.textContent = `${counts.high} prioridade${counts.high === 1 ? "" : "s"} alta${counts.high === 1 ? "" : "s"}`;
+    if (listCount) {
+      listCount.textContent = filterHighOnly
+        ? `${counts.high} prioridade${counts.high === 1 ? "" : "s"} alta${counts.high === 1 ? "" : "s"}`
+        : `${infos.length} empresa${infos.length === 1 ? "" : "s"}`;
+    }
   }
 
   function applyMarkerFilter() {
