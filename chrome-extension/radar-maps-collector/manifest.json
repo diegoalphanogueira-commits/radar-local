@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.2.7",
-  "description": "Coleta negócios do Google Maps com cobertura máxima, sincroniza em tempo real com o Radar Local e preserva a melhor lista por nicho e região.",
+  "version": "1.2.8",
+  "description": "Coleta negócios do Google Maps com cobertura espacial por raio, sincroniza em tempo real com o Radar Local e preserva a melhor lista por nicho e região.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "https://www.google.com/maps/*",
     "https://www.google.com.br/maps/*",
-    "https://radar.metodoflow360.com.br/*"
+    "https://radar.metodoflow360.com.br/*",
+    "https://nominatim.openstreetmap.org/*"
   ],
   "background": {
     "service_worker": "background.js"
