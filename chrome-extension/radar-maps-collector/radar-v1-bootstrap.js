@@ -3,7 +3,7 @@
 
   if (!/\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname)) return;
   const origin = window.location.origin;
-  const version = "20260922-v1rc4";
+  const version = "20260922-v1rc5";
 
   function injectCss(id, href) {
     if (document.getElementById(id)) return;
