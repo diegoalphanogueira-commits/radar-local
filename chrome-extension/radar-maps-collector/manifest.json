@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.3",
-  "description": "Radar Local V1 RC14: busca sem timeout fixo, resultados parciais em tempo real e Discovery Engine V3.",
+  "version": "1.4.4",
+  "description": "Radar Local V1 RC15: cobertura máxima adaptativa, scanner mais rápido e resultados progressivos.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -18,7 +18,7 @@
   "content_scripts": [
     {
       "matches": ["https://www.google.com/maps/*", "https://www.google.com.br/maps/*"],
-      "js": ["content-v3.js"],
+      "js": ["content-v4.js"],
       "run_at": "document_idle"
     },
     {
