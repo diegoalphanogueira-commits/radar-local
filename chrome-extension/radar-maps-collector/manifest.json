@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.2.8",
-  "description": "Coleta negócios do Google Maps com cobertura espacial por raio, sincroniza em tempo real com o Radar Local e preserva a melhor lista por nicho e região.",
+  "version": "1.3.0",
+  "description": "Radar Local V1 RC1: coleta negócios com cobertura espacial, preserva a melhor lista e mede a qualidade da varredura.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "https://www.google.com/maps/*",
@@ -11,7 +11,7 @@
     "https://nominatim.openstreetmap.org/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background-v1.js"
   },
   "action": {
     "default_title": "Radar Maps Collector",
@@ -25,7 +25,7 @@
     },
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
-      "js": ["radar-bridge.js"],
+      "js": ["radar-bridge.js", "radar-v1-bootstrap.js"],
       "run_at": "document_start"
     }
   ]
