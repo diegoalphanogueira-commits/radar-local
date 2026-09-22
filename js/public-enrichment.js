@@ -1,460 +1,131 @@
 /* =========================================================
-   RADAR LOCAL — ENRIQUECIMENTO PÚBLICO V1
-   Complementa CNPJ/QSA com fontes públicas e links de descoberta.
-
-   Regras:
-   - não raspa Google Maps/Instagram;
-   - não depende de Google Places pago;
-   - usa OpenStreetMap/Overpass sob demanda e com cache;
-   - contatos exibidos continuam sendo contatos empresariais/públicos.
+   RADAR LOCAL — INTELIGÊNCIA COMERCIAL PÚBLICA V2
+   QSA/decisor + contatos empresariais + Instagram/LinkedIn
+   + abordagem comercial contextual, sem atribuir telefone
+   empresarial como telefone pessoal do sócio.
 ========================================================= */
 (() => {
   "use strict";
 
+  const MAP_STORAGE_KEY = "radarMapsImportedLeadsV2";
+  const MAP_META_KEY = "radarMapsImportedMetaV2";
   const MY_RECEITA_BASE = "https://minhareceita.org";
+  const IBGE_BASE = "https://servicodados.ibge.gov.br/api/v1/localidades/estados";
   const OVERPASS_ENDPOINT = "https://overpass.private.coffee/api/interpreter";
-  const CACHE_KEY = "radarPublicEnrichmentV1";
-  const DAILY_KEY = "radarPublicEnrichmentDailyV1";
+  const CACHE_KEY = "radarLeadIntelligenceV2";
   const CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
-  const DAILY_LIMIT = 80;
-  const MIN_REQUEST_GAP = 2500;
-
-  const GENERIC_EMAIL_DOMAINS = new Set([
-    "gmail.com", "googlemail.com", "hotmail.com", "outlook.com", "live.com",
-    "yahoo.com", "yahoo.com.br", "icloud.com", "uol.com.br", "bol.com.br",
-    "terra.com.br", "proton.me", "protonmail.com"
-  ]);
-
-  const CORPORATE_WORDS = new Set([
-    "ltda", "me", "eireli", "sa", "s/a", "empresa", "servicos", "servico",
-    "comercio", "comercial", "industria", "brasil", "grupo", "holding"
-  ]);
+  const MAX_PUBLIC_ENRICH_PER_SESSION = 30;
+  const MIN_OVERPASS_GAP = 2200;
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const normalize = value => String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9@._+\-:/ ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ").trim();
   const digits = value => String(value || "").replace(/\D/g, "");
-  const cleanCnpj = value => String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 14);
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;"
   }[char]));
   const escapeRegex = value => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const escapeOverpass = value => String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
+  const SEGMENT_CNAES = [
+    { re: /manicure|pedicure|esmalter|unha|nail|cabele|salao|salão|beleza/, cnaes: ["9602501","9602502"] },
+    { re: /estet|harmoniza|depila|limpeza de pele|spa/, cnaes: ["9602502","9602501"] },
+    { re: /podolog/, cnaes: ["8690999","9602502"] },
+    { re: /odont|dentist/, cnaes: ["8630504"] },
+    { re: /barbear|barber/, cnaes: ["9602501"] },
+    { re: /pet|banho e tosa/, cnaes: ["4789004","9609208","7500100"] },
+    { re: /veterin/, cnaes: ["7500100","4789004"] },
+    { re: /seguro|corretor/, cnaes: ["6622300"] },
+    { re: /imobili|imoveis|imóveis/, cnaes: ["6821801"] },
+    { re: /contab/, cnaes: ["6920601"] },
+    { re: /advoc|advog/, cnaes: ["6911701"] },
+    { re: /academia|fitness|muscul/, cnaes: ["9313100"] },
+    { re: /restaurante|pizzaria|lanchonete|hamburg/, cnaes: ["5611201","5611203"] }
+  ];
+
+  const STOPWORDS = new Set([
+    "de","da","do","das","dos","e","a","o","ltda","me","eireli","sa",
+    "servicos","servico","comercio","comercial","clinica","studio","centro",
+    "grupo","empresa","loja"
+  ]);
+
+  let publicEnrichCount = 0;
+  let lastOverpassAt = 0;
+  let autoMatchFingerprint = "";
+  let autoMatchBusy = false;
+
   function installStyles() {
-    if (document.getElementById("radar-public-enrichment-styles")) return;
+    if ($("#radar-lead-intelligence-v2-style")) return;
     const style = document.createElement("style");
-    style.id = "radar-public-enrichment-styles";
+    style.id = "radar-lead-intelligence-v2-style";
     style.textContent = `
-      .public-enrichment-btn{background:#f1f7ff!important;border-color:#cfe0fa!important;color:#125fc5!important}
-      .public-enrichment-btn.is-loading{opacity:.68;cursor:wait}
-      .public-enrichment-box{grid-column:1/-1;padding:18px 20px;border-top:1px solid #e6edf5;background:linear-gradient(180deg,#fbfdff,#f7faff)}
-      .public-enrichment-box.hidden{display:none!important}
-      .pe-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
-      .pe-head strong{font-size:.82rem;color:#26384c}.pe-head span{padding:5px 8px;border-radius:999px;background:#eaf7ee;color:#17713a;font-size:.61rem;font-weight:800;letter-spacing:.05em}
-      .pe-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.pe-item{min-width:0;padding:11px;border:1px solid #e2e9f2;border-radius:12px;background:#fff}.pe-item b{display:block;color:#8a96a6;font-size:.58rem;text-transform:uppercase;letter-spacing:.06em}.pe-item a,.pe-item em{display:block;margin-top:5px;color:#31506f;font-style:normal;font-size:.7rem;line-height:1.45;word-break:break-word}.pe-item a{color:#1264d3;text-decoration:none}.pe-item a:hover{text-decoration:underline}
-      .pe-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.pe-action{display:inline-flex;align-items:center;min-height:34px;padding:0 10px;border:1px solid #d8e2ee;border-radius:10px;background:#fff;color:#3f5268;text-decoration:none;font-size:.66rem;font-weight:750}.pe-action:hover{background:#f2f6fb}.pe-note{margin:12px 0 0;color:#8a96a6;font-size:.61rem;line-height:1.55}.pe-note a{color:#687b91}.pe-empty{padding:12px;border:1px dashed #d7e2ee;border-radius:11px;color:#758498;font-size:.69rem;line-height:1.55;background:#fff}.pe-warning{color:#8a5a16}.pe-confidence{display:inline-block;margin-left:6px;color:#7e8c9e;font-size:.61rem;font-weight:650}
-      @media(max-width:900px){.pe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:580px){.pe-grid{grid-template-columns:1fr}.public-enrichment-box{padding:16px}.pe-actions{display:grid;grid-template-columns:1fr 1fr}.pe-action{justify-content:center;text-align:center}}
+      .li-panel{margin-top:10px;padding:11px 12px;border:1px solid #e3eaf3;border-radius:14px;background:linear-gradient(180deg,#fbfdff,#f7faff)}
+      .li-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.li-head b{font-size:.61rem;letter-spacing:.07em;color:#718096;text-transform:uppercase}.li-source{font-size:.57rem;font-weight:800;color:#1666d9;background:#eaf3ff;border-radius:999px;padding:4px 7px;white-space:nowrap}
+      .li-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:8px}.li-cell{min-width:0;padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #edf1f6}.li-cell span{display:block;font-size:.55rem;text-transform:uppercase;letter-spacing:.06em;color:#93a0af;font-weight:800}.li-cell strong{display:block;margin-top:4px;font-size:.7rem;color:#30445a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.li-cell small{display:block;margin-top:3px;font-size:.59rem;color:#8390a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .li-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.li-actions a,.li-actions button{min-height:30px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border:1px solid #dbe4ee;border-radius:9px;background:#fff;color:#3f556d;text-decoration:none;font:750 .62rem Inter,sans-serif;cursor:pointer}.li-actions a.found{border-color:#cde9d6;background:#f0faf3;color:#14723a}.li-actions a.linkedin{border-color:#d3e2f8;background:#f2f7ff;color:#0a66c2}.li-actions a.instagram{border-color:#ecd9e7;background:#fff7fc;color:#a62b75}.li-actions button:hover,.li-actions a:hover{background:#f4f7fb}
+      .li-details{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #dfe7f0;color:#718096;font-size:.6rem;line-height:1.55}.li-panel.expanded .li-details{display:block}.li-badge{display:inline-flex;align-items:center;gap:4px;margin:2px 5px 2px 0;padding:3px 6px;border-radius:999px;background:#eef4fb;color:#51677d;font-size:.56rem;font-weight:750}.li-unverified{color:#9a6a15!important}
+      .li-modal{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px}.li-modal.hidden{display:none!important}.li-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.48);backdrop-filter:blur(3px)}.li-modal-card{position:relative;width:min(720px,100%);max-height:90vh;overflow:auto;padding:24px;border-radius:22px;background:#fff;box-shadow:0 28px 90px rgba(15,23,42,.26)}.li-close{position:absolute;right:15px;top:13px;border:0;background:#f3f6fa;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:20px}.li-modal-card h3{margin:7px 40px 5px 0;font-size:1.25rem}.li-modal-card .li-meta{margin:0 0 14px;color:#718096;font-size:.75rem}.li-script{white-space:pre-wrap;padding:16px;border:1px solid #e4eaf2;border-radius:14px;background:#f8fafc;font:500 .78rem/1.65 Inter,sans-serif;color:#33475b}.li-modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.li-modal-actions button,.li-modal-actions a{min-height:38px;padding:0 12px;border:1px solid #d8e1ec;border-radius:10px;background:#fff;color:#405267;text-decoration:none;font:750 .7rem Inter;display:inline-flex;align-items:center;cursor:pointer}.li-modal-actions .primary{background:#16a34a;color:#fff;border-color:#16a34a}
+      @media(max-width:650px){.li-grid{grid-template-columns:1fr}.li-modal-card{padding:20px}.li-actions{display:grid;grid-template-columns:1fr 1fr}}
     `;
     document.head.appendChild(style);
   }
 
-  function loadCache() {
-    try {
-      const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
-      return cache && typeof cache === "object" ? cache : {};
-    } catch {
-      return {};
-    }
-  }
+  function loadLeads(){try{const v=JSON.parse(localStorage.getItem(MAP_STORAGE_KEY)||"[]");return Array.isArray(v)?v:[]}catch{return[]}}
+  function saveLeads(leads){try{localStorage.setItem(MAP_STORAGE_KEY,JSON.stringify(leads))}catch{}}
+  function loadMeta(){try{return JSON.parse(localStorage.getItem(MAP_META_KEY)||"{}")||{}}catch{return{}}}
+  function loadCache(){try{const v=JSON.parse(localStorage.getItem(CACHE_KEY)||"{}");return v&&typeof v==="object"?v:{}}catch{return{}}}
+  function saveCache(cache){try{localStorage.setItem(CACHE_KEY,JSON.stringify(Object.fromEntries(Object.entries(cache||{}).filter(([,v])=>v&&Date.now()-Number(v.savedAt||0)<CACHE_TTL).sort((a,b)=>Number(b[1]?.savedAt||0)-Number(a[1]?.savedAt||0)).slice(0,500))))}catch{}}
+  function leadKey(lead){return String(lead?.cnpj||lead?.mapsUrl||`${lead?.name||""}|${lead?.address||""}`).toLowerCase()}
+  function getCached(lead){const i=loadCache()[leadKey(lead)];return i&&Date.now()-Number(i.savedAt||0)<CACHE_TTL?i.data:null}
+  function setCached(lead,data){const c=loadCache();c[leadKey(lead)]={savedAt:Date.now(),data};saveCache(c)}
+  function mergeLeadIntoStorage(target,patch){const leads=loadLeads(),key=leadKey(target),i=leads.findIndex(x=>leadKey(x)===key);if(i<0)return;leads[i]={...leads[i],...patch};saveLeads(leads)}
+  function normalizePhone(value){let p=digits(value);if(p.length>11&&p.startsWith("55"))p=p.slice(2);return p}
+  function formatPhone(value){const p=normalizePhone(value);if(p.length===11)return`(${p.slice(0,2)}) ${p.slice(2,7)}-${p.slice(7)}`;if(p.length===10)return`(${p.slice(0,2)}) ${p.slice(2,6)}-${p.slice(6)}`;return String(value||"Não informado")}
 
-  function saveCache(cache) {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-    } catch (error) {
-      console.warn("[RadarPublicEnrichment] cache indisponível", error);
-    }
-  }
+  function getCardLead(card){const name=$("h3",card)?.textContent?.trim()||"",address=$(".v4-card-head p",card)?.textContent?.trim()||"",leads=loadLeads();return leads.find(l=>normalize(l.name)===normalize(name)&&normalize(l.address)===normalize(address))||leads.find(l=>normalize(l.name)===normalize(name))||null}
+  function decisionMaker(source){if(source?.decisionMaker?.name)return source.decisionMaker;const qsa=Array.isArray(source?.qsa)?source.qsa:[];if(!qsa.length)return null;const priority=["socio administrador","sócio administrador","administrador","titular","empresario","empresário","presidente","diretor","socio","sócio"];const ranked=qsa.map(person=>{const role=normalize(person.qualificacao_socio||person.role),idx=priority.findIndex(x=>role.includes(normalize(x)));return{person,rank:idx<0?999:idx}}).sort((a,b)=>a.rank-b.rank);const p=ranked[0]?.person;if(!p)return null;return{name:p.nome_socio||p.name||"",role:p.qualificacao_socio||p.role||"Sócio"}}
+  function shortFirstName(name){return String(name||"").trim().split(/\s+/)[0]||""}
 
-  function getCached(cnpj) {
-    const cache = loadCache();
-    const item = cache[cnpj];
-    if (!item) return null;
-    if (Date.now() - Number(item.savedAt || 0) > CACHE_TTL) {
-      delete cache[cnpj];
-      saveCache(cache);
-      return null;
-    }
-    return item.data || null;
-  }
+  function searchUrls(lead){const dm=decisionMaker(lead),company=String(lead.name||"").trim(),region=loadMeta().region||lead.city||"";return{instagramSearch:`https://www.google.com/search?q=${encodeURIComponent(`"${company}" ${region} site:instagram.com`)}`,linkedinCompany:`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(`${company} ${region}`)}`,linkedinPerson:`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(dm?.name?`${dm.name} ${company}`:`${company} responsável`)}`,googlePerson:dm?.name?`https://www.google.com/search?q=${encodeURIComponent(`"${dm.name}" "${company}"`)}`:""}}
+  function inferDirectSocials(lead){const r={};[lead.instagram,lead.facebook,lead.linkedin,lead.website].filter(Boolean).forEach(raw=>{const u=/^https?:\/\//i.test(raw)?raw:`https://${raw}`,low=u.toLowerCase();if(!r.instagram&&low.includes("instagram.com/"))r.instagram=u;if(!r.facebook&&low.includes("facebook.com/"))r.facebook=u;if(!r.linkedin&&low.includes("linkedin.com/"))r.linkedin=u});return r}
+  function tokenSet(v){return new Set(normalize(v).split(" ").filter(t=>t.length>=3&&!STOPWORDS.has(t)))}
+  function overlapScore(a,b){const A=tokenSet(a),B=tokenSet(b);if(!A.size||!B.size)return 0;let c=0;A.forEach(t=>{if(B.has(t))c++});return c/Math.min(A.size,B.size)}
+  function parseRegion(raw){const text=String(raw||"").trim(),m=text.match(/-?\s*([A-Z]{2})\s*$/i),uf=m?m[1].toUpperCase():"SP",noUf=text.replace(/-?\s*[A-Z]{2}\s*$/i,"").trim().replace(/,$/,""),parts=noUf.split(",").map(v=>v.trim()).filter(Boolean);return{city:parts.length>1?parts[parts.length-1]:noUf,uf}}
+  function inferCnaes(term){const m=SEGMENT_CNAES.find(i=>i.re.test(normalize(term)));return m?.cnaes||[]}
+  async function fetchJson(url,options={}){const c=new AbortController(),t=setTimeout(()=>c.abort(),25000);try{const r=await fetch(url,{...options,signal:c.signal,headers:{Accept:"application/json",...(options.headers||{})}});if(!r.ok)throw new Error(`HTTP_${r.status}`);return r.json()}finally{clearTimeout(t)}}
+  async function resolveMunicipality(uf,city){const rows=await fetchJson(`${IBGE_BASE}/${encodeURIComponent(uf)}/municipios?orderBy=nome`),w=normalize(city);return rows.find(i=>normalize(i.nome)===w)||rows.find(i=>normalize(i.nome).startsWith(w))||null}
+  function companyPhones(c){return[c?.ddd_telefone_1,c?.ddd_telefone_2].map(normalizePhone).filter(Boolean)}
+  function companyScore(lead,c){const name=Math.max(overlapScore(lead.name,c?.nome_fantasia),overlapScore(lead.name,c?.razao_social));let s=name*.67,p=normalizePhone(lead.phone);if(p&&companyPhones(c).some(x=>x.slice(-8)===p.slice(-8)))s+=.6;s+=overlapScore(lead.address,[c?.logradouro,c?.numero,c?.bairro].filter(Boolean).join(" "))*.22;const b=normalize(c?.bairro);if(b&&normalize(lead.address).includes(b))s+=.12;return Math.min(1,s)}
+  function attachCompanyData(lead,c,score){const dm=decisionMaker(c);return{cnpj:c.cnpj||lead.cnpj||"",legalName:c.razao_social||lead.legalName||"",tradeName:c.nome_fantasia||lead.tradeName||"",companyEmail:c.email||lead.companyEmail||"",companyPhone:c.ddd_telefone_1||lead.companyPhone||"",qsa:Array.isArray(c.qsa)?c.qsa:(lead.qsa||[]),decisionMaker:dm||lead.decisionMaker||null,cnae:c.cnae_fiscal||lead.cnae||"",cnaeDescription:c.cnae_fiscal_descricao||lead.cnaeDescription||"",revenueMatchScore:score,revenueStatus:"matched"}}
 
-  function setCached(cnpj, data) {
-    const cache = loadCache();
-    cache[cnpj] = { savedAt: Date.now(), data };
-    const trimmed = Object.fromEntries(
-      Object.entries(cache)
-        .sort((a, b) => Number(b[1]?.savedAt || 0) - Number(a[1]?.savedAt || 0))
-        .slice(0, 500)
-    );
-    saveCache(trimmed);
-  }
+  async function autoMatchDecisionMakers(){if(autoMatchBusy)return;const leads=loadLeads(),meta=loadMeta(),term=meta.term||"",region=meta.region||"",cnaes=inferCnaes(term);if(!leads.length||!region||!cnaes.length)return;const fp=`${normalize(term)}|${normalize(region)}|${leads.length}|${leads.map(l=>l.cnpj||"").filter(Boolean).length}`;if(fp===autoMatchFingerprint)return;autoMatchFingerprint=fp;if(!leads.some(l=>!l.decisionMaker?.name||!l.cnpj))return;autoMatchBusy=true;try{const{city,uf}=parseRegion(region),mun=await resolveMunicipality(uf,city);if(!mun)return;const p=new URLSearchParams({uf,municipio:String(mun.id),cnae:cnaes.join(","),limit:"1024"}),data=await fetchJson(`${MY_RECEITA_BASE}/?${p}`),companies=(Array.isArray(data?.data)?data.data:[]).filter(c=>{const d=normalize(c?.descricao_situacao_cadastral);return!d||d==="ativa"});let changed=false;leads.forEach((lead,i)=>{if(lead.cnpj&&lead.decisionMaker?.name)return;const ranked=companies.map(c=>({company:c,score:companyScore(lead,c)})).sort((a,b)=>b.score-a.score),best=ranked[0],second=ranked[1];if(!best||best.score<.48)return;if(second&&best.score<.66&&best.score-second.score<.09)return;leads[i]={...lead,...attachCompanyData(lead,best.company,best.score)};changed=true});if(changed)saveLeads(leads)}catch(e){console.warn("[RadarLeadIntel] QSA",e)}finally{autoMatchBusy=false}}
 
-  function readDailyUsage() {
-    const today = new Date().toISOString().slice(0, 10);
-    try {
-      const value = JSON.parse(localStorage.getItem(DAILY_KEY) || "null");
-      if (!value || value.date !== today) return { date: today, count: 0, lastAt: 0 };
-      return value;
-    } catch {
-      return { date: today, count: 0, lastAt: 0 };
-    }
-  }
+  function buildOverpassQuery(lead){const name=String(lead.name||"").trim();if(!name)return"";const pattern=normalize(name).split(" ").filter(t=>t.length>=3&&!STOPWORDS.has(t)).slice(0,4).map(escapeRegex).join(".*")||escapeRegex(name),lat=Number(lead.lat),lng=Number(lead.lng);if(Number.isFinite(lat)&&Number.isFinite(lng))return`[out:json][timeout:12];(nwr(around:500,${lat},${lng})["name"~"${escapeOverpass(pattern)}",i];nwr(around:500,${lat},${lng})["brand"~"${escapeOverpass(pattern)}",i];);out center tags 20;`;const city=parseRegion(loadMeta().region||lead.city||"").city;if(!city)return"";return`[out:json][timeout:12];area["name"="${escapeOverpass(city)}"]["boundary"="administrative"]["admin_level"="8"]->.a;(nwr(area.a)["name"~"${escapeOverpass(pattern)}",i];nwr(area.a)["brand"~"${escapeOverpass(pattern)}",i];);out center tags 20;`}
+  function socialFromTags(tags={}){const nu=raw=>{const v=String(raw||"").trim();return!v?"":/^https?:\/\//i.test(v)?v:`https://${v.replace(/^\/+/,"")}`},su=(raw,base)=>{const v=String(raw||"").trim();return!v?"":/^https?:\/\//i.test(v)?v:`${base}${v.replace(/^@/,"").replace(/^\/+|\/+$/g,"")}`};return{instagram:su(tags["contact:instagram"]||tags.instagram,"https://www.instagram.com/"),facebook:su(tags["contact:facebook"]||tags.facebook,"https://www.facebook.com/"),linkedin:su(tags["contact:linkedin"]||tags.linkedin,"https://www.linkedin.com/company/"),publicEmail:tags["contact:email"]||tags.email||"",publicPhone:tags["contact:phone"]||tags["contact:mobile"]||tags.phone||"",publicWebsite:nu(tags["contact:website"]||tags.website||tags.url||"")}}
+  function candidateOsmScore(lead,e){const tags=e?.tags||{};let s=overlapScore(lead.name,tags.name||tags.brand||tags.operator||""),a=normalizePhone(lead.phone||lead.companyPhone),b=normalizePhone(tags["contact:phone"]||tags["contact:mobile"]||tags.phone);if(a&&b&&a.slice(-8)===b.slice(-8))s+=.55;return s}
+  async function enrichPublicLead(lead){const cached=getCached(lead);if(cached)return cached;if(publicEnrichCount>=MAX_PUBLIC_ENRICH_PER_SESSION)return null;const q=buildOverpassQuery(lead);if(!q)return null;const wait=Math.max(0,MIN_OVERPASS_GAP-(Date.now()-lastOverpassAt));if(wait)await new Promise(r=>setTimeout(r,wait));lastOverpassAt=Date.now();publicEnrichCount++;try{const data=await fetchJson(OVERPASS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:`data=${encodeURIComponent(q)}`}),ranked=(Array.isArray(data?.elements)?data.elements:[]).map(e=>({element:e,score:candidateOsmScore(lead,e)})).sort((a,b)=>b.score-a.score);if(!ranked[0]||ranked[0].score<.3)return null;const result={...socialFromTags(ranked[0].element.tags),publicMatch:Math.min(1,ranked[0].score)};setCached(lead,result);return result}catch(e){console.warn("[RadarLeadIntel] public enrichment",e);return null}}
 
-  function consumeDailyUsage() {
-    const usage = readDailyUsage();
-    usage.count += 1;
-    usage.lastAt = Date.now();
-    localStorage.setItem(DAILY_KEY, JSON.stringify(usage));
-  }
+  function socialLinksFor(lead){const d=inferDirectSocials(lead),u=searchUrls(lead);return{instagram:lead.instagram||d.instagram||"",linkedin:lead.linkedin||d.linkedin||"",facebook:lead.facebook||d.facebook||"",instagramSearch:u.instagramSearch,linkedinCompany:u.linkedinCompany,linkedinPerson:u.linkedinPerson,googlePerson:u.googlePerson}}
+  function bestContact(lead){if(lead.decisionPhone)return{value:formatPhone(lead.decisionPhone),type:"Telefone do decisor"};if(lead.decisionEmail)return{value:lead.decisionEmail,type:"E-mail do decisor"};const p=lead.phone||lead.companyPhone||lead.publicPhone;if(p)return{value:formatPhone(p),type:"Telefone da empresa"};const e=lead.companyEmail||lead.publicEmail;if(e)return{value:e,type:"E-mail da empresa"};return{value:"Ainda não encontrado",type:"Sem canal confirmado"}}
 
-  function canUseOverpass() {
-    const usage = readDailyUsage();
-    if (usage.count >= DAILY_LIMIT) {
-      return { ok: false, reason: `Limite de ${DAILY_LIMIT} enriquecimentos públicos por dia atingido neste navegador.` };
-    }
-    const wait = Math.max(0, MIN_REQUEST_GAP - (Date.now() - Number(usage.lastAt || 0)));
-    if (wait > 0) {
-      return { ok: false, reason: `Aguarde ${Math.ceil(wait / 1000)}s antes do próximo enriquecimento.` };
-    }
-    return { ok: true };
-  }
+  function panelHtml(lead){const dm=decisionMaker(lead),contact=bestContact(lead),social=socialLinksFor(lead),first=shortFirstName(dm?.name),linkedHref=social.linkedin||social.linkedinPerson,instagramHref=social.instagram||social.instagramSearch,confidence=Number(lead.revenueMatchScore||0)>0?` · match ${Math.round(Number(lead.revenueMatchScore)*100)}%`:"",email=lead.companyEmail||lead.publicEmail||"";return`<div class="li-panel" data-li-panel><div class="li-head"><b>Decisor & presença</b><span class="li-source">${dm?`QSA identificado${confidence}`:"enriquecimento público"}</span></div><div class="li-grid"><div class="li-cell"><span>Tomador de decisão</span><strong class="${dm?"":"li-unverified"}">${escapeHtml(dm?.name||"Ainda não identificado")}</strong><small>${escapeHtml(dm?.role||(dm?"Quadro societário":"vamos buscar o melhor contato disponível"))}</small></div><div class="li-cell"><span>Melhor canal disponível</span><strong>${escapeHtml(contact.value)}</strong><small>${escapeHtml(contact.type)}</small></div></div><div class="li-actions"><a class="instagram ${social.instagram?"found":""}" href="${escapeHtml(instagramHref)}" target="_blank" rel="noopener">${social.instagram?"Instagram encontrado":"Buscar Instagram"}</a><a class="linkedin ${social.linkedin?"found":""}" href="${escapeHtml(linkedHref)}" target="_blank" rel="noopener">${social.linkedin?"LinkedIn encontrado":dm?`LinkedIn de ${escapeHtml(first)}`:"Buscar LinkedIn"}</a>${email?`<a href="mailto:${escapeHtml(email)}">E-mail</a>`:""}${social.googlePerson?`<a href="${escapeHtml(social.googlePerson)}" target="_blank" rel="noopener">Pesquisar decisor</a>`:""}<button type="button" data-li-refresh>Atualizar dados</button><button type="button" data-li-toggle>Detalhes</button></div><div class="li-details">${lead.cnpj?`<span class="li-badge">CNPJ ${escapeHtml(String(lead.cnpj))}</span>`:""}${lead.legalName?`<span class="li-badge">${escapeHtml(lead.legalName)}</span>`:""}${lead.cnaeDescription?`<span class="li-badge">${escapeHtml(lead.cnaeDescription)}</span>`:""}<div style="margin-top:6px">Os canais são rotulados conforme a fonte: telefone/e-mail empresarial não são apresentados como contato pessoal do sócio.</div></div></div>`}
 
-  async function fetchJson(url, options = {}) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 22000);
-    try {
-      const response = await fetch(url, {
-        ...options,
-        mode: "cors",
-        signal: options.signal || controller.signal,
-        headers: { Accept: "application/json", ...(options.headers || {}) }
-      });
-      if (!response.ok) {
-        const err = new Error(`HTTP_${response.status}`);
-        err.status = response.status;
-        throw err;
-      }
-      return await response.json();
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
+  const intersection=new IntersectionObserver(entries=>{entries.forEach(async entry=>{if(!entry.isIntersecting)return;intersection.unobserve(entry.target);const lead=getCardLead(entry.target);if(!lead)return;const direct=inferDirectSocials(lead);if(Object.keys(direct).length)mergeLeadIntoStorage(lead,direct);if(!lead.instagram&&!lead.linkedin&&publicEnrichCount<MAX_PUBLIC_ENRICH_PER_SESSION){const data=await enrichPublicLead(lead);if(data)mergeLeadIntoStorage(lead,data)}})},{rootMargin:"350px 0px"});
+  function decorateCard(card){if(!card||card.dataset.liReady==="1")return;const lead=getCardLead(card),grid=$(".v4-data-grid",card);if(!lead||!grid)return;card.dataset.liReady="1";grid.insertAdjacentHTML("afterend",panelHtml(lead));const panel=$("[data-li-panel]",card);$("[data-li-toggle]",panel)?.addEventListener("click",()=>panel.classList.toggle("expanded"));$("[data-li-refresh]",panel)?.addEventListener("click",async e=>{const btn=e.currentTarget;btn.disabled=true;btn.textContent="Buscando...";const fresh=getCardLead(card);if(fresh){const data=await enrichPublicLead(fresh);if(data)mergeLeadIntoStorage(fresh,data);await autoMatchDecisionMakers()}btn.textContent="Atualizado";setTimeout(()=>{btn.disabled=false;btn.textContent="Atualizar dados"},1200)});intersection.observe(card)}
+  function decorateAll(){$$(".v4-lead-card").forEach(decorateCard)}
 
-  function companyName(company) {
-    return String(company?.nome_fantasia || "").trim() || String(company?.razao_social || "").trim() || "Empresa";
-  }
+  function mainOpportunity(lead){const website=String(lead.website||lead.publicWebsite||"").toLowerCase(),reviews=Number(lead.reviews),rating=Number(lead.rating),own=website&&!/(instagram\.com|facebook\.com|linktr\.ee|trinks\.com|beacons\.ai|bio\.site)/.test(website);if(!own)return"não encontrei um site próprio estruturado";if(Number.isFinite(reviews)&&reviews<20)return`vocês têm apenas ${reviews} avaliações no Google e existe espaço para fortalecer prova social`;if(Number.isFinite(rating)&&rating<4.3)return`a nota no Google está em ${String(rating).replace(".",",")}, o que pode impactar a decisão de novos clientes`;return"encontrei alguns pontos na presença digital e no caminho até o contato que podem ser melhor aproveitados"}
+  function proofPoint(lead){const rating=Number(lead.rating),reviews=Number(lead.reviews);if(Number.isFinite(rating)&&Number.isFinite(reviews))return`vi que vocês estão com nota ${String(rating).replace(".",",")} e ${reviews.toLocaleString("pt-BR")} avaliações no Google`;if(Number.isFinite(rating))return`vi que vocês estão com nota ${String(rating).replace(".",",")} no Google`;return"encontrei a empresa no levantamento da região"}
+  function improvedWhatsApp(lead){const dm=decisionMaker(lead),first=shortFirstName(dm?.name),social=socialLinksFor(lead),region=loadMeta().region||lead.city||"a região",intro=dm?`Oi, tudo bem? É da ${lead.name}? Queria falar com ${first||"a pessoa responsável"} ou com quem cuida da parte comercial/digital.`:`Oi, tudo bem? É da ${lead.name}? Queria falar com quem cuida da parte comercial/digital.`,socialContext=social.instagram?" Vi que vocês também têm presença no Instagram.":"";return`${intro}\n\nMeu nome é Diego. Estou fazendo um levantamento de negócios aqui em ${region} e encontrei vocês. ${proofPoint(lead)}.${socialContext} Ao mesmo tempo, ${mainOpportunity(lead)}.\n\nEu organizei uma análise rápida com alguns pontos bem objetivos que podem ajudar a empresa a aparecer melhor e gerar mais oportunidades. Posso te mandar por aqui?`}
+  function improvedCallScript(lead){const dm=decisionMaker(lead),first=shortFirstName(dm?.name),target=dm?`${first||dm.name}, que aparece como responsável pela empresa, ou com quem cuida da parte comercial/digital`:"a pessoa que cuida da parte comercial/digital",social=socialLinksFor(lead);return`ABERTURA\n\nOi, tudo bem? Meu nome é Diego. Eu queria falar com ${target} da ${lead.name}.\n\nCONTEXTO\n\nEstou fazendo um levantamento dos negócios de ${lead.category||loadMeta().term||"seu segmento"} aqui em ${loadMeta().region||lead.city||"sua região"} e encontrei vocês.\n\nO QUE EU VI\n\n${proofPoint(lead)}.${social.instagram?" Também encontrei a presença de vocês no Instagram.":""}\nAo mesmo tempo, ${mainOpportunity(lead)}.\n\nGANCHO\n\nNão estou te ligando para vender algo no escuro. Eu já organizei uma leitura rápida da presença de vocês e separei os pontos que eu atacaria primeiro para melhorar descoberta, contato e conversão.\n\nCONVITE\n\nPosso te mostrar isso em 10 minutos e você avalia se faz sentido para a empresa?`}
+  function setCardStatus(card,value){const select=$("[data-status-select]",card);if(select&&select.value!==value){select.value=value;select.dispatchEvent(new Event("change",{bubbles:true}))}}
 
-  function companyAddress(company) {
-    return [
-      company?.descricao_tipo_de_logradouro,
-      company?.logradouro,
-      company?.numero,
-      company?.complemento,
-      company?.bairro,
-      company?.municipio,
-      company?.uf,
-      company?.cep
-    ].filter(Boolean).join(", ");
-  }
+  function ensureCallModal(){let modal=$("#liCallModal");if(modal)return modal;modal=document.createElement("div");modal.id="liCallModal";modal.className="li-modal hidden";modal.innerHTML=`<div class="li-backdrop" data-li-close></div><div class="li-modal-card"><button class="li-close" type="button" data-li-close>×</button><span class="section-kicker">ROTEIRO INTELIGENTE</span><h3 id="liModalTitle">Ligação</h3><p class="li-meta" id="liModalMeta"></p><div class="li-script" id="liModalScript"></div><div class="li-modal-actions"><button type="button" id="liCopyScript">Copiar roteiro</button><a id="liDial" href="#">Ligar agora</a><button type="button" data-li-status="attempted">Tentei / sem contato</button><button type="button" data-li-status="contacted">Consegui falar</button><button type="button" class="primary" data-li-status="opportunity">Deu certo</button><button type="button" data-li-status="blocked">Não ligar novamente</button></div></div>`;document.body.appendChild(modal);$$('[data-li-close]',modal).forEach(el=>el.addEventListener("click",()=>modal.classList.add("hidden")));return modal}
+  function interceptActions(){document.addEventListener("click",event=>{const whatsapp=event.target.closest("[data-whatsapp]"),call=event.target.closest("[data-call]");if(!whatsapp&&!call)return;const card=event.target.closest(".v4-lead-card");if(!card)return;const lead=getCardLead(card);if(!lead)return;event.preventDefault();event.stopImmediatePropagation();const phone=normalizePhone(lead.phone||lead.companyPhone||lead.publicPhone);if(whatsapp){if(!phone)return;if($("[data-status-select]",card)?.value==="new")setCardStatus(card,"attempted");window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(improvedWhatsApp(lead))}`,"_blank","noopener");return}const modal=ensureCallModal();$("#liModalTitle",modal).textContent=lead.name||"Ligação";const dm=decisionMaker(lead);$("#liModalMeta",modal).textContent=`${phone?formatPhone(phone):"Sem telefone"} · ${dm?.name?`${dm.name} · ${dm.role||"decisor"}`:"decisor ainda não identificado"}`;$("#liModalScript",modal).textContent=improvedCallScript(lead);const dial=$("#liDial",modal);dial.href=phone?`tel:+55${phone}`:"#";$("#liCopyScript",modal).onclick=async()=>{try{await navigator.clipboard.writeText(improvedCallScript(lead))}catch{}};$$('[data-li-status]',modal).forEach(btn=>{btn.onclick=()=>{setCardStatus(card,btn.dataset.liStatus);modal.classList.add("hidden")}});modal.classList.remove("hidden")},true)}
 
-  function getEmailDomain(email) {
-    const raw = normalize(email);
-    const domain = raw.includes("@") ? raw.split("@").pop() : "";
-    if (!domain || GENERIC_EMAIL_DOMAINS.has(domain) || !domain.includes(".")) return "";
-    return domain;
-  }
-
-  function normalizeUrl(value) {
-    const raw = String(value || "").trim();
-    if (!raw) return "";
-    if (/^https?:\/\//i.test(raw)) return raw;
-    return `https://${raw.replace(/^\/+/, "")}`;
-  }
-
-  function socialUrl(value, network) {
-    const raw = String(value || "").trim();
-    if (!raw) return "";
-    if (/^https?:\/\//i.test(raw)) return raw;
-    const handle = raw.replace(/^@/, "").replace(/^\/+|\/+$/g, "");
-    const bases = {
-      instagram: "https://www.instagram.com/",
-      facebook: "https://www.facebook.com/",
-      linkedin: "https://www.linkedin.com/company/",
-      whatsapp: "https://wa.me/"
-    };
-    return bases[network] ? `${bases[network]}${handle}` : "";
-  }
-
-  function buildDiscoveryLinks(company) {
-    const name = companyName(company);
-    const address = companyAddress(company);
-    const city = company?.municipio || "";
-    const state = company?.uf || "";
-    const query = [name, address].filter(Boolean).join(" ");
-    const quoted = `"${name}" ${city} ${state}`.trim();
-    return {
-      googleMaps: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-      googleSearch: `https://www.google.com/search?q=${encodeURIComponent(quoted)}`,
-      instagramSearch: `https://www.google.com/search?q=${encodeURIComponent(`site:instagram.com ${quoted}`)}`,
-      facebookSearch: `https://www.google.com/search?q=${encodeURIComponent(`site:facebook.com ${quoted}`)}`,
-      linkedinSearch: `https://www.google.com/search?q=${encodeURIComponent(`site:linkedin.com/company ${quoted}`)}`
-    };
-  }
-
-  function buildNamePattern(name) {
-    const tokens = normalize(name)
-      .split(" ")
-      .filter(token => token.length >= 3 && !CORPORATE_WORDS.has(token))
-      .slice(0, 4)
-      .map(escapeRegex);
-    if (!tokens.length) return escapeRegex(normalize(name));
-    return tokens.join(".*");
-  }
-
-  function scoreCandidate(company, element) {
-    const tags = element?.tags || {};
-    const sourceTokens = new Set(normalize(companyName(company)).split(" ").filter(token => token.length >= 3 && !CORPORATE_WORDS.has(token)));
-    const targetTokens = new Set(normalize(tags.name || tags.brand || tags.operator || "").split(" ").filter(token => token.length >= 3));
-    let matched = 0;
-    sourceTokens.forEach(token => { if (targetTokens.has(token)) matched += 1; });
-    let score = sourceTokens.size ? matched / sourceTokens.size : 0;
-
-    const companyPhones = [company?.ddd_telefone_1, company?.ddd_telefone_2].map(digits).filter(Boolean);
-    const osmPhones = [tags.phone, tags["contact:phone"], tags["contact:mobile"]].map(digits).filter(Boolean);
-    if (companyPhones.some(phone => osmPhones.some(osm => phone.slice(-8) === osm.slice(-8)))) score += .45;
-
-    const companyEmail = normalize(company?.email);
-    const osmEmail = normalize(tags.email || tags["contact:email"]);
-    if (companyEmail && osmEmail && companyEmail === osmEmail) score += .4;
-
-    const companyBairro = normalize(company?.bairro);
-    const osmBairro = normalize(tags["addr:suburb"] || tags["addr:district"]);
-    if (companyBairro && osmBairro && (companyBairro.includes(osmBairro) || osmBairro.includes(companyBairro))) score += .15;
-
-    return score;
-  }
-
-  async function lookupOverpass(company) {
-    const allowance = canUseOverpass();
-    if (!allowance.ok) throw new Error(allowance.reason);
-
-    const city = String(company?.municipio || "").trim();
-    const name = companyName(company);
-    if (!city || !name) return null;
-
-    const pattern = buildNamePattern(name);
-    const q = `[out:json][timeout:15];
-      area["name"="${escapeOverpass(city)}"]["boundary"="administrative"]["admin_level"="8"]->.searchArea;
-      (
-        nwr(area.searchArea)["name"~"${escapeOverpass(pattern)}",i];
-        nwr(area.searchArea)["brand"~"${escapeOverpass(pattern)}",i];
-        nwr(area.searchArea)["operator"~"${escapeOverpass(pattern)}",i];
-      );
-      out center tags 20;`;
-
-    consumeDailyUsage();
-    const data = await fetchJson(OVERPASS_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: `data=${encodeURIComponent(q)}`
-    });
-
-    const candidates = Array.isArray(data?.elements) ? data.elements : [];
-    if (!candidates.length) return null;
-
-    const ranked = candidates
-      .map(element => ({ element, score: scoreCandidate(company, element) }))
-      .sort((a, b) => b.score - a.score);
-
-    const best = ranked[0];
-    if (!best || best.score < .28) return null;
-    const element = best.element;
-    const tags = element.tags || {};
-
-    return {
-      score: Math.min(1, best.score),
-      name: tags.name || tags.brand || tags.operator || "",
-      website: normalizeUrl(tags.website || tags["contact:website"] || tags.url),
-      instagram: socialUrl(tags["contact:instagram"] || tags.instagram, "instagram"),
-      facebook: socialUrl(tags["contact:facebook"] || tags.facebook, "facebook"),
-      linkedin: socialUrl(tags["contact:linkedin"] || tags.linkedin, "linkedin"),
-      whatsapp: socialUrl(tags["contact:whatsapp"] || tags.whatsapp, "whatsapp"),
-      phone: tags["contact:phone"] || tags.phone || tags["contact:mobile"] || "",
-      email: tags["contact:email"] || tags.email || "",
-      openingHours: tags.opening_hours || "",
-      category: tags.amenity || tags.shop || tags.office || tags.healthcare || tags.craft || "",
-      lat: element.lat || element.center?.lat || null,
-      lon: element.lon || element.center?.lon || null,
-      osmUrl: `https://www.openstreetmap.org/${element.type}/${element.id}`
-    };
-  }
-
-  async function buildEnrichment(cnpj) {
-    const company = await fetchJson(`${MY_RECEITA_BASE}/${encodeURIComponent(cnpj)}`);
-    const links = buildDiscoveryLinks(company);
-    const emailDomain = getEmailDomain(company?.email);
-    let osm = null;
-    let osmError = "";
-
-    try {
-      osm = await lookupOverpass(company);
-    } catch (error) {
-      osmError = error?.message || "Fonte cartográfica indisponível.";
-      console.warn("[RadarPublicEnrichment] Overpass", error);
-    }
-
-    return {
-      company: {
-        name: companyName(company),
-        cnpj: cleanCnpj(company?.cnpj),
-        city: company?.municipio || "",
-        uf: company?.uf || "",
-        address: companyAddress(company),
-        email: company?.email || "",
-        phone: company?.ddd_telefone_1 || ""
-      },
-      domainCandidate: emailDomain ? `https://${emailDomain}` : "",
-      links,
-      osm,
-      osmError,
-      enrichedAt: new Date().toISOString()
-    };
-  }
-
-  function item(label, content, href = "") {
-    if (!content) return "";
-    const value = href
-      ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(content)}</a>`
-      : `<em>${escapeHtml(content)}</em>`;
-    return `<div class="pe-item"><b>${escapeHtml(label)}</b>${value}</div>`;
-  }
-
-  function renderEnrichment(box, data) {
-    const osm = data?.osm || null;
-    const links = data?.links || {};
-    const website = osm?.website || data?.domainCandidate || "";
-    const instagram = osm?.instagram || "";
-    const facebook = osm?.facebook || "";
-    const linkedin = osm?.linkedin || "";
-    const phone = osm?.phone || "";
-    const email = osm?.email || "";
-    const hours = osm?.openingHours || "";
-    const confidence = osm ? `${Math.round((osm.score || 0) * 100)}%` : "";
-
-    const grid = [
-      item(osm?.website ? "Site público" : "Domínio provável", website ? website.replace(/^https?:\/\//i, "") : "", website),
-      item("Instagram", instagram ? instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "@") : "", instagram),
-      item("Facebook", facebook ? "Perfil/página encontrado" : "", facebook),
-      item("LinkedIn", linkedin ? "Página encontrada" : "", linkedin),
-      item("Telefone público", phone, phone ? `tel:${digits(phone)}` : ""),
-      item("E-mail público", email, email ? `mailto:${email}` : ""),
-      item("Horário", hours),
-      item("Categoria OSM", osm?.category || "")
-    ].filter(Boolean).join("");
-
-    const source = osm
-      ? `<a href="${escapeHtml(osm.osmUrl)}" target="_blank" rel="noopener noreferrer">OpenStreetMap</a><span class="pe-confidence">match ${confidence}</span>`
-      : "nenhum registro cartográfico correspondente foi confirmado";
-
-    box.innerHTML = `
-      <div class="pe-head"><strong>Enriquecimento público</strong><span>SEM GOOGLE PLACES PAGO</span></div>
-      ${grid ? `<div class="pe-grid">${grid}</div>` : `<div class="pe-empty">Não encontrei site ou rede social confirmada nas fontes públicas consultadas. Use os atalhos abaixo para a pesquisa manual.</div>`}
-      <div class="pe-actions">
-        <a class="pe-action" href="${escapeHtml(links.googleMaps)}" target="_blank" rel="noopener noreferrer">Abrir no Google Maps</a>
-        <a class="pe-action" href="${escapeHtml(links.googleSearch)}" target="_blank" rel="noopener noreferrer">Pesquisar no Google</a>
-        <a class="pe-action" href="${escapeHtml(links.instagramSearch)}" target="_blank" rel="noopener noreferrer">Buscar Instagram</a>
-        <a class="pe-action" href="${escapeHtml(links.facebookSearch)}" target="_blank" rel="noopener noreferrer">Buscar Facebook</a>
-        <a class="pe-action" href="${escapeHtml(links.linkedinSearch)}" target="_blank" rel="noopener noreferrer">Buscar LinkedIn</a>
-      </div>
-      <p class="pe-note">Fonte adicional: ${source}. Dados cartográficos © OpenStreetMap contributors. Nota e avaliações do Google não são raspadas: esses campos exigem Google Places/serviço autorizado. ${data?.osmError ? `<span class="pe-warning">${escapeHtml(data.osmError)}</span>` : ""}</p>
-    `;
-    box.classList.remove("hidden");
-  }
-
-  async function enrichCard(card, button) {
-    const cnpj = cleanCnpj($("[data-cnpj]", card)?.textContent);
-    if (!cnpj || cnpj.length !== 14) {
-      alert("Não foi possível identificar o CNPJ desta empresa.");
-      return;
-    }
-
-    const box = $(".public-enrichment-box", card);
-    const cached = getCached(cnpj);
-    if (cached) {
-      renderEnrichment(box, cached);
-      button.textContent = "Dados públicos carregados";
-      return;
-    }
-
-    button.disabled = true;
-    button.classList.add("is-loading");
-    const original = button.textContent;
-    button.textContent = "Cruzando fontes...";
-    try {
-      const data = await buildEnrichment(cnpj);
-      setCached(cnpj, data);
-      renderEnrichment(box, data);
-      button.textContent = "Dados públicos carregados";
-    } catch (error) {
-      console.error("[RadarPublicEnrichment]", error);
-      box.innerHTML = `<div class="pe-empty pe-warning">Não foi possível cruzar as fontes públicas agora. ${escapeHtml(error?.message || "Tente novamente em alguns instantes.")}</div>`;
-      box.classList.remove("hidden");
-      button.textContent = original;
-    } finally {
-      button.disabled = false;
-      button.classList.remove("is-loading");
-    }
-  }
-
-  function decorateCard(card) {
-    if (!card || card.dataset.publicEnrichmentReady === "1") return;
-    card.dataset.publicEnrichmentReady = "1";
-    const actions = $(".card-actions", card);
-    if (!actions) return;
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "ghost-button public-enrichment-btn";
-    button.textContent = "Cruzar fontes grátis";
-    button.addEventListener("click", () => enrichCard(card, button));
-    actions.insertBefore(button, actions.firstChild);
-
-    const box = document.createElement("div");
-    box.className = "public-enrichment-box hidden";
-    card.appendChild(box);
-  }
-
-  function decorateAll() {
-    $$(".company-card").forEach(decorateCard);
-  }
-
-  function boot() {
-    installStyles();
-    decorateAll();
-    const list = document.getElementById("companiesList");
-    if (list) {
-      const observer = new MutationObserver(() => decorateAll());
-      observer.observe(list, { childList: true, subtree: true });
-    }
-  }
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
-  else boot();
+  function boot(){installStyles();interceptActions();const observer=new MutationObserver(()=>{decorateAll();autoMatchDecisionMakers()});observer.observe(document.documentElement,{childList:true,subtree:true});decorateAll();autoMatchDecisionMakers();setInterval(()=>{decorateAll();autoMatchDecisionMakers()},3000);console.info("[Radar Local] Inteligência comercial pública V2 ativa.")}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
