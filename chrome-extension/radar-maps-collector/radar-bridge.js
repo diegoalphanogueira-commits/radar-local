@@ -4,9 +4,29 @@
   const SOURCE = "RADAR_LOCAL_WEB";
   const TARGET = "RADAR_MAPS_COLLECTOR";
 
+  function injectWorkspaceAssets() {
+    const origin = window.location.origin;
+    if (!document.getElementById("radarProspectingWorkspaceCss")) {
+      const link = document.createElement("link");
+      link.id = "radarProspectingWorkspaceCss";
+      link.rel = "stylesheet";
+      link.href = `${origin}/css/prospecting-workspace.css?v=20260922-4`;
+      (document.head || document.documentElement).appendChild(link);
+    }
+    if (!document.getElementById("radarProspectingWorkspaceScript")) {
+      const script = document.createElement("script");
+      script.id = "radarProspectingWorkspaceScript";
+      script.src = `${origin}/js/prospecting-workspace.js?v=20260922-4`;
+      script.defer = true;
+      (document.head || document.documentElement).appendChild(script);
+    }
+  }
+
   function post(type, payload = {}) {
     window.postMessage({ source: TARGET, type, ...payload }, window.location.origin);
   }
+
+  injectWorkspaceAssets();
 
   window.addEventListener("message", event => {
     if (event.source !== window || event.origin !== window.location.origin) return;
@@ -30,6 +50,20 @@
         post("SEARCH_RESULT", { requestId: message.requestId || "", response });
       }).catch(error => {
         post("SEARCH_RESULT", { requestId: message.requestId || "", response: { ok: false, error: error.message } });
+      });
+      return;
+    }
+
+    if (message.type === "START_BATCH_SEARCH") {
+      chrome.runtime.sendMessage({
+        cmd: "RUN_BATCH_SEARCH",
+        queries: Array.isArray(message.queries) ? message.queries : [],
+        maxScrolls: Number(message.maxScrolls) || 32,
+        replace: message.replace !== false
+      }).then(response => {
+        post("BATCH_RESULT", { requestId: message.requestId || "", response });
+      }).catch(error => {
+        post("BATCH_RESULT", { requestId: message.requestId || "", response: { ok: false, error: error.message } });
       });
       return;
     }
@@ -66,7 +100,7 @@
 
   chrome.runtime.onMessage.addListener(message => {
     if (!message || !message.event) return;
-    if (["SEARCH_PROGRESS", "ENRICH_PROGRESS"].includes(message.event)) {
+    if (["SEARCH_PROGRESS", "BATCH_PROGRESS", "ENRICH_PROGRESS"].includes(message.event)) {
       post("PROGRESS", { progress: message });
     }
   });
