@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.2",
-  "description": "Radar Local V1 RC13: Discovery Engine V3, cobertura controlável, sessões isoladas e captura resiliente do Google Maps.",
+  "version": "1.4.3",
+  "description": "Radar Local V1 RC14: busca sem timeout fixo, resultados parciais em tempo real e Discovery Engine V3.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -24,7 +24,7 @@
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
       "css": ["radar-v1-priority-local.css", "radar-coverage-target.css"],
-      "js": ["radar-bridge-v4.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
+      "js": ["radar-bridge-v4.js", "radar-runtime-v5.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
       "run_at": "document_start"
     }
   ]
