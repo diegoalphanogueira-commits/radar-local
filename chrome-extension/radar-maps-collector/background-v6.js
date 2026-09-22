@@ -5,6 +5,7 @@ const MARKET_CACHE_KEY = "radarMarketCoverageV4";
 const MAX_LEADS = 700;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 let activeRun = null;
+let activeEnrich = null;
 
 function norm(value) {
   return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
@@ -34,23 +35,35 @@ async function setLeads(rows) {
   await chrome.storage.local.set({ [STORAGE_KEY]: clean });
   return clean;
 }
-function emit(run, payload) {
-  chrome.runtime.sendMessage({ ...payload, sessionId: run?.id || payload.sessionId || "" }).catch(() => {});
+function emit(owner, payload) {
+  chrome.runtime.sendMessage({ ...payload, sessionId: owner?.id || payload.sessionId || "" }).catch(() => {});
 }
-function isActive(run) { return !!run && activeRun?.id === run.id && !run.cancelled; }
-async function closeRunTabs(run) {
-  if (!run?.tabs) return;
-  const ids = [...run.tabs];
-  run.tabs.clear();
+function runAlive(run) { return !!run && activeRun?.id === run.id && !run.cancelled; }
+function enrichAlive(job) { return !!job && activeEnrich?.id === job.id && !job.cancelled; }
+async function closeTabs(owner) {
+  if (!owner?.tabs) return;
+  const ids = [...owner.tabs];
+  owner.tabs.clear();
   await Promise.all(ids.map(id => chrome.tabs.remove(id).catch(() => {})));
 }
-async function cancelActive(reason = "replaced") {
+async function cancelRun(reason = "replaced") {
   const run = activeRun;
   if (!run) return;
   run.cancelled = true;
   run.reason = reason;
-  await closeRunTabs(run);
+  await closeTabs(run);
   if (activeRun?.id === run.id) activeRun = null;
+}
+async function cancelEnrich(reason = "replaced") {
+  const job = activeEnrich;
+  if (!job) return;
+  job.cancelled = true;
+  job.reason = reason;
+  await closeTabs(job);
+  if (activeEnrich?.id === job.id) activeEnrich = null;
+}
+async function cancelAll(reason = "replaced") {
+  await Promise.all([cancelRun(reason), cancelEnrich(reason)]);
 }
 
 async function waitTab(tabId, timeout = 22000) {
@@ -155,17 +168,17 @@ function buildPlan(queries, points, maxTasks) {
 }
 
 async function scanTask(run, task, index, total, context, scanMode) {
-  if (!isActive(run)) throw new Error("CANCELLED");
+  if (!runAlive(run)) throw new Error("CANCELLED");
   const tab = await chrome.tabs.create({ url: mapsUrl(task.query, context, task.anchor), active: false });
   run.tabs.add(tab.id);
   emit(run, { event: "SEARCH_PROGRESS", stage: "opening", current: index, total, query: task.query, area: task.anchor?.label || "texto", text: `Buscando ${task.query} · ${task.anchor?.label || "região"}` });
   try {
     await waitTab(tab.id, 22000);
-    if (!isActive(run)) throw new Error("CANCELLED");
+    if (!runAlive(run)) throw new Error("CANCELLED");
     await sleep(900);
     const response = await sendRetry(tab.id, { cmd: "SCAN_SCROLL", mode: scanMode }, 5);
     if (!response?.ok) throw new Error(response?.error || "SCAN_FAILED");
-    if (!isActive(run)) throw new Error("CANCELLED");
+    if (!runAlive(run)) throw new Error("CANCELLED");
     return response;
   } finally {
     run.tabs.delete(tab.id);
@@ -174,7 +187,7 @@ async function scanTask(run, task, index, total, context, scanMode) {
 }
 
 async function runMarket(message) {
-  await cancelActive("new-search");
+  await cancelAll("new-search");
   const run = { id: String(message.sessionId || `run-${Date.now()}`), cancelled: false, tabs: new Set(), segment: message.segment, region: message.region };
   activeRun = run;
   const cfg = config(String(message.targetMode || "50"));
@@ -191,7 +204,7 @@ async function runMarket(message) {
 
   async function worker() {
     while (true) {
-      if (!isActive(run)) return;
+      if (!runAlive(run)) return;
       const taskIndex = cursor++;
       if (taskIndex >= plan.length) return;
       if (completed >= cfg.minTasks && Number.isFinite(cfg.target) && leads.length >= cfg.target) return;
@@ -199,7 +212,7 @@ async function runMarket(message) {
       const task = plan[taskIndex];
       try {
         const result = await scanTask(run, task, taskIndex + 1, plan.length, context, cfg.scanMode);
-        if (!isActive(run)) return;
+        if (!runAlive(run)) return;
         leads = await setLeads(merge(leads, result.leads || []));
         const added = Math.max(0, leads.length - lastCount);
         lastCount = leads.length;
@@ -217,47 +230,65 @@ async function runMarket(message) {
   }
 
   await Promise.all(Array.from({ length: cfg.concurrency }, () => worker()));
-  if (!isActive(run)) throw new Error("CANCELLED");
+  if (!runAlive(run)) throw new Error("CANCELLED");
   leads = await setLeads(merge(leads, await getLeads()));
   leads = await saveCached(message, leads, center);
   await setLeads(leads);
   emit(run, { event: "BATCH_PROGRESS", stage: "done", current: completed, total: plan.length, accumulated: leads.length, text: `${leads.length} negócios consolidados.` });
-  activeRun = null;
+  if (activeRun?.id === run.id) activeRun = null;
   return { leads, context, errors, searchesDone: completed, plannedSearches: plan.length, targetLabel: message.targetMode === "max" ? "Máxima" : `${message.targetMode}+`, bestCount: leads.length };
 }
 
-async function enrichOne(lead) {
-  if (!lead?.mapsUrl) return lead;
+async function enrichOne(lead, job) {
+  if (!lead?.mapsUrl || !enrichAlive(job)) return lead;
   const tab = await chrome.tabs.create({ url: lead.mapsUrl, active: false });
+  job.tabs.add(tab.id);
   try {
     await waitTab(tab.id, 18000);
+    if (!enrichAlive(job)) throw new Error("CANCELLED");
     await sleep(700);
     const response = await sendRetry(tab.id, { cmd: "EXTRACT_DETAIL" }, 4).catch(() => null);
+    if (!enrichAlive(job)) throw new Error("CANCELLED");
     return response?.ok && response.lead ? merge([lead], [response.lead])[0] : lead;
-  } finally { chrome.tabs.remove(tab.id).catch(() => {}); }
+  } finally {
+    job.tabs.delete(tab.id);
+    chrome.tabs.remove(tab.id).catch(() => {});
+  }
 }
-async function enrichAll(limit = 60) {
+async function enrichAll(limit = 60, sessionId = "") {
+  await cancelEnrich("new-enrich");
+  const job = { id: String(sessionId || `enrich-${Date.now()}`), cancelled: false, tabs: new Set() };
+  activeEnrich = job;
   let leads = await getLeads();
   const queue = leads.map((lead, index) => ({ lead, index, score: (!lead.phone ? 100 : 0) + (!lead.website ? 35 : 0) + (!lead.hours ? 10 : 0) })).filter(x => x.lead?.mapsUrl && x.score > 0).sort((a,b) => b.score - a.score).slice(0, Math.min(Number(limit || 60), 150));
   let cursor = 0, done = 0;
   async function worker() {
     while (true) {
+      if (!enrichAlive(job)) return;
       const pos = cursor++;
       if (pos >= queue.length) return;
       const item = queue[pos];
-      try { leads[item.index] = await enrichOne(item.lead); leads = await setLeads(leads); } catch {}
+      try {
+        leads[item.index] = await enrichOne(item.lead, job);
+        if (enrichAlive(job)) leads = await setLeads(leads);
+      } catch (error) {
+        if (error?.message === "CANCELLED") return;
+      }
+      if (!enrichAlive(job)) return;
       done += 1;
-      emit(null, { event: "ENRICH_PROGRESS", current: done, total: queue.length, lead: leads[item.index] });
+      emit(job, { event: "ENRICH_PROGRESS", current: done, total: queue.length, lead: leads[item.index] });
     }
   }
   await Promise.all(Array.from({ length: Math.min(3, Math.max(1, queue.length)) }, () => worker()));
+  if (!enrichAlive(job)) throw new Error("CANCELLED");
+  if (activeEnrich?.id === job.id) activeEnrich = null;
   return setLeads(leads);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.cmd === "SITE_ENRICH_ONE") return;
   if (message?.cmd === "CANCEL_MARKET_SEARCH") {
-    cancelActive("user-replaced").then(() => sendResponse({ ok: true })).catch(error => sendResponse({ ok: false, error: error.message }));
+    cancelAll("user-replaced").then(() => sendResponse({ ok: true })).catch(error => sendResponse({ ok: false, error: error.message }));
     return true;
   }
   if (message?.cmd === "RUN_MARKET_SEARCH_V4") {
@@ -265,7 +296,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message?.cmd === "GET_STATE") {
-    getLeads().then(leads => sendResponse({ ok: true, leads, sessionId: activeRun?.id || "" })).catch(error => sendResponse({ ok: false, error: error.message }));
+    getLeads().then(leads => sendResponse({ ok: true, leads, sessionId: activeRun?.id || activeEnrich?.id || "" })).catch(error => sendResponse({ ok: false, error: error.message }));
     return true;
   }
   if (message?.cmd === "STORE_LEADS") {
@@ -273,11 +304,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message?.cmd === "ENRICH_ALL") {
-    enrichAll(message.limit).then(leads => sendResponse({ ok: true, leads })).catch(error => sendResponse({ ok: false, error: error.message }));
+    enrichAll(message.limit, message.sessionId).then(leads => sendResponse({ ok: true, leads })).catch(error => sendResponse({ ok: false, cancelled: error?.message === "CANCELLED", error: error.message }));
     return true;
   }
   if (message?.cmd === "CLEAR") {
-    cancelActive("clear").then(() => setLeads([])).then(leads => sendResponse({ ok: true, leads })).catch(error => sendResponse({ ok: false, error: error.message }));
+    cancelAll("clear").then(() => setLeads([])).then(leads => sendResponse({ ok: true, leads })).catch(error => sendResponse({ ok: false, error: error.message }));
     return true;
   }
 });
