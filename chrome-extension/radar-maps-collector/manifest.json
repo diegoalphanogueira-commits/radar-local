@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Coleta negócios do Google Maps com cobertura máxima, sincroniza em tempo real com o Radar Local e preserva a melhor lista por nicho e região.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
