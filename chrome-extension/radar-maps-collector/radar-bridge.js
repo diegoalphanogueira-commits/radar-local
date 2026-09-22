@@ -3,6 +3,7 @@
 
   const SOURCE = "RADAR_LOCAL_WEB";
   const TARGET = "RADAR_MAPS_COLLECTOR";
+  const ASSET_VERSION = "20260922-6";
 
   function isProspectingPage() {
     return /\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname);
@@ -29,10 +30,10 @@
   function injectWorkspaceAssets() {
     if (!isProspectingPage()) return;
     const origin = window.location.origin;
-    injectStylesheet("radarProspectingWorkspaceCss", `${origin}/css/prospecting-workspace.css?v=20260922-5`);
-    injectStylesheet("radarLiveProgressCss", `${origin}/css/radar-live-progress.css?v=20260922-1`);
-    injectPageScript("radarProspectingWorkspaceScript", `${origin}/js/prospecting-workspace.js?v=20260922-5`);
-    injectPageScript("radarSearchOrchestratorScript", `${origin}/js/radar-search-orchestrator-v2.js?v=20260922-1`);
+    injectStylesheet("radarProspectingWorkspaceCss", `${origin}/css/prospecting-workspace.css?v=${ASSET_VERSION}`);
+    injectStylesheet("radarLiveProgressCss", `${origin}/css/radar-live-progress.css?v=${ASSET_VERSION}`);
+    injectPageScript("radarProspectingWorkspaceScript", `${origin}/js/prospecting-workspace.js?v=${ASSET_VERSION}`);
+    injectPageScript("radarSearchOrchestratorScript", `${origin}/js/radar-search-orchestrator-v2.js?v=${ASSET_VERSION}`);
   }
 
   function post(type, payload = {}) {
@@ -71,7 +72,7 @@
       chrome.runtime.sendMessage({
         cmd: "RUN_BATCH_SEARCH",
         queries: Array.isArray(message.queries) ? message.queries : [],
-        maxScrolls: Number(message.maxScrolls) || 32,
+        maxScrolls: Number(message.maxScrolls) || 75,
         replace: message.replace !== false
       }).then(response => {
         post("BATCH_RESULT", { requestId: message.requestId || "", response });
