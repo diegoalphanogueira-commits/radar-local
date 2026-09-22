@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.3.8",
-  "description": "Radar Local V1 RC9: memória por nicho, cobertura preservada, inteligência empresarial e priorização comercial.",
+  "version": "1.3.9",
+  "description": "Radar Local V1 RC10: coleta resiliente, memória canônica por mercado, varredura espacial e priorização comercial.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
   "background": {
-    "service_worker": "background-v1.js"
+    "service_worker": "background-v2.js"
   },
   "action": {
     "default_title": "Radar Maps Collector",
@@ -18,13 +18,13 @@
   "content_scripts": [
     {
       "matches": ["https://www.google.com/maps/*", "https://www.google.com.br/maps/*"],
-      "js": ["content.js"],
+      "js": ["content-v2.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
       "css": ["radar-v1-priority-local.css"],
-      "js": ["radar-bridge.js", "radar-v1-search-memory-local.js", "radar-v1-bootstrap.js", "radar-v1-priority-local.js"],
+      "js": ["radar-bridge-v2.js", "radar-v1-search-memory-local.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
       "run_at": "document_start"
     }
   ]
