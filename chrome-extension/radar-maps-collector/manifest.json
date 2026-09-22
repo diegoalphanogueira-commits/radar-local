@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Radar Maps Collector",
+  "version": "1.0.0",
+  "description": "Coleta dados de negócios carregados no Google Maps e exporta para o Radar Local.",
+  "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
+  "host_permissions": [
+    "https://www.google.com/maps/*",
+    "https://www.google.com.br/maps/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Radar Maps Collector",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.google.com/maps/*", "https://www.google.com.br/maps/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
