@@ -17,18 +17,22 @@
     (document.head || document.documentElement).appendChild(script);
   }
 
+  function injectStylesheet(id, href) {
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = href;
+    (document.head || document.documentElement).appendChild(link);
+  }
+
   function injectWorkspaceAssets() {
     if (!isProspectingPage()) return;
     const origin = window.location.origin;
-    if (!document.getElementById("radarProspectingWorkspaceCss")) {
-      const link = document.createElement("link");
-      link.id = "radarProspectingWorkspaceCss";
-      link.rel = "stylesheet";
-      link.href = `${origin}/css/prospecting-workspace.css?v=20260922-5`;
-      (document.head || document.documentElement).appendChild(link);
-    }
+    injectStylesheet("radarProspectingWorkspaceCss", `${origin}/css/prospecting-workspace.css?v=20260922-5`);
+    injectStylesheet("radarLiveProgressCss", `${origin}/css/radar-live-progress.css?v=20260922-1`);
     injectPageScript("radarProspectingWorkspaceScript", `${origin}/js/prospecting-workspace.js?v=20260922-5`);
-    injectPageScript("radarSearchOrchestratorScript", `${origin}/js/radar-search-orchestrator.js?v=20260922-1`);
+    injectPageScript("radarSearchOrchestratorScript", `${origin}/js/radar-search-orchestrator-v2.js?v=20260922-1`);
   }
 
   function post(type, payload = {}) {
