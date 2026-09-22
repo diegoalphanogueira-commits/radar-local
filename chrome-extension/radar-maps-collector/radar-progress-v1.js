@@ -2,7 +2,6 @@
   "use strict";
 
   const ID = "radarExtractionProgressV1";
-  let phase = "idle";
   let lastCount = 0;
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -103,7 +102,6 @@
   }
 
   function resetProgress() {
-    phase = "discovery";
     lastCount = 0;
     render({
       percent: 3,
@@ -118,17 +116,14 @@
   function handleBatch(message) {
     const current = Number(message.current || 0);
     const total = Number(message.total || 0);
-    const accumulated = Number(message.accumulated ?? message.usefulCount ?? lastCount);
+    const accumulated = Number(message.accumulated ?? lastCount);
 
-    if (["coverage_start", "searching", "pass_done"].includes(message.stage)) {
-      phase = "discovery";
-      let fraction = total > 0 ? current / total : 0.08;
-      if (message.stage === "coverage_start") fraction = 0.02;
-      const percent = 5 + Math.min(1, fraction) * 63;
+    if (["start", "coverage_start", "searching"].includes(message.stage)) {
+      const fraction = total > 0 ? current / total : 0;
       render({
-        percent,
+        percent: 5 + Math.min(1, fraction) * 60,
         title: "Descobrindo empresas...",
-        text: message.text || (total ? `Varredura ${current} de ${total}.` : "Percorrendo o Google Maps."),
+        text: message.text || "Percorrendo o Google Maps.",
         phaseLabel: total ? `Descoberta · ${current}/${total} varreduras` : "Descoberta",
         count: Number.isFinite(accumulated) ? accumulated : lastCount,
         state: "is-running"
@@ -137,11 +132,10 @@
     }
 
     if (message.stage === "done") {
-      phase = "enrich";
       render({
         percent: 70,
         title: "Empresas encontradas",
-        text: message.text || "A descoberta terminou. Agora o Radar vai completar os dados das empresas.",
+        text: message.text || "A descoberta terminou. Agora o Radar vai completar telefone, site e horário.",
         phaseLabel: "Completando dados",
         count: Number.isFinite(accumulated) ? accumulated : lastCount,
         state: "is-running"
@@ -149,27 +143,42 @@
     }
   }
 
-  function handleSearch(message) {
-    if (message.stage !== "done") return;
+  function handlePartial(message) {
+    const current = Number(message.current || 0);
+    const total = Math.max(1, Number(message.total || 1));
     const accumulated = Number(message.accumulated ?? lastCount);
-    const current = Number(message.pass || 0);
-    const total = Number(message.totalPasses || 0);
-    const fraction = total > 0 ? current / total : 0.35;
+    const percent = 8 + Math.min(1, current / total) * 60;
+
     render({
-      percent: 7 + Math.min(1, fraction) * 60,
+      percent,
       title: "Descobrindo empresas...",
-      text: message.text || `${accumulated || lastCount} negócios acumulados até agora.`,
+      text: message.text || `${accumulated} negócios acumulados até agora.`,
+      phaseLabel: `Descoberta · ${current}/${total} varreduras`,
+      count: accumulated,
+      state: "is-running"
+    });
+  }
+
+  function handleSearch(message) {
+    if (message.stage !== "opening") return;
+    const current = Number(message.current || 0);
+    const total = Number(message.total || 0);
+    const existing = Number($("#repPercent")?.textContent?.replace("%", "") || 5);
+    render({
+      percent: Math.max(5, Math.min(66, existing)),
+      title: "Descobrindo empresas...",
+      text: message.text || `Abrindo varredura ${current}${total ? ` de ${total}` : ""}.`,
       phaseLabel: total ? `Descoberta · ${current}/${total}` : "Descoberta",
-      count: Number.isFinite(accumulated) ? accumulated : lastCount,
+      count: lastCount,
       state: "is-running"
     });
   }
 
   function handleEnrich(message) {
-    phase = "enrich";
     const current = Number(message.current || 0);
     const total = Math.max(1, Number(message.total || 1));
     const percent = 70 + Math.min(1, current / total) * 30;
+
     render({
       percent,
       title: current >= total ? "Mapeamento concluído" : "Completando contatos...",
@@ -190,17 +199,27 @@
     const sync = () => {
       const value = String(node.innerText || "");
       if (/mapeamento conclu[ií]do/i.test(value)) {
-        render({ percent: 100, title: "Mapeamento concluído", text: value.replace(/mapeamento conclu[ií]do/i, "").trim() || "Extração finalizada.", phaseLabel: "Concluído", count: lastCount, state: "is-done" });
+        render({
+          percent: 100,
+          title: "Mapeamento concluído",
+          text: value.replace(/mapeamento conclu[ií]do/i, "").trim() || "Extração finalizada.",
+          phaseLabel: "Concluído",
+          count: lastCount,
+          state: "is-done"
+        });
       } else if (/interrompida|falha|erro/i.test(value)) {
-        render({ percent: Math.max(4, Number($("#repPercent")?.textContent?.replace("%", "") || 4)), title: "Coleta parcial", text: value.trim(), phaseLabel: "Atenção", count: lastCount, state: "is-error" });
+        const current = Math.max(4, Number($("#repPercent")?.textContent?.replace("%", "") || 4));
+        render({ percent: current, title: "Coleta parcial", text: value.trim(), phaseLabel: "Atenção", count: lastCount, state: "is-error" });
       }
     };
+
     new MutationObserver(sync).observe(node, { childList: true, subtree: true, characterData: true, attributes: true });
   }
 
   chrome.runtime.onMessage.addListener(message => {
     if (!message?.event) return;
     if (message.event === "BATCH_PROGRESS") handleBatch(message);
+    else if (message.event === "MARKET_PARTIAL") handlePartial(message);
     else if (message.event === "SEARCH_PROGRESS") handleSearch(message);
     else if (message.event === "ENRICH_PROGRESS") handleEnrich(message);
   });
@@ -217,6 +236,7 @@
   });
 
   observer.observe(document.documentElement, { childList: true, subtree: true });
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       forceAutoEnrich();
