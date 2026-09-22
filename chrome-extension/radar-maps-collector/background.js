@@ -74,14 +74,14 @@ async function runSearch(query, maxScrolls = 45) {
   const cleanQuery = String(query || "").trim();
   if (!cleanQuery) throw new Error("Informe segmento e região.");
 
-  broadcast({ event: "SEARCH_PROGRESS", stage: "opening", text: "Abrindo a busca no Google Maps..." });
+  broadcast({ event: "SEARCH_PROGRESS", stage: "opening", text: "Abrindo a busca no Google Maps...", query: cleanQuery });
   const url = `https://www.google.com/maps/search/${encodeURIComponent(cleanQuery)}`;
   const tab = await chrome.tabs.create({ url, active: false });
 
   try {
     await waitForTabComplete(tab.id, 35000).catch(() => {});
-    await sleep(2500);
-    broadcast({ event: "SEARCH_PROGRESS", stage: "scanning", text: "Percorrendo os resultados da região..." });
+    await sleep(2200);
+    broadcast({ event: "SEARCH_PROGRESS", stage: "scanning", text: "Percorrendo os resultados da região...", query: cleanQuery });
 
     const response = await sendToTabWithRetry(tab.id, { cmd: "SCAN_SCROLL", maxScrolls }, 6);
     if (!response?.ok) throw new Error(response?.error || "Falha ao ler os resultados do Maps.");
@@ -94,12 +94,51 @@ async function runSearch(query, maxScrolls = 45) {
       event: "SEARCH_PROGRESS",
       stage: "done",
       text: `${response.leads?.length || 0} negócios encontrados nesta busca.`,
+      query: cleanQuery,
       count: response.leads?.length || 0
     });
     return leads;
   } finally {
     await chrome.tabs.remove(tab.id).catch(() => {});
   }
+}
+
+async function runBatchSearch(rawQueries, maxScrolls = 32, replace = true) {
+  const queries = [...new Set((Array.isArray(rawQueries) ? rawQueries : [])
+    .map(query => String(query || "").trim())
+    .filter(Boolean))].slice(0, 12);
+  if (!queries.length) throw new Error("Nenhuma busca válida foi informada.");
+  if (replace) await setLeads([]);
+
+  const errors = [];
+  for (let index = 0; index < queries.length; index += 1) {
+    const query = queries[index];
+    broadcast({
+      event: "BATCH_PROGRESS",
+      stage: "searching",
+      current: index + 1,
+      total: queries.length,
+      query,
+      text: `Busca ${index + 1} de ${queries.length}: ${query}`
+    });
+    try {
+      await runSearch(query, Math.max(10, Math.min(Number(maxScrolls) || 32, 60)));
+    } catch (error) {
+      errors.push({ query, error: error?.message || "SEARCH_FAILED" });
+      console.warn("[RadarMapsCollector] batch", query, error);
+    }
+    await sleep(800 + Math.round(Math.random() * 600));
+  }
+
+  const leads = await getLeads();
+  broadcast({
+    event: "BATCH_PROGRESS",
+    stage: "done",
+    current: queries.length,
+    total: queries.length,
+    text: `${leads.length} negócios únicos acumulados.`
+  });
+  return { leads, errors, queries };
 }
 
 async function enrichOne(lead) {
@@ -178,6 +217,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         leads = await enrichAll(Number(message.enrichLimit) || 60);
       }
       sendResponse({ ok: true, leads });
+      return;
+    }
+
+    if (message?.cmd === "RUN_BATCH_SEARCH") {
+      const result = await runBatchSearch(message.queries, Number(message.maxScrolls) || 32, message.replace !== false);
+      sendResponse({ ok: true, ...result });
       return;
     }
 
