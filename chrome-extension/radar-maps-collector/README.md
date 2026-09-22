@@ -1,36 +1,64 @@
 # Radar Maps Collector
 
-Extensão Chromium (Manifest V3) para coletar os negócios que o próprio Google Maps carregou no navegador e exportar a lista para o Radar Local.
+Extensão Chromium (Manifest V3) que funciona como braço do Radar Local dentro do Google Maps.
 
-## O que coleta
+## Fluxo principal
+
+Depois de instalada, você não precisa abrir a extensão para iniciar uma coleta:
+
+1. abra `https://radar.metodoflow360.com.br/prospeccao.html`;
+2. informe o segmento e a região;
+3. clique em **Mapear no Google**;
+4. o Radar envia a busca para a extensão;
+5. a extensão abre o Google Maps em segundo plano, percorre o feed e coleta os negócios carregados;
+6. opcionalmente abre as fichas em segundo plano para completar telefone, site e horário;
+7. devolve os registros diretamente ao Radar;
+8. o Radar monta o mapa, os cards e tenta cruzar cada negócio com Receita/CNPJ/QSA.
+
+CSV/JSON continua disponível como fallback para importar dados de outras extensões.
+
+## O que coleta do Maps carregado no navegador
 
 - nome;
 - categoria;
 - nota média;
 - quantidade de avaliações;
 - endereço;
-- coordenadas e link do Google Maps;
-- telefone, site e horário quando a etapa de detalhes encontra esses campos na ficha.
+- coordenadas e link do Maps;
+- telefone;
+- site;
+- horário, quando disponível na ficha.
+
+## O que o Radar adiciona
+
+Quando existe correspondência suficientemente segura com a base pública do CNPJ:
+
+- CNPJ;
+- razão social;
+- CNAE;
+- e-mail cadastral;
+- QSA;
+- sócio/administrador provável;
+- indicador de confiança do match.
 
 ## Instalação local
 
-1. Abra `chrome://extensions` no Chrome, Edge ou Brave.
-2. Ative **Modo do desenvolvedor**.
-3. Clique em **Carregar sem compactação**.
-4. Selecione a pasta `chrome-extension/radar-maps-collector`.
-5. Fixe a extensão na barra do navegador.
+1. abra `chrome://extensions` no Chrome, Edge ou Brave;
+2. ative **Modo do desenvolvedor**;
+3. clique em **Carregar sem compactação**;
+4. selecione a pasta `chrome-extension/radar-maps-collector`;
+5. recarregue a página do Radar Local;
+6. a Prospecção deve mostrar **Coletor do Radar conectado**.
 
-## Uso
+## Fallback manual
 
-1. Faça uma busca no Google Maps, por exemplo `clínica de estética Jardim Presidente Dutra Guarulhos`.
-2. Abra a extensão.
-3. Use **Rolar e capturar mais resultados** para percorrer o feed.
-4. Opcionalmente use **Abrir fichas e completar detalhes** para telefone/site/horário.
-5. Exporte JSON ou CSV.
-6. No Radar Local > Prospecção, clique em **Importar coleta**.
+Se o Google alterar a interface e o coletor parar temporariamente:
 
-## Arquitetura
+1. use sua extensão atual de extração;
+2. exporte CSV ou JSON;
+3. no Radar, clique em **Importar coleta**;
+4. o mapa, filtros e cruzamento CNPJ/QSA continuam funcionando.
 
-O Google Maps é usado como fonte visual de descoberta dentro da sessão do navegador. O Radar recebe apenas o arquivo exportado e usa a coleta para montar mapa, filtros e análise. Receita Federal/QSA continuam sendo uma camada separada.
+## Observações
 
-A extensão não usa Google Places API, não armazena credenciais e não tenta contornar CAPTCHA ou outros mecanismos de controle do Google. Se o Google bloquear/limitar a navegação, a coleta deve ser interrompida e retomada manualmente.
+A extensão não usa Google Places API, não armazena credenciais e não tenta contornar CAPTCHA ou mecanismos de bloqueio. Ela atua somente sobre a página carregada no navegador. O uso e a extração de conteúdo do Google Maps podem estar sujeitos aos termos do Google; valide o uso pretendido antes de operar em escala.
