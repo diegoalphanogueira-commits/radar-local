@@ -121,13 +121,43 @@
     return "";
   }
 
+  function extractPhone() {
+    const selectors = [
+      'button[data-item-id^="phone:tel:"]',
+      'a[href^="tel:"]',
+      'button[aria-label*="telefone" i]',
+      'button[aria-label*="phone" i]',
+      'button[aria-label*="ligar" i]',
+      '[data-tooltip*="telefone" i]',
+      '[data-tooltip*="phone" i]'
+    ];
+
+    for (const selector of selectors) {
+      const el = document.querySelector(selector);
+      if (!el) continue;
+      const itemId = el.getAttribute("data-item-id") || "";
+      const href = el.getAttribute("href") || "";
+      const aria = el.getAttribute("aria-label") || "";
+      const value = text(el) || aria || href || itemId;
+      const phone = digits(value.replace(/^phone:tel:/i, "").replace(/^tel:/i, ""));
+      if (phone.length >= 10) return phone;
+    }
+
+    const body = String(document.body?.innerText || "");
+    const match = body.match(/(?:\+?55\s*)?\(?\d{2}\)?\s*\d{4,5}[-\s]?\d{4}/);
+    return match ? digits(match[0]) : "";
+  }
+
   function extractDetail() {
     const name = detailValue(["h1.DUwDvf", "h1"]);
-    const address = detailValue(['button[data-item-id="address"] .Io6YTe','button[data-item-id="address"]']);
-    let phone = detailValue(['button[data-item-id^="phone:tel:"] .Io6YTe','button[data-item-id^="phone:tel:"]']);
-    const phoneButton = document.querySelector('button[data-item-id^="phone:tel:"]');
-    if (!phone && phoneButton) phone = phoneButton.getAttribute("data-item-id")?.replace(/^phone:tel:/, "") || "";
-    const websiteEl = document.querySelector('a[data-item-id="authority"],a[aria-label*="site" i],a[aria-label*="website" i]');
+    const address = detailValue([
+      'button[data-item-id="address"] .Io6YTe',
+      'button[data-item-id="address"]',
+      'button[aria-label*="endereço" i]',
+      'button[aria-label*="address" i]'
+    ]);
+    const phone = extractPhone();
+    const websiteEl = document.querySelector('a[data-item-id="authority"],a[aria-label*="site" i],a[aria-label*="website" i],a[data-tooltip*="site" i]');
     const website = websiteEl?.href || "";
     const category = detailValue(['button[jsaction*="category"]','.DkEaL']);
     const ratingLabel = detailValue(['div.F7nice span[aria-hidden="true"]','span[role="img"][aria-label*="estrela" i]','span[role="img"][aria-label*="star" i]']);
@@ -139,14 +169,14 @@
       const n = Number(reviewMatch[1].replace(/\./g, "").replace(",", "."));
       if (Number.isFinite(n)) reviews = Math.round(n);
     }
-    const hours = detailValue(['div[aria-label*="horário" i]','div[aria-label*="hours" i]','button[data-item-id*="oh"]']);
+    const hours = detailValue(['div[aria-label*="horário" i]','div[aria-label*="hours" i]','button[data-item-id*="oh"]','button[aria-label*="horário" i]','button[aria-label*="hours" i]']);
     const mapsUrl = location.href;
     const coords = parseCoords(mapsUrl);
 
     return {
       name,
       address,
-      phone: digits(phone),
+      phone,
       website,
       category,
       rating,
@@ -171,7 +201,7 @@
       return true;
     }
     if (message?.cmd === "EXTRACT_DETAIL") {
-      setTimeout(() => sendResponse({ ok: true, lead: extractDetail() }), 450);
+      setTimeout(() => sendResponse({ ok: true, lead: extractDetail() }), 650);
       return true;
     }
   });
