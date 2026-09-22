@@ -3,7 +3,7 @@
 
   const SOURCE = "RADAR_LOCAL_WEB";
   const TARGET = "RADAR_MAPS_COLLECTOR";
-  const ASSET_VERSION = "20260922-8";
+  const ASSET_VERSION = "20260922-9";
   const META_KEY = "radarMapsImportedMetaV2";
   const LEADS_KEY = "radarMapsImportedLeadsV2";
 
@@ -15,8 +15,58 @@
     .replace(/\s+/g, " ")
     .trim();
 
+  const QUERY_GROUPS = [
+    {
+      test: /odont|dentist|dental/,
+      terms: [
+        "dentista", "clínica odontológica", "odontologia", "consultório odontológico",
+        "cirurgião-dentista", "ortodontista", "implantodontista", "implante dentário",
+        "odontopediatra", "endodontista", "prótese dentária", "clareamento dental"
+      ]
+    },
+    {
+      test: /estet|beleza|harmoniza|depila|limpeza de pele|spa/,
+      terms: [
+        "clínica de estética", "centro de estética", "estética facial", "estética corporal",
+        "estética avançada", "harmonização facial", "limpeza de pele", "depilação a laser",
+        "esteticista", "spa estético", "clínica de beleza", "tratamento estético"
+      ]
+    },
+    {
+      test: /manicure|unha|nail|esmalter/,
+      terms: [
+        "manicure", "pedicure", "esmalteria", "nail designer", "salão de unhas",
+        "alongamento de unhas", "unhas em gel", "manicure e pedicure", "studio de unhas"
+      ]
+    },
+    {
+      test: /pet|veterin|banho e tosa/,
+      terms: [
+        "pet shop", "petshop", "banho e tosa", "clínica veterinária", "veterinário",
+        "hospital veterinário", "hotel para cães", "creche para cães", "loja de ração"
+      ]
+    }
+  ];
+
   function isProspectingPage() {
     return /\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname);
+  }
+
+  function pageContext() {
+    const region = String(document.querySelector("#mapsSearchCity")?.value || "").trim();
+    const term = String(document.querySelector("#mapsSearchTerm")?.value || "").trim();
+    const radiusKm = Number(document.querySelector("#v4Radius")?.value || 5) || 5;
+    return { region, term, radiusKm };
+  }
+
+  function expandQueries(inputQueries) {
+    const { term, region } = pageContext();
+    const normalizedTerm = normalize(term);
+    const group = QUERY_GROUPS.find(item => item.test.test(normalizedTerm));
+    const base = Array.isArray(inputQueries) ? inputQueries : [];
+    if (!group || !region) return [...new Set(base.map(item => String(item || "").trim()).filter(Boolean))].slice(0, 12);
+    const extras = group.terms.map(keyword => `${keyword} ${region}`.trim());
+    return [...new Set([...base, ...extras].map(item => String(item || "").trim()).filter(Boolean))].slice(0, 12);
   }
 
   function sanitizeSavedCenter() {
@@ -88,13 +138,16 @@
     }
 
     if (message.type === "START_SEARCH") {
+      const context = pageContext();
       chrome.runtime.sendMessage({
         cmd: "RUN_SEARCH",
         query: String(message.query || "").trim(),
-        maxScrolls: Number(message.maxScrolls) || 75,
+        maxScrolls: Number(message.maxScrolls) || 85,
         replace: message.replace !== false,
         enrich: message.enrich !== false,
-        enrichLimit: Number(message.enrichLimit) || 60
+        enrichLimit: Number(message.enrichLimit) || 60,
+        region: context.region,
+        radiusKm: context.radiusKm
       }).then(response => {
         post("SEARCH_RESULT", { requestId: message.requestId || "", response });
       }).catch(error => {
@@ -104,11 +157,14 @@
     }
 
     if (message.type === "START_BATCH_SEARCH") {
+      const context = pageContext();
       chrome.runtime.sendMessage({
         cmd: "RUN_BATCH_SEARCH",
-        queries: Array.isArray(message.queries) ? message.queries : [],
-        maxScrolls: Number(message.maxScrolls) || 75,
-        replace: message.replace !== false
+        queries: expandQueries(message.queries),
+        maxScrolls: Math.max(85, Number(message.maxScrolls) || 85),
+        replace: message.replace !== false,
+        region: context.region,
+        radiusKm: context.radiusKm
       }).then(response => {
         post("BATCH_RESULT", { requestId: message.requestId || "", response });
       }).catch(error => {
