@@ -11,6 +11,51 @@ importScripts("background.js", "site-enrichment.js");
 
   const originalRunBatchSearch = runBatchSearch;
 
+  const normalize = value => String(value || "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ").trim();
+
+  const QUERY_FAMILIES = [
+    {
+      id: "barbearia",
+      test: /barbear|barber|corte masculino|barba e cabelo|salao masculino/,
+      terms: ["barbearia","barbeiro","barber shop","barbearia masculina","corte masculino","barba e cabelo","salão masculino","barbearia premium","cabelo masculino","barbearia perto de mim"]
+    },
+    {
+      id: "odontologia",
+      test: /odont|dentist|dental|ortodont|implantodont|endodont/,
+      terms: ["dentista","clínica odontológica","odontologia","consultório odontológico","cirurgião dentista","ortodontista","implantodontista","implante dentário","odontopediatra","endodontista","prótese dentária","clareamento dental"]
+    },
+    {
+      id: "manicure",
+      test: /manicure|pedicure|esmalter|nail|unha/,
+      terms: ["manicure","pedicure","manicure e pedicure","esmalteria","nail designer","alongamento de unhas","unhas em gel","salão de manicure","studio de unhas","designer de unhas"]
+    },
+    {
+      id: "estetica",
+      test: /estet|harmoniza|depila|limpeza de pele|spa estet|beleza/,
+      terms: ["clínica de estética","centro de estética","estética facial","estética corporal","estética avançada","harmonização facial","limpeza de pele","depilação a laser","esteticista","spa estético"]
+    },
+    {
+      id: "podologia",
+      test: /podolog/,
+      terms: ["podologia","clínica de podologia","podólogo","podóloga","tratamento dos pés","podologia clínica"]
+    }
+  ];
+
+  function canonicalQueries(rawQueries, context = {}) {
+    const queries = Array.isArray(rawQueries) ? rawQueries : [];
+    const region = String(context.region || "").trim();
+    if (!region || !queries.length) return queries;
+
+    const haystack = normalize(queries.join(" "));
+    const family = QUERY_FAMILIES.find(item => item.test.test(haystack));
+    if (!family) return queries;
+
+    return family.terms.map(term => `${term} ${region}`.trim());
+  }
+
   function finitePoint(point) {
     return !!point && Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng));
   }
@@ -29,12 +74,7 @@ importScripts("background.js", "site-enrichment.js");
     if (finalCount > 0 && spatial && successRate >= 0.9 && queryCount >= 4) level = "high";
     else if (finalCount > 0 && successRate >= 0.65) level = "medium";
 
-    const labels = {
-      high: "Alta",
-      medium: "Média",
-      low: "Baixa"
-    };
-
+    const labels = { high: "Alta", medium: "Média", low: "Baixa" };
     const descriptions = {
       high: "Varredura espacial concluída com poucas ou nenhuma falha.",
       medium: "A coleta foi útil, mas parte da cobertura pode ter ficado incompleta.",
@@ -62,9 +102,10 @@ importScripts("background.js", "site-enrichment.js");
     };
   }
 
-  runBatchSearch = async function(...args) {
+  runBatchSearch = async function(rawQueries, maxScrolls, replace, rawContext) {
     const startedAt = Date.now();
-    const result = await originalRunBatchSearch(...args);
+    const expandedQueries = canonicalQueries(rawQueries, rawContext || {});
+    const result = await originalRunBatchSearch(expandedQueries, maxScrolls, replace, rawContext);
     const report = coverageReport(result, Date.now() - startedAt);
 
     broadcast({
