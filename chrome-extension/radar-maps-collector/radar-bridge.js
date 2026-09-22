@@ -8,6 +8,15 @@
     return /\/prospeccao(?:\.html)?\/?$/i.test(window.location.pathname);
   }
 
+  function injectPageScript(id, src) {
+    if (document.getElementById(id)) return;
+    const script = document.createElement("script");
+    script.id = id;
+    script.src = src;
+    script.defer = true;
+    (document.head || document.documentElement).appendChild(script);
+  }
+
   function injectWorkspaceAssets() {
     if (!isProspectingPage()) return;
     const origin = window.location.origin;
@@ -15,16 +24,11 @@
       const link = document.createElement("link");
       link.id = "radarProspectingWorkspaceCss";
       link.rel = "stylesheet";
-      link.href = `${origin}/css/prospecting-workspace.css?v=20260922-4`;
+      link.href = `${origin}/css/prospecting-workspace.css?v=20260922-5`;
       (document.head || document.documentElement).appendChild(link);
     }
-    if (!document.getElementById("radarProspectingWorkspaceScript")) {
-      const script = document.createElement("script");
-      script.id = "radarProspectingWorkspaceScript";
-      script.src = `${origin}/js/prospecting-workspace.js?v=20260922-4`;
-      script.defer = true;
-      (document.head || document.documentElement).appendChild(script);
-    }
+    injectPageScript("radarProspectingWorkspaceScript", `${origin}/js/prospecting-workspace.js?v=20260922-5`);
+    injectPageScript("radarSearchOrchestratorScript", `${origin}/js/radar-search-orchestrator.js?v=20260922-1`);
   }
 
   function post(type, payload = {}) {
