@@ -128,7 +128,13 @@
     const tokens = regionCoreTokens(region);
     if (!tokens.length) return false;
     const address = normalize(`${lead?.address || ""} ${lead?.neighborhood || ""} ${lead?.city || ""}`);
-    const matched = tokens.filter(token => address.includes(token)).length;
+    const addressTokens = address.split(" ").filter(Boolean);
+    const matchesToken = token => addressTokens.some(candidate => {
+      if (candidate === token) return true;
+      if (token.length >= 4 && candidate.length >= 4) return token.startsWith(candidate) || candidate.startsWith(token);
+      return false;
+    });
+    const matched = tokens.filter(matchesToken).length;
     return tokens.length === 1 ? matched === 1 : matched >= Math.min(2, tokens.length);
   }
 
