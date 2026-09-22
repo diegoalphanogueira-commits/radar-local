@@ -22,7 +22,10 @@
       chrome.runtime.sendMessage({
         cmd: "RUN_SEARCH",
         query: String(message.query || "").trim(),
-        maxScrolls: Number(message.maxScrolls) || 45
+        maxScrolls: Number(message.maxScrolls) || 45,
+        replace: message.replace !== false,
+        enrich: message.enrich !== false,
+        enrichLimit: Number(message.enrichLimit) || 60
       }).then(response => {
         post("SEARCH_RESULT", { requestId: message.requestId || "", response });
       }).catch(error => {
