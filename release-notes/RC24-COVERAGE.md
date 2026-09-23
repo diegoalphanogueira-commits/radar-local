@@ -1,0 +1,1 @@
+A descoberta usa o termo exato pesquisado. A primeira varredura percorre o feed central até o fim. Nos modos 50+/100+/Máxima, a mesma aba é reutilizada em pontos adicionais do raio para aumentar a cobertura sem trocar o termo. O enriquecimento abre somente as fichas que ainda precisam de telefone/site.
