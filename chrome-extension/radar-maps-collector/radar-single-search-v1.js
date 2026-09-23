@@ -10,15 +10,21 @@
     const controls = document.querySelector("#v4SearchControls");
 
     if (top) {
-      top.innerHTML = `Mapear região completa <span>→</span>`;
-      top.classList.add("radar-single-search-button");
+      const nextLabel = `Mapear região completa <span>→</span>`;
+      if (top.innerHTML !== nextLabel) top.innerHTML = nextLabel;
+      if (!top.classList.contains("radar-single-search-button")) top.classList.add("radar-single-search-button");
+
       if (batch) {
-        top.disabled = !!batch.disabled;
-        top.title = batch.title || "Mapeia a região e completa os contatos automaticamente";
+        const shouldDisable = !!batch.disabled;
+        const nextTitle = batch.title || "Mapeia a região e completa os contatos automaticamente";
+        if (top.disabled !== shouldDisable) top.disabled = shouldDisable;
+        if (top.title !== nextTitle) top.title = nextTitle;
       }
     }
 
-    controls?.classList.add("radar-single-search-controls");
+    if (controls && !controls.classList.contains("radar-single-search-controls")) {
+      controls.classList.add("radar-single-search-controls");
+    }
   }
 
   document.addEventListener("click", event => {
@@ -36,7 +42,12 @@
   }, true);
 
   const observer = new MutationObserver(syncSingleSearchUi);
-  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "class"] });
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["disabled"]
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", syncSingleSearchUi, { once: true });
