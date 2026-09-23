@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.10",
-  "description": "Radar Local V1 RC21: uma única rolagem contínua até o fim, captura telefone visível no card e botões de prospecção sempre legíveis.",
+  "version": "1.4.11",
+  "description": "Radar Local V1 RC22: detecta o painel rolável real do Google Maps, desce visivelmente até o fim e só então inicia o enriquecimento.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -18,7 +18,7 @@
   "content_scripts": [
     {
       "matches": ["https://www.google.com/maps/*", "https://www.google.com.br/maps/*"],
-      "js": ["content-v8.js"],
+      "js": ["content-v9.js"],
       "run_at": "document_idle"
     },
     {
