@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.6",
-  "description": "Radar Local V1 RC17: cobertura por raio, todos os leads preservados, progresso real e enriquecimento resiliente.",
+  "version": "1.4.7",
+  "description": "Radar Local V1 RC18: recalcula o centro da região em toda busca, progresso real e enriquecimento resiliente.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -23,8 +23,8 @@
     },
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
-      "css": ["radar-v1-priority-local.css", "radar-coverage-target.css", "radar-progress-v1.css", "radar-radius-view-v1.css"],
-      "js": ["radar-runtime-v7.js", "radar-progress-v2.js", "radar-radius-view-v1.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
+      "css": ["radar-v1-priority-local.css", "radar-coverage-target.css", "radar-progress-v1.css"],
+      "js": ["radar-runtime-v8.js", "radar-progress-v2.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
       "run_at": "document_start"
     }
   ]
