@@ -1,0 +1,107 @@
+/* RC25 — um único CTA de mapeamento + acabamento mobile */
+#v4BatchSearch,
+#v4Enrich,
+#mapsCollectorStatus,
+.maps-compliance-note {
+  display: none !important;
+}
+
+#v4SearchControls.radar-single-search-controls {
+  display: grid !important;
+  grid-template-columns: minmax(140px, 210px) minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+#v4SearchControls.radar-single-search-controls .v4-radius-field,
+#v4SearchControls.radar-single-search-controls #radarCoverageControl,
+#v4SearchControls.radar-single-search-controls .v4-batch-status {
+  min-width: 0 !important;
+}
+
+#v4SearchControls.radar-single-search-controls #radarCoverageControl {
+  grid-column: 1 !important;
+}
+
+#v4SearchControls.radar-single-search-controls .v4-batch-status {
+  grid-column: 2 !important;
+  grid-row: 1 / span 2 !important;
+}
+
+#mapsOpenGoogleButton.radar-single-search-button {
+  min-height: 48px !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 760px) {
+  .maps-search-row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .maps-search-row .field,
+  #mapsOpenGoogleButton.radar-single-search-button {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  #mapsOpenGoogleButton.radar-single-search-button {
+    min-height: 52px !important;
+    justify-content: center !important;
+  }
+
+  #v4SearchControls.radar-single-search-controls {
+    grid-template-columns: 1fr !important;
+  }
+
+  #v4SearchControls.radar-single-search-controls #radarCoverageControl,
+  #v4SearchControls.radar-single-search-controls .v4-batch-status {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  .radar-extraction-progress,
+  .v4-workspace,
+  .v4-header,
+  .v4-toolbar,
+  .v4-main-grid,
+  .v4-map-panel,
+  .v4-list-panel {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .v4-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .v4-card-head,
+  .v4-status-row,
+  .v4-card-actions,
+  .v4-data-grid {
+    min-width: 0 !important;
+  }
+
+  .v4-data-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .v4-card-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .v4-card-actions > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 460px) {
+  .v4-data-grid,
+  .v4-card-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
