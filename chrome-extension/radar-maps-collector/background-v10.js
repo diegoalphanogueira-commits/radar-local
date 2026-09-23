@@ -3,6 +3,32 @@
 // atingiu a cobertura solicitada dentro do raio.
 importScripts("background-v9.js");
 
+function rc25PhoneDigits(value) {
+  let phone = String(value || "").replace(/\D/g, "");
+  if (phone.length > 11 && phone.startsWith("55")) phone = phone.slice(2);
+  return phone.length === 10 || phone.length === 11 ? phone : "";
+}
+
+function rc25WithWhatsApp(lead) {
+  const out = { ...(lead || {}) };
+  const website = String(out.website || "").trim();
+  if (!out.whatsapp && /(?:wa\.me\/|api\.whatsapp\.com\/send|whatsapp\.com\/send)/i.test(website)) {
+    out.whatsapp = website;
+    out.whatsappStatus = "explicit";
+  }
+  const phone = rc25PhoneDigits(out.phone || out.companyPhone);
+  if (phone && !out.whatsappCandidate) {
+    out.whatsappCandidate = `https://wa.me/55${phone}`;
+    if (!out.whatsappStatus) out.whatsappStatus = "phone-candidate";
+  }
+  return out;
+}
+
+const rc25BaseSetLeads = setLeads;
+setLeads = async function setLeadsRc25(rows) {
+  return rc25BaseSetLeads((Array.isArray(rows) ? rows : []).map(rc25WithWhatsApp));
+};
+
 const rc25TargetCount = mode => mode === "30" ? 30 : mode === "50" ? 50 : mode === "100" ? 100 : Infinity;
 
 runMarket = async function runMarketRc25(message) {
@@ -23,7 +49,7 @@ runMarket = async function runMarketRc25(message) {
   const context = { region: message.region, radiusKm: Number(message.radiusKm || 5), center };
   const cached = await getCached(message);
   let leads = merge(cached?.leads || [], message.seedLeads || []);
-  await setLeads(leads);
+  leads = await setLeads(leads);
 
   const mode = ["30", "50", "100", "max"].includes(String(message.targetMode)) ? String(message.targetMode) : "50";
   const target = rc25TargetCount(mode);
