@@ -9,7 +9,7 @@
     "https://*/*"
   ],
   "background": {
-    "service_worker": "background-v9.js"
+    "service_worker": "background-v10.js"
   },
   "action": {
     "default_title": "Radar Maps Collector",
