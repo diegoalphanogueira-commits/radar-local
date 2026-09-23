@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.8",
-  "description": "Radar Local V1 RC19: uma única busca principal no Google Maps, carregamento contínuo da lista e enriquecimento posterior.",
+  "version": "1.4.9",
+  "description": "Radar Local V1 RC20: uma única busca principal, varredura até o fim real da lista e enriquecimento somente depois.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -18,7 +18,7 @@
   "content_scripts": [
     {
       "matches": ["https://www.google.com/maps/*", "https://www.google.com.br/maps/*"],
-      "js": ["content-v6.js"],
+      "js": ["content-v7.js"],
       "run_at": "document_idle"
     },
     {
