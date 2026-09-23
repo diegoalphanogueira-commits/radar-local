@@ -1,0 +1,2 @@
+Radar Maps Collector 1.4.13 (RC24)
+Carregar a pasta chrome-extension/radar-maps-collector em chrome://extensions.
