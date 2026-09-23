@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.12",
-  "description": "Radar Local V1 RC23: restaura o carregamento completo do feed do Google Maps antes do enriquecimento.",
+  "version": "1.4.13",
+  "description": "Radar Local V1 RC24: cobertura espacial na mesma aba, lista principal até o fim e enriquecimento rápido de telefone/site.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
   "background": {
-    "service_worker": "background-v8.js"
+    "service_worker": "background-v9.js"
   },
   "action": {
     "default_title": "Radar Maps Collector",
