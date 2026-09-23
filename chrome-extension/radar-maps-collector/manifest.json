@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Radar Maps Collector",
-  "version": "1.4.13",
-  "description": "Radar Local V1 RC24: cobertura espacial na mesma aba, lista principal até o fim e enriquecimento rápido de telefone/site.",
+  "version": "1.4.14",
+  "description": "Radar Local V1 RC25: um único botão de busca, interface mobile e varredura adaptativa mais rápida do Google Maps.",
   "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
   "host_permissions": [
     "http://*/*",
@@ -18,13 +18,13 @@
   "content_scripts": [
     {
       "matches": ["https://www.google.com/maps/*", "https://www.google.com.br/maps/*"],
-      "js": ["content-v10.js"],
+      "js": ["content-v11.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://radar.metodoflow360.com.br/*"],
-      "css": ["radar-v1-priority-local.css", "radar-coverage-target.css", "radar-progress-v1.css", "radar-actions-fix-v1.css"],
-      "js": ["radar-runtime-v8.js", "radar-progress-v2.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js"],
+      "css": ["radar-v1-priority-local.css", "radar-coverage-target.css", "radar-progress-v1.css", "radar-actions-fix-v1.css", "radar-single-search-v1.css"],
+      "js": ["radar-runtime-v8.js", "radar-progress-v2.js", "radar-v1-bootstrap-v2.js", "radar-v1-priority-local.js", "radar-single-search-v1.js"],
       "run_at": "document_start"
     }
   ]
